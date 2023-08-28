@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Created by Alec Glisman (GitHub: @alec-glisman) on December 31st, 2021
-# NOTE: Script assumes that it is called from the base directory of the project
+# NOTE: Script assumes that it is called from the software directory of the project
 # REVIEW: Cannot install on MacOSX, fails on building step
 
 # built-in shell options
@@ -65,8 +65,9 @@ cd "${mpi_name}" || exit
 
 # configure
 ./configure \
-    --with-cuda="${cuda_toolkit}" \
     --prefix="${mpi_install_dir}" \
+    --with-cuda="${cuda_toolkit}" \
+    --with-ucx="${ucx_install_dir}" \
     CXX="${cxx_compiler}" \
     CC="${c_compiler}" \
     PYTHON_BIN="${python_exe}"
@@ -74,4 +75,6 @@ cd "${mpi_name}" || exit
 # install
 make -j24 all install
 
+# remove unpacked directory
 cd "${project_base_dir}" || exit
+rm -rf "${mpi_name}"

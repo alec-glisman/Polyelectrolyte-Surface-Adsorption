@@ -9,34 +9,47 @@ set -o nounset # exit when script tries to use undeclared variables
 # Default Preferences ###################################################################
 echo "INFO: Setting default preferences"
 
+# path and version variables for previous installations
+mpi_version="4.1.5"
+plumed_version="2.9.0"
+module_root="/home/aglisman/software"
+compilers="gcc_12.3.0-cuda_12.0.140"
+cuda_toolkit="/usr/local/cuda-12.0"
+
+# get latest MPI compilers installed in previous script
 # NOTE: Use a "CUDA aware" MPI implementation
 # To check if MPI is CUDA aware run:
 #   ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
+c_compiler="${module_root}/openmpi_${mpi_version}-${compilers}/bin/mpicc"
+cxx_compiler="${module_root}/openmpi_${mpi_version}-${compilers}/bin/mpic++"
 
-# configure variables
+# add compiler information to global environment
+export PATH="${module_root}/openmpi_${mpi_version}-${compilers}/bin:${PATH}"
+export LD_LIBRARY_PATH="${module_root}/openmpi_${mpi_version}-${compilers}/lib:${LD_LIBRARY_PATH}"
+
+# project base directory
 project_base_dir="$(pwd)"
-c_compiler="/usr/bin/mpicc.openmpi"
-cxx_compiler="/usr/bin/mpic++.openmpi"
-cuda_toolkit="/usr/local/cuda-12.0"
-compilers="gcc_12.3.0-cuda_12.0.140"
-
-# PLUMED path variables
-plumed_version="2.9.0"
-plumed_exe="/home/aglisman/software/plumed_mpi_${plumed_version}-${compilers}/bin/plumed"
 
 # GROMACS path variables
 gromacs_version="2023"
-gromacs_base_dir="${project_base_dir}/gromacs-${gromacs_version}"
-build_dir="${gromacs_base_dir}/build"
+gromacs_name="gromacs-${gromacs_version}"
+build_dir="${project_base_dir}/${gromacs_name}/build"
 cmake_install="${HOME}/software/gromacs_mpi_${gromacs_version}-plumed_mpi_${plumed_version}-${compilers}"
 
-# PLUMED
+# PLUMED path variables
+plumed_exe="/home/aglisman/software/plumed_mpi_${plumed_version}-${compilers}/bin/plumed"
+# PLUMED global environment variables
 export PLUMEDROOT="${HOME}/software/plumed_mpi_${plumed_version}-${compilers}"
 export PLUMED_KERNEL="${PLUMEDROOT}/lib/libplumedKernel.so"
 export PATH="${PLUMEDROOT}/bin:${PATH}"
 export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${PLUMEDROOT}/lib"
 export LDFLAGS="${LDFLAGS} -L${PLUMEDROOT}/lib"
 export CPPFLAGS="${CPPFLAGS} -I${PLUMEDROOT}/include"
+
+# Unarchive GROMACS #####################################################################
+cd "${project_base_dir}" || exit
+tar -xvf "${gromacs_name}.tar.xz"
+cd "${gromacs_name}" || exit
 
 # Patch GROMACS #########################################################################
 # Documentation:
@@ -55,8 +68,6 @@ export CPPFLAGS="${CPPFLAGS} -I${PLUMEDROOT}/include"
 #
 # gmx mdrun -plumed plumed.dat
 echo "INFO: Patching GROMACS"
-
-cd "${gromacs_base_dir}" || exit
 
 if [[ "${gromacs_version}" == "2023" ]]; then
     "${plumed_exe}" patch -p <<<4
@@ -95,4 +106,6 @@ make -j24 check || true
 # install
 make -j24 install
 
+# remove unpacked directory
 cd "${project_base_dir}" || exit
+rm -rf "${gromacs_name}"
