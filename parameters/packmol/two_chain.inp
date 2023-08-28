@@ -1,0 +1,28 @@
+# Pack 2 chains (from same pdb file)
+
+# All the atoms from different molecules will be separated at least 20.0
+# Angstroms
+
+tolerance 2.0
+
+# The file type of input and output files is PDB
+
+filetype pdb
+
+# The name of the output file
+
+output PACKMOL_OUTPUT_PDB
+
+structure INPUT_PDB_FILENAME
+    number 1
+    chain A
+    resnumbers 2
+    fixed 0.0 0.0 0.0 0.0 0.0 0.0
+end structure
+
+structure INPUT_PDB_FILENAME
+    number 1
+    chain B
+    resnumbers 2
+    fixed 0.0 0.0 INITIAL_Z_SPACING_ANG 0.0 0.0 0.0
+end structure

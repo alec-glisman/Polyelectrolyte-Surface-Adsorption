@@ -1,0 +1,32 @@
+; Created by Alec Glisman (GitHub: @alec-glisman) on March 8th, 2022
+
+;;; GROMACS Documentation: https://manual.gromacs.org/documentation/current/user-guide/mdp-options.html ;;;
+
+;;; Run control ;;;
+integrator               = steep        ; "steep" for energy minimization and "md" for a leap frog algorithm for integrating Newton's eq of motion
+
+;;; Energy minimization ;;;
+emtol                    = 1000.0        ; [kJ mol^{-1} nm^{-1}] the minimization is converged when the maximum force is smaller than this value
+emstep                   = 0.01         ; [nm] initial step-size
+nsteps                   = 100000       ; [steps] Maximum number of (minimization) steps to perform
+
+;;; Neighbor searching ;;;
+cutoff-scheme            = Verlet       ; algorithm to generate neigbor list
+nstlist                  = 20           ; [steps] frequency to update the neighbor list
+pbc                      = xyz          ; periodic boundary conditions
+rlist                    = 1.2000       ; [nm] cut-off distance for the short-range neighbor list
+
+;;; Electrostatics ;;;
+coulombtype              = PME          ; algorithm to generate electrostatics
+rcoulomb                 = 1.2000       ; [nm] The distance for the Coulomb cut-off
+
+;;; Van der Waals ;;;
+vdw-type                 = cut-off      ; algorithm to generate Van der Waals
+rvdw                     = 1.2000       ; [nm] distance for the LJ or Buckingham cut-off
+DispCorr                 = AllEnerPres  ; corrections to apply for long-ranged energy and/or pressure
+
+;;; Ewald ;;;
+fourierspacing           = 0.12         ; [nm] for ordinary Ewald, the ratio of the box dimensions and the spacing determines a lower bound for the number of wave vectors to use in each (signed) direction
+pme-order                = 4            ; interpolation order for PME. 4 equals cubic interpolation. 
+ewald-rtol               = 1.0e-5       ; the relative strength of the Ewald-shifted direct potential at rcoulomb
+ewald-geometry           = 3d           ; "3d" is the ewald sum which is performed in all the three dimensions or "3dc" the reciprocal sum is still performed in 3D but a forec and potential correction applied in the z dimension to produce a pseudo 2D summation

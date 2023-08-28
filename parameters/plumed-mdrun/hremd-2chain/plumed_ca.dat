@@ -1,0 +1,52 @@
+# Allow restarting (continuing) previous simulation
+RESTART
+
+# Select groups with MDAnalysis syntax
+g_ca: GROUP NDX_FILE=index.ndx NDX_GROUP=CA
+g_na: GROUP NDX_FILE=index.ndx NDX_GROUP=NA
+g_pe_o: GROUP NDX_FILE=index.ndx NDX_GROUP=Chain_Oxygen
+g_c1: GROUP NDX_FILE=index.ndx NDX_GROUP=Chain_A
+g_c2: GROUP NDX_FILE=index.ndx NDX_GROUP=Chain_B
+
+# treat each molecule as whole
+# rebuild molecules that are split by the periodic boundary conditions,
+# avoid discontinuities changes in the CV value and artifacts in the calculations
+WHOLEMOLECULES ENTITY0=g_c1
+WHOLEMOLECULES ENTITY0=g_c2
+
+# calculate total coordination about the carboxylate groups
+cn_ca_oc: COORDINATION ...
+GROUPA=g_ca GROUPB=g_pe_o R_0=0.40 NN=8 MM=16
+NLIST NL_CUTOFF=0.80 NL_STRIDE=100
+...
+cn_na_oc: COORDINATION ...
+GROUPA=g_na GROUPB=g_pe_o R_0=1.00 NN=8 MM=16
+NLIST NL_CUTOFF=1.5 NL_STRIDE=100
+...
+
+# calculate total coordination about chain A
+cn_ca_c1: COORDINATION ...
+GROUPA=g_ca GROUPB=g_c1 R_0=0.40 NN=8 MM=16
+NLIST NL_CUTOFF=0.80 NL_STRIDE=100
+...
+cn_na_c1: COORDINATION ...
+GROUPA=g_na GROUPB=g_c1 R_0=1.00 NN=8 MM=16
+NLIST NL_CUTOFF=1.5 NL_STRIDE=100
+...
+
+# calculate total coordination about chain B
+cn_ca_c2: COORDINATION ...
+GROUPA=g_ca GROUPB=g_c2 R_0=0.40 NN=8 MM=16
+NLIST NL_CUTOFF=0.80 NL_STRIDE=100
+...
+cn_na_c2: COORDINATION ...
+GROUPA=g_na GROUPB=g_c2 R_0=1.00 NN=8 MM=16
+NLIST NL_CUTOFF=1.5 NL_STRIDE=100
+...
+
+# calculate chain radius of gyration
+rg1: GYRATION TYPE=RADIUS ATOMS=g_c1 MASS_WEIGHTED
+rg2: GYRATION TYPE=RADIUS ATOMS=g_c2 MASS_WEIGHTED
+
+# print variables on COLVAR.dat file every 100 steps
+PRINT ARG=cn_ca_oc,cn_na_oc,cn_ca_c1,cn_na_c1,cn_ca_c2,cn_na_c2,rg1,rg2 FILE={plumed_output_filename} STRIDE=100

@@ -1,0 +1,64 @@
+; Created by Alec Glisman (GitHub: @alec-glisman) on April 7th, 2022
+
+;;; GROMACS Documentation: https://manual.gromacs.org/documentation/current/user-guide/mdp-options.html ;;;
+
+;;; Run control ;;;
+integrator               = md           ; "steep" for ener minimization and "md" for a leap frog algorithm for integrating Newton's eq of motion
+dt                       = 0.002        ; 2 femtoseconds
+nsteps                   = 12500000     ; 25 nanoseconds
+comm-mode                = Linear       ; "Linear" (remove center for mass translation) "Angular" ( >> >> and rotation around the center of mass) "None" (no restric) 
+nstcomm                  = 100          ; [steps] frequency for center of mass motion removal
+
+;;; Output control ;;;
+nstxout                  = 50000        ; [steps] number of steps that elapse between writing coordinates to the output trajectory file (trr)
+nstvout                  = 50000        ; [steps] number of steps that elapse between writing velocities to the output trajectory file (trr)
+nstfout                  = 50000        ; [steps] number of steps that elapse between writing forces to the output trajectory file (trr)
+nstlog                   = 50000        ; [steps] number of steps that elapse between writing energies to the log file
+nstcalcenergy            = 100          ; [steps] number of steps that elapse between calculating the energies, 0 is never
+nstenergy                = 1000         ; [steps] number of steps that elapse between writing energies to energy file
+nstxout-compressed       = 5000         ; [steps] number of steps that elapse between writing to .xtc file
+
+;;; Neighbor searching ;;;
+cutoff-scheme            = Verlet       ; algorithm to generate neigbor list
+nstlist                  = 10           ; [steps] frequency to update the neighbor list
+pbc                      = xyz          ; periodic boundary conditions
+rlist                    = 1.2000       ; [nm] cut-off distance for the short-range neighbor list
+
+;;; Electrostatics ;;;
+coulombtype              = PME          ; algorithm to generate electrostatics
+rcoulomb                 = 1.2000       ; [nm] The distance for the Coulomb cut-off
+
+;;; Van der Waals ;;;
+vdw-type                 = cut-off      ; algorithm to generate Van der Waals
+rvdw                     = 1.2000       ; [nm] distance for the LJ or Buckingham cut-off
+DispCorr                 = AllEnerPres  ; corrections to apply for long-ranged energy and/or pressure
+
+;;; Ewald ;;;
+fourierspacing           = 0.12         ; [nm] for ordinary Ewald, the ratio of the box dimensions and the spacing determines a lower bound for the number of wave vectors to use in each (signed) direction
+pme-order                = 4            ; interpolation order for PME. 4 equals cubic interpolation. 
+ewald-rtol               = 1.0e-5       ; the relative strength of the Ewald-shifted direct potential at rcoulomb
+ewald-geometry           = 3d           ; "3d" is the ewald sum which is performed in all the three dimensions or "3dc" the reciprocal sum is still performed in 3D but a forec and potential correction applied in the z dimension to produce a pseudo 2D summation
+
+;;; Temperature coupling ;;;
+Tcoupl                   = nose-hoover               ; Temp coupling using velocity rescaling. Temperature coupling using a Nose-Hoover extended ensemble. The reference temperature and coupling groups are selected as above, but in this case tau-t controls the period of the temperature fluctuations at equilibrium, which is slightly different from a relaxation time. For NVT simulations the conserved energy quantity is written to the energy and log files.
+tc-grps                  = Protein Water_and_ions    ; groups to couple separately to Temp bath
+tau-t                    = 0.50 0.50                 ; [ps] time constant for coupling (one for each group in tc-grps)
+ref-t                    = 300 300                   ; [K] reference temperature for coupling (one for each group in tc-grps)
+
+;;; Pressure Coupling ;;;
+Pcoupl                   = Parrinello-Rahman     ; No pressure coupling, This means fixed box size. Extended-ensemble pressure coupling where the box vectors are subject to an equation of motion. The equation of motion for the atoms is coupled to this. No instantaneous scaling takes place.
+Pcoupltype               = isotropic             ; specifies the kind of isotropy of the pressure coupling used.
+tau-p                    = 5.0                   ; [ps] The time constant for pressure coupling (one value for all directions).
+compressibility          = 4.5e-5                ; [bar^{-1}] for water at 1 atm and 300K the compressibility is 4.5e-5 bar-1
+ref-p                    = 1                     ; [bar] the reference pressure for coupling
+
+;;; Velocity generation ;;;
+gen-vel                  = no           ; "no" do not generate velocities "yes" generate velocities in grompp at temp gen-temp which is only meanigful with integrator "md"
+gen-temp                 = 300          ; [K] temperature for Maxwell distribution
+
+;;; Bonds ;;;
+constraints              = h-bonds      ; controls which bonds in the topology will be converted to rigid holonomic constraints.
+constraint-algorithm     = lincs        ; chooses which solver satisfies any non-SETTLE holonomic constraints. "lincs" is faster but does not work with angle constraints
+lincs-order              = 4            ; accuracy of lincs: the number of matrices in the expansion for the matrix inversion
+lincs-iter               = 1            ; number of iterative corrections to matrix inversion to compensate for lengthening due to rotation
+lincs-warnangle          = 30           ; print warning to log file and stderr if bond rotations be more than this angle
