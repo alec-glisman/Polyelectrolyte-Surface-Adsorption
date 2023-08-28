@@ -16,6 +16,7 @@
         "Mdrun",
         "mpic",
         "mpicc",
+        "ompi",
         "openmpi",
         "PLUMEDROOT",
         "sasa"

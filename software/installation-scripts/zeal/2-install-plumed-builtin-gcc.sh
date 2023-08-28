@@ -11,23 +11,12 @@ set -o nounset # exit when script tries to use undeclared variables
 echo "INFO: Setting default preferences"
 
 # path and version variables for previous installations
-mpi_version="4.1.5"
 module_root="/home/modules"
 compilers="gcc_12.3.0-cuda_12.2.128"
-
-# get latest MPI compilers installed in previous script
-# NOTE: Use a "CUDA aware" MPI implementation
-# To check if MPI is CUDA aware run:
-#   ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
-c_compiler="${module_root}/openmpi_${mpi_version}-${compilers}/bin/mpicc"
-cxx_compiler="${module_root}/openmpi_${mpi_version}-${compilers}/bin/mpic++"
-
-# add compiler information to global environment
-export PATH="${module_root}/openmpi_${mpi_version}-${compilers}/bin:${PATH}"
-export LD_LIBRARY_PATH="${module_root}/openmpi_${mpi_version}-${compilers}/lib:${LD_LIBRARY_PATH}"
+c_compiler="/usr/bin/mpicc.openmpi"
+cxx_compiler="/usr/bin/mpic++.openmpi"
 
 # add python information
-compilers="gcc_self_12.3.0-cuda_12.2.128"
 python_exe="/usr/bin/python3.10"
 
 # project base directory
