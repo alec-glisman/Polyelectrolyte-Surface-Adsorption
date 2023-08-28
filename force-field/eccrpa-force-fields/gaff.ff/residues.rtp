@@ -1,0 +1,465 @@
+; Created by Alec Glisman (GitHub: @alec-glisman) on April 24th, 2023
+
+[ bondedtypes ]
+; Column 1 : default bondtype
+; Column 2 : default angletype
+; Column 3 : default proper dihedraltype
+; Column 4 : default improper dihedraltype
+; Column 5 : This controls the generation of dihedrals from the bonding.
+;            All possible dihedrals are generated automatically. A value of
+;            1 here means that all these are retained. A value of
+;            0 here requires generated dihedrals be removed if
+;                there are any dihedrals on the same central atoms
+;                specified in the residue topology, or
+;                there are other identical generated dihedrals
+;                sharing the same central atoms, or
+;                there are other generated dihedrals sharing the
+;                same central bond that have fewer hydrogen atoms
+; Column 6 : number of neighbors to exclude from non-bonded interactions
+; Column 7 : 1 = generate 1,4 interactions between pairs of hydrogen atoms
+;            0 = do not generate such
+; Column 8 : 1 = remove proper dihedrals if found centered on the same
+;                bond as an improper dihedral
+;            0 = do not generate such
+; bonds  angles  dihedrals  impropers all_dihedrals nrexcl HH14 RemoveDih
+     1       1          3          1        1         3      1     0
+
+
+; SECTION: CARBONATE ION
+[ CRB ]
+ [ atoms ]
+  CX1        CX      0.9238401379312500            1
+  OX1        OX     -0.8079467126437501            1
+  OX2        OX     -0.8079467126437501            1
+  OX3        OX     -0.8079467126437501            1
+ [ bonds ]
+  CX1  OX1
+  CX1  OX2
+  CX1  OX3
+ [ impropers ]
+    OX1     CX1      OX2      OX3
+
+
+
+; SECTION: ACRYLATE ION
+[ LAI ] ; acrylate ion (left-starting monomer)
+ [ atoms ]
+; name     type    charge chargegroup       
+  C          C3     -0.2574918750000000            1  ; [CH3]-
+  HC1        HC      0.0288041250000000            1  ; [CH3]-
+  HC2        HC      0.0288041250000000            1  ; [CH3]-
+  HC3        HC      0.0288041250000000            1  ; [CH3]-
+  CA         C3      0.2039351250000000            2  ; CH3-[CH]-COO-(next monomer)
+  HA1        HC     -0.0677186250000000            2  ; CH3-[CH]-COO-(next monomer)
+  CB         C       0.6440441250000000            3  ; CH-[COO] 
+  OB1        O      -0.6795905625000000            3  ; CH-[COO]
+  OB2        O      -0.6795905625000000            3  ; CH-[COO]
+ [ bonds ] 
+  C    HC1
+  C    HC2
+  C    HC3
+  C    CA
+  CA   HA1
+  CA   CB
+  CB   OB1
+  CB   OB2
+  CA  +C
+ [ impropers ]
+    CA      OB1       CB       OB2 
+
+[ ACI ] ; acrylate ion (interior monomer)
+ [ atoms ]
+; name     type                  charge  chargegroup       
+  C          C3     -0.0496971190476190            1  ; (last monomer)-[CH2]-
+  HC1        HC     -0.0103643988095238            1  ; (last monomer)-[CH2]-
+  HC2        HC     -0.0103643988095238            1  ; (last monomer)-[CH2]-
+  CA         C3      0.0233609880952382            2  ; CH2-[CH]-COO-(next monomer)
+  HA1        HC     -0.0315325833333333            2  ; CH2-[CH]-COO-(next monomer)
+  CB         C       0.6732298809523815            3  ; CH-[COO]
+  OB1        O      -0.6723161845238093            3  ; CH-[COO]
+  OB2        O      -0.6723161845238093            3  ; CH-[COO]
+ [ bonds ] 
+; a1    a2    
+  C   -CA  ; bond to previous monomer
+  C    HC1
+  C    HC2
+  C    CA
+  CA   HA1
+  CA   CB
+  CB   OB1
+  CB   OB2
+  CA  +C   ; bond to next monomer
+ [ impropers ]
+    CA      OB1       CB       OB2
+
+[ RAI ] ; acrylate ion (right-ending monomer)
+ [ atoms ]
+  C          C3      0.2935925357142855            1  ; (last monomer)-[CH2]-
+  HC1        HC     -0.0710239821428572            1  ; (last monomer)-[CH2]-
+  HC2        HC     -0.0710239821428572            1  ; (last monomer)-[CH2]-
+  CA         C3     -0.1601147142857145            2  ; CH2-[CH2]-COO
+  HA1        HC     -0.0203357142857143            2  ; CH2-[CH2]-COO
+  HA2        HC     -0.0203357142857143            2  ; CH2-[CH2]-COO
+  CB         C       0.7118585357142855            3  ; CH2-[COO]
+  OB1        O      -0.7063084821428573            3  ; CH2-[COO]
+  OB2        O      -0.7063084821428573            3  ; CH2-[COO]
+ [ bonds ] 
+  C   -CA
+  C    HC1
+  C    HC2
+  C    CA
+  CA   HA1
+  CA   HA2
+  CA   CB
+  CB   OB1
+  CB   OB2
+ [ impropers ]
+    CA      OB1       CB       OB2
+
+[ AI1 ] ; acrylate monomer
+ [ atoms ]
+; name     type    charge chargegroup       
+  C          C3     -0.135023296072500000            1
+  HC1        HC      0.007614856927500005            1
+  HC2        HC      0.007614856927500005            1
+  HC3        HC      0.007614856927500005            1
+  CA         C3      0.136670006302500000            2
+  HA1        HC     -0.074285282197500000            2
+  HA1        HC     -0.074285282197500000            2
+  CB         C       0.626547600577500000            3 
+  OB1        O      -0.626234158597500000            3
+  OB2        O      -0.626234158597500000            3
+ [ bonds ] 
+  C    HC1
+  C    HC2
+  C    HC3
+  C    CA
+  CA   HA1
+  CA   HA2
+  CA   CB
+  CB   OB1
+  CB   OB2
+ [ impropers ]
+    CA      OB1       CB       OB2 
+
+
+
+; SECTION: ACRYLATE NEUTRAL
+[ LAN ] ; acrylate neutral (left-starting monomer)
+ [ atoms ]
+  C          C3     -0.3327010000000000            1  ; [CH3]-
+  HC1        HC      0.0914920000000000            1  ; [CH3]-
+  HC2        HC      0.0914920000000000            1  ; [CH3]-
+  HC3        HC      0.0914920000000000            1  ; [CH3]-
+  CA         C3      0.1361240000000000            2  ; CH2-[CH]-COOH-(next monomer)
+  HA1        HC      0.0103520000000000            2  ; CH2-[CH]-COOH-(next monomer)
+  CB         C       0.6802820000000000            3  ; CH-[COOH]
+  OB1        O      -0.5903440000000000            3  ; CH-[COOH]
+  OB2        OH     -0.6450510000000000            3  ; CH-[COOH]
+  HB2        HO      0.4668620000000000            3  ; CH-[COOH]
+ [ bonds ] 
+  C    HC1 
+  C    HC2
+  C    HC3
+  C    CA
+  CA   HA1
+  CA   CB
+  CB   OB1
+  CB   OB2
+  OB2  HB2
+  CA  +C
+ [ impropers ]
+    CA      OB1       CB       OB2
+
+[ ACN ] ; acrylate neutral (interior monomer)
+ [ atoms ]
+  C          C3     -0.1778848750000000            1  ; (last monomer)-[CH2]-
+  HC1        HC      0.0646000069444444            1  ; (last monomer)-[CH2]-
+  HC2        HC      0.0646000069444444            1  ; (last monomer)-[CH2]-
+  CA         C3      0.1138384583333340            2  ; CH2-[CH]-COOH-(next monomer)
+  HA1        HC      0.0302305694444445            2  ; CH2-[CH]-COOH-(next monomer)
+  CB         C       0.6186607916666670            3  ; CH-[COOH]
+  OB1        O      -0.5553826527777770            3  ; CH-[COOH]
+  OB2        OH     -0.6334021527777780            3  ; CH-[COOH]
+  HB2        HO      0.4747398472222220             3  ; CH-[COOH]
+ [ bonds ] 
+  C   -CA
+  C    HC1 
+  C    HC2
+  C    CA
+  CA   HA1
+  CA   CB
+  CB   OB1
+  CB   OB2
+  OB2  HB2
+  CA  +C
+ [ impropers ]
+    CA      OB1       CB       OB2
+
+[ RAN ] ; acrylate neutral (right-ending monomer)
+ [ atoms ]
+  C          C3     -0.0856301111111111            1  ; (last monomer)-[CH2]-
+  HC1        HC      0.0578489444444444            1  ; (last monomer)-[CH2]-
+  HC2        HC      0.0578489444444444            1  ; (last monomer)-[CH2]-
+  CA         C3     -0.1388921111111110            2  ; CH2-[CH]-COOH-(next monomer)
+  HA1        HC      0.0657778888888889            2  ; CH2-[CH]-COOH-(next monomer)
+  HA2        HC      0.0657778888888889            2  ; CH2-[CH]-COOH-(next monomer)
+  CB         C       0.7612688888888890            3  ; CH-[COOH]
+  OB1        O      -0.5892031111111110            3  ; CH-[COOH]
+  OB2        OH     -0.6506351111111110            3  ; CH-[COOH]
+  HB2        HO      0.4558378888888890            3  ; CH-[COOH]
+ [ bonds ] 
+  C   -CA
+  C    HC1
+  C    HC2
+  C    CA
+  CA   HA1
+  CA   HA2
+  CA   CB
+  CB   OB1
+  CB   OB2
+  OB2  HB2
+ [ impropers ]
+    CA      OB1       CB       OB2
+
+[ AN1 ] ; acrylate monomer
+ [ atoms ]
+  C          C3     -0.517440349633333300          1  ; [CH3]-
+  HC1        HC      0.039215878493181824          1  ; [CH3]-
+  HC2        HC      0.039215878493181824          1  ; [CH3]-
+  HC3        HC      0.039215878493181824          1  ; [CH3]-
+  CA         C3     -0.032163500181818180          2  ; CH2-[CH]-COOH-(next monomer)
+  HA1        HC      0.016925766068181820          2  ; CH2-[CH]-COOH-(next monomer)
+  HA2        HC      0.016925766068181820          2  ; CH2-[CH]-COOH-(next monomer)
+  CB         C       0.596064759068181800          3  ; CH-[COOH]
+  OB1        O      -0.418422114681818200          3  ; CH-[COOH]
+  OB2        OH     -0.483405052656818200          3  ; CH-[COOH]
+  HB2        HO      0.308494141493181830          3  ; CH-[COOH]
+ [ bonds ] 
+  C    HC1 
+  C    HC2
+  C    HC3
+  C    CA
+  CA   HA1
+  CA   HA1
+  CA   CB
+  CB   OB1
+  CB   OB2
+  OB2  HB2
+ [ impropers ]
+    CA      OB1       CB       OB2
+
+
+
+; SECTION: ACETATE
+[ LAC ]
+ [ atoms ]
+  C          C3     -0.251681272229807740          1
+  HC1        HC      0.060704472032692317          1
+  HC2        HC      0.060704472032692317          1
+  HC3        HC      0.060704472032692317          1
+  CA         C3      0.343373879370192260          2
+  HA1        H1     -0.002335714229807685          2
+  OA         OS     -0.407635794229807700          2
+  CB         C       0.694777141657692200          3
+  OB         O      -0.478044150304807740          3
+  CG         C3     -0.359151329242307750          4
+  HG1        HC      0.092861274370192310          4
+  HG2        HC      0.092861274370192310          4
+  HG3        HC      0.092861274370192310          4
+ [ bonds ] 
+  C    HC1 
+  C    HC2
+  C    HC3
+  C    CA
+  CA   HA1
+  CA   OA
+  OA   CB
+  CB   OB
+  CB   CG
+  CG   HG1
+  CG   HG2
+  CG   HG3
+  CA  +C
+ [ impropers ]
+    CG      OB       CB       OA
+
+[ ACE ]
+ [ atoms ]
+  C          C3     -0.217398791100000000          1
+  HC1        HC 	 0.061604223462500000          1
+  HC2        HC 	 0.061604223462500000          1
+  CA         C3      0.335641128537500000          2
+  HA1        H1	     0.007712779937500001          2
+  OA         OS     -0.424384000037500000          2
+  CB         C       0.714578756837499900          3
+  OB         O      -0.484501563737500100          3
+  CG         C3     -0.359600472637500000          4
+  HG1        HC 	 0.101581238425000000          4
+  HG2        HC 	 0.101581238425000000          4
+  HG3        HC	     0.101581238425000000          4
+ [ bonds ] 
+  C   -CA
+  C    HC1 
+  C    HC2
+  C    CA
+  CA   HA1
+  CA   OA
+  OA   CB
+  CB   OB
+  CB   CG
+  CG   HG1
+  CG   HG2
+  CG   HG3
+  CA  +C
+ [ impropers ]
+    CG      OB       CB       OA
+
+[ RAC ]
+ [ atoms ]
+  C          C3     -0.133515953373076920          1
+  HC1        HC 	 0.047989548976923070          1
+  HC2        HC 	 0.047989548976923070          1
+  CA         C3      0.211676991176923100          2
+  HA1        H1    	 0.020450780014423076          2
+  HA2        H1 	 0.020450780014423076          2
+  OA         OS     -0.401653393223076900          2
+  CB         C       0.710935823801923000          3
+  OB         O      -0.471871431310576960          3
+  CG         C3     -0.347152334135576900          4
+  HG1        HC      0.098233213026923090          4
+  HG2        HC      0.098233213026923090          4
+  HG3        HC      0.098233213026923090          4
+ [ bonds ] 
+  C   -CA
+  C    HC1 
+  C    HC2
+  C    CA
+  CA   HA1
+  CA   HA2
+  CA   OA
+  OA   CB
+  CB   OB
+  CB   CG
+  CG   HG1
+  CG   HG2
+  CG   HG3
+ [ impropers ]
+    CG      OB       CB       OA
+
+[ AC1 ]
+ [ atoms ]
+  C          C3     -0.235106424980357100          1
+  HC1        HC      0.061715999694642850          1
+  HC2        HC      0.061715999694642850          1
+  HC3        HC      0.061715999694642850          1
+  CA         C3      0.318291591219642840          2
+  HA1        H1     -0.010990668755357143          2
+  HA2        H1     -0.010990668755357143          2
+  OA         OS     -0.404699819330357150          2
+  CB         C       0.713394813444642800          3
+  OB         O      -0.489117853505357100          3
+  CG         C3     -0.352812020480357100          4
+  HG1        HC      0.095627684019642860          4
+  HG2        HC      0.095627684019642860          4
+  HG3        HC      0.095627684019642860          4
+ [ bonds ] 
+  C    HC1 
+  C    HC2
+  C    HC3
+  C    CA
+  CA   HA1
+  CA   HA2
+  CA   OA
+  OA   CB
+  CB   OB
+  CB   CG
+  CG   HG1
+  CG   HG2
+  CG   HG3
+  CA  +C
+ [ impropers ]
+    CG      OB       CB       OA
+
+
+
+; SECTION: ALCOHOL
+[ LAL ]
+ [ atoms ]
+  C          C3     -0.240681070878750010          1
+  HC1        HC      0.052426024061250000          1
+  HC2        HC      0.052426024061250000          1
+  HC3        HC      0.052426024061250000          1
+  CA         C3      0.333007325486250000          2
+  HA1        H1     -0.025886827593749998          2
+  OA         OC     -0.527381934453750000          2
+  HOA        HO    	 0.303664435256250000          2
+ [ bonds ] 
+  C    HC1 
+  C    HC2
+  C    HC3
+  C    CA
+  CA   HA1
+  CA   OA
+  OA   HOA
+  CA  +C
+
+[ ALC ]
+ [ atoms ]
+  C          C3     -0.15797108828357143           1
+  HC1        HC      0.04201210415142858           1
+  HC2        HC      0.04201210415142858           1
+  CA         C3      0.30060137733642855           2
+  HA1        H1     -0.03127280187857143           2
+  OA         OC     -0.49619409794357140           2
+  HOA        HO      0.30081240246642860           2
+ [ bonds ] 
+  C   -CA
+  C    HC1 
+  C    HC2
+  C    CA
+  CA   HA1
+  CA   OA
+  OA   HOA
+  CA  +C
+
+[ RAL ]
+ [ atoms ]
+  C          C3     -0.095516246662500010          1
+  HC1        HC      0.029845677022500000          1
+  HC2        HC      0.029845677022500000          1
+  CA         C3      0.294941187277500000          1
+  HA1        H1     -0.028614219427500004          2
+  HA2        H1     -0.028614219427500004          2
+  OA         OC     -0.510527915977500000          2
+  HOA        HO	     0.308640060172500000          2
+ [ bonds ] 
+  C   -CA
+  C    HC1 
+  C    HC2
+  C    CA
+  CA   HA1
+  CA   HA2
+  CA   OA
+  OA   HOA
+
+[ AL1 ]
+ [ atoms ]
+  C          C3     -0.189987368383333330          1
+  HC1        HC      0.047950039066666670          1
+  HC2        HC      0.047950039066666670          1
+  HC3        HC      0.047950039066666670          1
+  CA         C3      0.382668510391666700          2
+  HA1        H1     -0.059367171658333330          2
+  HA2        H1     -0.059367171658333330          2
+  OA         OC     -0.517440349633333300          2
+  HOA        HO    	 0.299643433741666700          2
+ [ bonds ] 
+  C    HC1 
+  C    HC2
+  C    HC3
+  C    CA
+  CA   HA1
+  CA   HA2
+  CA   OA
+  OA   HOA

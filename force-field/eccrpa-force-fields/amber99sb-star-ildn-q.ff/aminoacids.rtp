@@ -1,0 +1,390 @@
+; Modified by Alec Glisman (GitHub: @alec-glisman) on November 23rd, 2022
+;   to ECC scale (multiply partial charges by 3/4) charged functional
+;   groups, such as carboxylates and amines. Scaled partial charges are
+;   labelled.
+
+[ bondedtypes ]
+; Col 1: Type of bond
+; Col 2: Type of angles
+; Col 3: Type of proper dihedrals
+; Col 4: Type of improper dihedrals
+; Col 5: Generate all dihedrals if 1, only heavy atoms of 0.
+; Col 6: Number of excluded neighbors for nonbonded interactions
+; Col 7: Generate 1,4 interactions between pairs of hydrogens if 1
+; Col 8: Remove impropers over the same bond as a proper if it is 1
+; bonds  angles  dihedrals  impropers all_dihedrals nrexcl HH14 RemoveDih
+     1       1          9          4        1         3      1     0
+
+; now: water, ions, urea, terminal caps, AA's and terminal AA's
+[ CA ]
+ [ atoms ]
+   CA     C0           1.50000     1
+
+[ CL ]
+ [ atoms ]
+   CL     Cl          -0.75000     1
+
+[ NA ]
+ [ atoms ]
+   NA     Na           0.75000     1
+                
+[ GLU ]
+ [ atoms ]                                 
+     N    N        -0.311775        1   ; charge scaled
+     H    H         0.203925        2   ; charge scaled
+    CA    CT       -0.170687        3   ; charge scaled
+    HA    H1        0.115909        4   ; charge scaled
+    CB    CT        0.087007        5   ; charge scaled
+   HB1    HC       -0.004663        6   ; charge scaled
+   HB2    HC       -0.004663        7   ; charge scaled
+    CG    CT       -0.061345        8   ; charge scaled
+   HG1    HC       -0.004616        9   ; charge scaled
+   HG2    HC       -0.004616       10   ; charge scaled
+    CD    C         0.621461       11   ; charge scaled
+   OE1    O2       -0.618994       12   ; charge scaled
+   OE2    O2       -0.618994       13   ; charge scaled
+     C    C         0.447975       14   ; charge scaled
+     O    O        -0.425925       15   ; charge scaled
+ [ bonds ]
+     N     H
+     N    CA
+    CA    HA
+    CA    CB
+    CA     C
+    CB   HB1
+    CB   HB2
+    CB    CG
+    CG   HG1
+    CG   HG2
+    CG    CD
+    CD   OE1
+    CD   OE2
+     C     O
+    -C     N
+ [ impropers ]
+    -C    CA     N     H
+    CA    +N     C     O
+    CG   OE1    CD   OE2
+    N     CA     C    +N    105.4       0.75       1
+                        
+[ ASP ]
+ [ atoms ]                              
+     N    N          -0.311775      1   ; charge scaled
+     H    H           0.203925      2   ; charge scaled
+    CA    CT         -0.168423      3   ; charge scaled
+    HA    H1          0.109645      4   ; charge scaled
+    CB    CT          0.002679      5   ; charge scaled
+   HB1    HC         -0.011684      6   ; charge scaled
+   HB2    HC         -0.011684      7   ; charge scaled
+    CG    C           0.572150      8   ; charge scaled
+   OD1    O2         -0.578441      9   ; charge scaled
+   OD2    O2         -0.578441     10   ; charge scaled
+     C    C           0.447975     11   ; charge scaled
+     O    O          -0.425925     12   ; charge scaled
+ [ bonds ]
+     N     H
+     N    CA
+    CA    HA
+    CA    CB
+    CA     C
+    CB   HB1
+    CB   HB2
+    CB    CG
+    CG   OD1
+    CG   OD2
+     C     O
+    -C     N
+ [ dihedrals ]
+     N    CA    CB    CG        torsion_ASP_N_CA_CB_CG_mult1
+     N    CA    CB    CG        torsion_ASP_N_CA_CB_CG_mult2
+     N    CA    CB    CG        torsion_ASP_N_CA_CB_CG_mult3
+     N    CA    CB    CG        torsion_ASP_N_CA_CB_CG_mult4
+     N    CA    CB    CG        torsion_ASP_N_CA_CB_CG_mult5
+     N    CA    CB    CG        torsion_ASP_N_CA_CB_CG_mult6
+    CA    CB    CG   OD1        torsion_ASP_CA_CB_CG_OD_mult1
+    CA    CB    CG   OD1        torsion_ASP_CA_CB_CG_OD_mult2
+    CA    CB    CG   OD1        torsion_ASP_CA_CB_CG_OD_mult3
+    CA    CB    CG   OD1        torsion_ASP_CA_CB_CG_OD_mult4
+    CA    CB    CG   OD1        torsion_ASP_CA_CB_CG_OD_mult5
+    CA    CB    CG   OD1        torsion_ASP_CA_CB_CG_OD_mult6
+    CA    CB    CG   OD2        torsion_ASP_CA_CB_CG_OD_mult1
+    CA    CB    CG   OD2        torsion_ASP_CA_CB_CG_OD_mult2
+    CA    CB    CG   OD2        torsion_ASP_CA_CB_CG_OD_mult3
+    CA    CB    CG   OD2        torsion_ASP_CA_CB_CG_OD_mult4
+    CA    CB    CG   OD2        torsion_ASP_CA_CB_CG_OD_mult5
+    CA    CB    CG   OD2        torsion_ASP_CA_CB_CG_OD_mult6
+ [ impropers ]
+    -C    CA     N     H
+    CA    +N     C     O
+    CB   OD1    CG   OD2
+    N     CA     C    +N    105.4       0.75       1
+     
+; non-terminal acidic AA's
+[ ASH ]
+ [ atoms ]
+     N    N           -0.41570     1
+     H    H            0.27190     2
+    CA    CT           0.03410     3
+    HA    H1           0.08640     4
+    CB    CT          -0.03160     5
+   HB1    HC           0.04880     6
+   HB2    HC           0.04880     7
+    CG    C            0.64620     8
+   OD1    O           -0.55540     9
+   OD2    OH          -0.63760    10
+   HD2    HO           0.47470    11
+     C    C            0.59730    12
+     O    O           -0.56790    13
+ [ bonds ]
+     N     H
+     N    CA
+    CA    HA
+    CA    CB
+    CA     C
+    CB   HB1
+    CB   HB2
+    CB    CG
+    CG   OD1
+    CG   OD2
+   OD2   HD2
+     C     O
+    -C     N
+ [ impropers ]
+    -C    CA     N     H
+    CA    +N     C     O
+    CB   OD1    CG   OD2
+    N     CA     C    +N    105.4       0.75       1
+                   
+
+[ GLH ]
+ [ atoms ]
+     N    N           -0.41570     1
+     H    H            0.27190     2
+    CA    CT           0.01450     3
+    HA    H1           0.07790     4
+    CB    CT          -0.00710     5
+   HB1    HC           0.02560     6
+   HB2    HC           0.02560     7
+    CG    CT          -0.01740     8
+   HG1    HC           0.04300     9
+   HG2    HC           0.04300    10
+    CD    C            0.68010    11
+   OE1    O           -0.58380    12
+   OE2    OH          -0.65110    13
+   HE2    HO           0.46410    14
+     C    C            0.59730    15
+     O    O           -0.56790    16
+ [ bonds ]
+     N     H
+     N    CA
+    CA    HA
+    CA    CB
+    CA     C
+    CB   HB1
+    CB   HB2
+    CB    CG
+    CG   HG1
+    CG   HG2
+    CG    CD
+    CD   OE1
+    CD   OE2
+   OE2   HE2
+     C     O
+    -C     N
+ [ impropers ]
+    -C    CA     N     H
+    CA    +N     C     O
+    CG   OE1    CD   OE2
+    N     CA     C    +N    105.4       0.75       1
+
+; C-terminal AA's            
+[ CGLU ]
+ [ atoms ]
+     N    N           -0.38940     1   ; charge scaled
+     H    H            0.22913     2   ; charge scaled
+    CA    CT          -0.15443     3   ; charge scaled
+    HA    H1           0.10493     4   ; charge scaled
+    CB    CT           0.00533     5   ; charge scaled
+   HB1    HC          -0.00585     6   ; charge scaled
+   HB2    HC          -0.00585     7   ; charge scaled
+    CG    CT           0.05063     8   ; charge scaled
+   HG1    HC          -0.04110     9   ; charge scaled
+   HG2    HC          -0.04110    10   ; charge scaled
+    CD    C            0.61373    11   ; charge scaled
+   OE1    O2          -0.61650    12   ; charge scaled
+   OE2    O2          -0.61650    13   ; charge scaled
+     C    C            0.55650    14   ; charge scaled
+   OC1    O2          -0.59475    15   ; charge scaled
+   OC2    O2          -0.59475    16   ; charge scaled
+ [ bonds ]
+     N     H
+     N    CA
+    CA    HA
+    CA    CB
+    CA     C
+    CB   HB1
+    CB   HB2
+    CB    CG
+    CG   HG1
+    CG   HG2
+    CG    CD
+    CD   OE1
+    CD   OE2
+     C   OC1
+     C   OC2
+    -C     N
+ [ impropers ]
+    -C    CA     N     H    
+    CA   OC1     C   OC2    
+    CG   OE1    CD   OE2    
+                        
+[ CASP ]
+ [ atoms ]
+     N    N           -0.38940     1   ; charge scaled
+     H    H            0.22913     2   ; charge scaled
+    CA    CT          -0.13628     3   ; charge scaled
+    HA    H1           0.07845     4   ; charge scaled
+    CB    CT          -0.05078     5   ; charge scaled
+   HB1    HC          -0.01590     6   ; charge scaled
+   HB2    HC          -0.01590     7   ; charge scaled
+    CG    C            0.66383     8   ; charge scaled
+   OD1    O2          -0.61215     9   ; charge scaled
+   OD2    O2          -0.61215    10   ; charge scaled
+     C    C            0.54420    11   ; charge scaled
+   OC1    O2          -0.59153    12   ; charge scaled
+   OC2    O2          -0.59153    13   ; charge scaled
+ [ bonds ]
+     N     H
+     N    CA
+    CA    HA
+    CA    CB
+    CA     C
+    CB   HB1
+    CB   HB2
+    CB    CG
+    CG   OD1
+    CG   OD2
+     C   OC1
+     C   OC2
+    -C     N
+ [ dihedrals ]
+     N    CA    CB    CG        torsion_ASP_N_CA_CB_CG_mult1
+     N    CA    CB    CG        torsion_ASP_N_CA_CB_CG_mult2
+     N    CA    CB    CG        torsion_ASP_N_CA_CB_CG_mult3
+     N    CA    CB    CG        torsion_ASP_N_CA_CB_CG_mult4
+     N    CA    CB    CG        torsion_ASP_N_CA_CB_CG_mult5
+     N    CA    CB    CG        torsion_ASP_N_CA_CB_CG_mult6
+    CA    CB    CG   OD1        torsion_ASP_CA_CB_CG_OD_mult1
+    CA    CB    CG   OD1        torsion_ASP_CA_CB_CG_OD_mult2
+    CA    CB    CG   OD1        torsion_ASP_CA_CB_CG_OD_mult3
+    CA    CB    CG   OD1        torsion_ASP_CA_CB_CG_OD_mult4
+    CA    CB    CG   OD1        torsion_ASP_CA_CB_CG_OD_mult5
+    CA    CB    CG   OD1        torsion_ASP_CA_CB_CG_OD_mult6
+    CA    CB    CG   OD2        torsion_ASP_CA_CB_CG_OD_mult1
+    CA    CB    CG   OD2        torsion_ASP_CA_CB_CG_OD_mult2
+    CA    CB    CG   OD2        torsion_ASP_CA_CB_CG_OD_mult3
+    CA    CB    CG   OD2        torsion_ASP_CA_CB_CG_OD_mult4
+    CA    CB    CG   OD2        torsion_ASP_CA_CB_CG_OD_mult5
+    CA    CB    CG   OD2        torsion_ASP_CA_CB_CG_OD_mult6
+ [ impropers ]
+    -C    CA     N     H    
+    CA   OC1     C   OC2    
+    CB   OD1    CG   OD2    
+
+; N-terminal AA's                        
+[ NGLU ]
+ [ atoms ]
+     N    N3           0.00128     1   ; charge scaled
+    H1    H            0.17933     2   ; charge scaled
+    H2    H            0.17933     3   ; charge scaled
+    H3    H            0.17933     4   ; charge scaled
+    CA    CT           0.04410     5   ; charge scaled
+    HA    HP           0.09015     6   ; charge scaled
+    CB    CT           0.06818     7   ; charge scaled
+   HB1    HC          -0.01740     8   ; charge scaled
+   HB2    HC          -0.01740     9   ; charge scaled
+    CG    CT          -0.01770    10   ; charge scaled
+   HG1    HC          -0.02363    11   ; charge scaled
+   HG2    HC          -0.02363    12   ; charge scaled
+    CD    C            0.60653    13   ; charge scaled
+   OE1    O2          -0.61418    14   ; charge scaled
+   OE2    O2          -0.61418    15   ; charge scaled
+     C    C            0.42158    16   ; charge scaled
+     O    O           -0.44168    17   ; charge scaled
+ [ bonds ]
+     N    H1
+     N    H2
+     N    H3
+     N    CA
+    CA    HA
+    CA    CB
+    CA     C
+    CB   HB1
+    CB   HB2
+    CB    CG
+    CG   HG1
+    CG   HG2
+    CG    CD
+    CD   OE1
+    CD   OE2
+     C     O
+     C    +N
+ [ impropers ]
+    CA    +N     C     O
+    CG   OE1    CD   OE2
+    N     CA     C    +N    105.4       0.75       1
+                        
+[ NASP ]
+ [ atoms ]
+     N    N3           0.05865     1   ; charge scaled
+    H1    H            0.16500     2   ; charge scaled
+    H2    H            0.16500     3   ; charge scaled
+    H3    H            0.16500     4   ; charge scaled
+    CA    CT           0.02190     5   ; charge scaled
+    HA    HP           0.08558     6   ; charge scaled
+    CB    CT          -0.01763     7   ; charge scaled
+   HB1    HC          -0.01268     8   ; charge scaled
+   HB2    HC          -0.01268     9   ; charge scaled
+    CG    C            0.61455    10   ; charge scaled
+   OD1    O2          -0.60630    11   ; charge scaled
+   OD2    O2          -0.60630    12   ; charge scaled
+     C    C            0.42158    13   ; charge scaled
+     O    O           -0.44168    14   ; charge scaled
+ [ bonds ]
+     N    H1
+     N    H2
+     N    H3
+     N    CA
+    CA    HA
+    CA    CB
+    CA     C
+    CB   HB1
+    CB   HB2
+    CB    CG
+    CG   OD1
+    CG   OD2
+     C     O
+     C    +N
+ [ dihedrals ]
+     N    CA    CB    CG        torsion_ASP_N_CA_CB_CG_mult1
+     N    CA    CB    CG        torsion_ASP_N_CA_CB_CG_mult2
+     N    CA    CB    CG        torsion_ASP_N_CA_CB_CG_mult3
+     N    CA    CB    CG        torsion_ASP_N_CA_CB_CG_mult4
+     N    CA    CB    CG        torsion_ASP_N_CA_CB_CG_mult5
+     N    CA    CB    CG        torsion_ASP_N_CA_CB_CG_mult6
+    CA    CB    CG   OD1        torsion_ASP_CA_CB_CG_OD_mult1
+    CA    CB    CG   OD1        torsion_ASP_CA_CB_CG_OD_mult2
+    CA    CB    CG   OD1        torsion_ASP_CA_CB_CG_OD_mult3
+    CA    CB    CG   OD1        torsion_ASP_CA_CB_CG_OD_mult4
+    CA    CB    CG   OD1        torsion_ASP_CA_CB_CG_OD_mult5
+    CA    CB    CG   OD1        torsion_ASP_CA_CB_CG_OD_mult6
+    CA    CB    CG   OD2        torsion_ASP_CA_CB_CG_OD_mult1
+    CA    CB    CG   OD2        torsion_ASP_CA_CB_CG_OD_mult2
+    CA    CB    CG   OD2        torsion_ASP_CA_CB_CG_OD_mult3
+    CA    CB    CG   OD2        torsion_ASP_CA_CB_CG_OD_mult4
+    CA    CB    CG   OD2        torsion_ASP_CA_CB_CG_OD_mult5
+    CA    CB    CG   OD2        torsion_ASP_CA_CB_CG_OD_mult6
+ [ impropers ]
+    CA    +N     C     O
+    CB   OD1    CG   OD2
+    N     CA     C    +N    105.4       0.75       1

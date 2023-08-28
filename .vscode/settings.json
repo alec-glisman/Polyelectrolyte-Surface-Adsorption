@@ -1,0 +1,30 @@
+{
+    "cSpell.words": [
+        "CPPFLAGS",
+        "cuda",
+        "DBUILD",
+        "DCMAKE",
+        "DCUDA",
+        "DGMX",
+        "DREGRESSIONTEST",
+        "FFTW",
+        "GROMACS",
+        "icpc",
+        "LDFLAGS",
+        "libplumed",
+        "Makefiles",
+        "Mdrun",
+        "mpic",
+        "mpicc",
+        "openmpi",
+        "PLUMEDROOT",
+        "sasa"
+    ],
+    "cSpell.enableFiletypes": [
+        "shellscript"
+    ],
+    "shellcheck.customArgs": [
+        "-x"
+    ],
+    "python.analysis.typeCheckingMode": "off"
+}

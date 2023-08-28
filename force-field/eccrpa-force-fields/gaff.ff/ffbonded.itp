@@ -1,0 +1,91 @@
+; Created by Alec Glisman (GitHub: @alec-glisman) on April 24th, 2023
+; Citations
+;  - OX-CX bond length: Zolotoyabko, et al. Crystal Growth & Design 10.3 (2010): 1207-1214.
+;  - OX-OX-CX-OX improper dihedral constant: Raiteri, Demichelis, and Gale. The Journal of Physical Chemistry C 119.43 (2015): 24447-24458.
+
+[ bondtypes ]
+;  ai       aj    funct          b0[nm]      kb [kJ/mol/nm^2]
+   C        O         1      1.2183e-01            5.4225e+05 ; GAFF
+   C        OH        1      1.3513e-01            3.3480e+05 ; GAFF
+   C        OS        1      1.3584e-01            3.2702e+05 ; GAFF
+   C3       C         1      1.5080e-01            2.7472e+05 ; GAFF
+   C3       OC        1      1.4233e-01            2.6501e+05 ; GAFF
+   C3       C3        1      1.5350e-01            2.5363e+05 ; GAFF
+   C3       OS        1      1.4316e-01            2.5824e+05 ; GAFF
+   C3       H1        1      1.0969e-01            2.7665e+05 ; GAFF
+   C3       HC        1      1.0920e-01            2.8225e+05 ; GAFF
+   OC       HO        1      9.7300e-02            3.1079e+05 ; GAFF
+   OH       HO        1      9.7300e-02            3.1079e+05 ; GAFF
+   OX       CX        1      1.2820e-01            5.2124e+05 ; GAFF (experimental bond length, constant from c-0)
+   HW_spc   HW_spc    1      1.5136e-01            4.6275e+05 ; SPC/E
+   OW_spc   HW_spc    1      9.5720e-02            4.6275e+05 ; SPC/E
+
+[ angletypes ]
+;   ai       aj       ak  funct     theta_0[degrees]     kth[kJ/mol/rad^2]
+    C        OH       HO      1           1.0655e+02    4.1740e+02 ; GAFF
+    C3       C        O       1           1.2311e+02    5.6928e+02 ; GAFF
+    C3       C        OH      1           1.1273e+02    5.7237e+02 ; GAFF
+    C3       OC       HO      1           1.0726e+02    3.9664e+02 ; GAFF
+    C3       C3       C       1           1.1053e+02    5.3379e+02 ; GAFF
+    C3       C3       C3      1           1.1063e+02    5.2894e+02 ; GAFF
+    C3       C3       H1      1           1.0956e+02    3.8828e+02 ; GAFF
+    C3       C3       OC      1           1.1019e+02    5.6484e+02 ; GAFF
+    C3       C3       OS      1           1.0797e+02    5.6902e+02 ; GAFF
+    C3       OS       C       1           1.1598e+02    5.2969e+02 ; GAFF 
+    HC       C3       HC      1           1.0835e+02    3.2995e+02 ; GAFF
+    H1       C        H1      1           1.0846e+02    3.2803e+02 ; GAFF
+    H1       C3       H1      1           1.0846e+02    3.2803e+02 ; GAFF
+    HC       C3       C3      1           1.1005e+02    3.8802e+02 ; GAFF
+    HC       C3       C       1           1.0968e+02    3.9497e+02 ; GAFF
+    O        C        O       1           1.3038e+02    6.5413e+02 ; GAFF
+    O        C        OH      1           1.2210e+02    6.3530e+02 ; GAFF
+    OC       C3       H1      1           1.1026e+02    4.2593e+02 ; GAFF
+    OS       C        C3      1           1.1072e+02    5.7656e+02 ; GAFF
+    OS       C        O       1           1.2325e+02    6.3011e+02 ; GAFF
+    OS       C3       C3      1           1.0797e+02    5.6902e+02 ; GAFF
+    OS       C3       H1      1           1.0978e+02    4.2509e+02 ; GAFF
+    OX       CX       OX      1           1.2000e+02    6.7111e+02 ; GAFF (experimental bond angle, constant from o-c-o)
+    HW_spc   OW_spc   HW_spc  1           1.0452e+02    8.3680e+02 ; SPC/E
+    HW_spc   HW_spc   OW_spc  1           1.2774e+02    0.0000e+02 ; SPC/E
+
+[ dihedraltypes ] ; propers
+; treated as RBs in GROMACS to combine multiple AMBER torsions per quartet
+ ;  ai      aj      ak      al  funct  C0[kJ/mol]  C1[kJ/mol]  C2[kJ/mol]   C3[kJ/mol]  C4[kJ/mol]  C5[kJ/mol]  
+    C       C3      C3      C3      3     0.65084     1.95253     0.00000    -2.60338     0.00000     0.00000 ; GAFF
+    C       OS      C3      H1      3     1.60387     4.81160     0.00000    -6.41547     0.00000     0.00000 ; GAFF 
+    C3      C       OH      HO      3    19.24640     0.00000   -19.246400    0.00000     0.00000     0.00000 ; GAFF
+    C3      C3      C       O       3     0.00000     0.00000     0.00000     0.00000     0.00000     0.00000 ; GAFF
+    C3      C3      C       OH      3     0.00000     0.00000     0.00000     0.00000     0.00000     0.00000 ; GAFF
+    C3      C3      C3      C3      3     3.68192     3.09616    -2.09200    -3.01248     0.00000     0.00000 ; GAFF
+    C3      C3      C3      H1      3     0.65084     1.95253     0.00000    -2.60338     0.00000     0.00000 ; GAFF
+    C3      C3      C3      HC      3     0.66944     2.00832     0.00000    -2.67776     0.00000     0.00000 ; GAFF
+    C3      C3      C3      OH      3     0.65084     1.95253     0.00000    -2.60338     0.00000     0.00000 ; GAFF
+    C3      C3      C3      OS      3     0.65084     1.95253     0.00000    -2.60338     0.00000     0.00000 ; GAFF
+    C3      C3      OH      HO      3     1.71544     0.96232     0.00000    -2.67776     0.00000     0.00000 ; GAFF
+    C3      C3      OC      HO      3     1.71544     0.96232     0.00000    -2.67776     0.00000     0.00000 ; GAFF
+    C3      C3      OS      C       3     4.94967     8.15462     0.00000    -6.40989     0.00000     0.00000 ; GAFF
+    C3      OS      C       O       3    28.45120     5.85760   -22.59360     0.00000     0.00000     0.00000 ; GAFF
+    C3      OS      C       C3      3    27.40520    14.43480   -22.59360   -19.24640     0.00000     0.00000 ; GAFF
+    H1      C3      C3      H1      3     0.65084     1.95253     0.00000    -2.60338     0.00000     0.00000 ; GAFF
+    H1      C3      OC      HO      3     0.69733     2.09200     0.00000    -2.78933     0.00000     0.00000 ; GAFF
+    H1      C3      OH      HO      3     0.69733     2.09200     0.00000    -2.78933     0.00000     0.00000 ; GAFF
+    HC      C3      C3      H1      3     0.65084     1.95253     0.00000    -2.60338     0.00000     0.00000 ; GAFF
+    HC      C3      C3      C       3     0.65084     1.95253     0.00000    -2.60338     0.00000     0.00000 ; GAFF
+    HC      C3      C3      HC      3     0.62760     1.88280     0.00000    -2.51040     0.00000     0.00000 ; GAFF
+    HC      C3      C       O       3     3.68192    -4.35136     0.00000     1.33888     0.00000     0.00000 ; GAFF
+    HC      C3      C       OH      3     0.00000     0.00000     0.00000     0.00000     0.00000     0.00000 ; GAFF
+    O       C       OH      HO      3    27.19600    -7.94960   -19.246400    0.00000     0.00000     0.00000 ; GAFF
+    OC      C3      C3      C3      3     0.65084     1.95253     0.00000    -2.60338     0.00000     0.00000 ; GAFF
+    OC      C3      C3      HC      3     1.04600    -1.04600     0.00000     0.00000     0.00000     0.00000 ; GAFF
+    OH      C3      C3      HC      3     1.04600    -1.04600     0.00000     0.00000     0.00000     0.00000 ; GAFF
+    OH      C3      C3      H1      3     1.04600    -1.04600     0.00000     0.00000     0.00000     0.00000 ; GAFF
+    OS      C3      C3      HC      3     1.04600    -1.04600     0.00000     0.00000     0.00000     0.00000 ; GAFF
+    OS      C       C3      HC      3     0.00000     0.00000     0.00000     0.00000     0.00000     0.00000 ; GAFF
+
+[ dihedraltypes ]  ; impropers
+; treated as propers in GROMACS to use correct AMBER analytical function
+;   ai      aj      ak      al   funct  phase[deg]  kd[kJ/mol]    pn (multiplicity)
+    C3      O       C       O        1      180.00     4.60240                   2 ; GAFF
+    C3      O       C       OH       1      180.00     4.60240                   2 ; GAFF
+    C3      O       C       OS       1      180.00     4.60240                   2 ; GAFF
+    OX      OX      CX      OX       1      180.00    57.09905                   2 ; Raiteri et al. 2015

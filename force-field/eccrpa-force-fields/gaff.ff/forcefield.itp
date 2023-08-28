@@ -1,0 +1,13 @@
+; Created by Alec Glisman (GitHub: @alec-glisman) on April 21st, 2023
+
+; nbfunc is the non-bonded function type. Use 1 (Lennard-Jones) or 2 (Buckingham)
+; comb-rule is the number of the combination rule (see Non-bonded parameters).
+; gen-pairs is for pair generation. The default is ‘no’, i.e. get 1-4 parameters from the pairtypes list. When parameters are not present in the list, stop with a fatal error. Setting ‘yes’ generates 1-4 parameters that are not present in the pair list from normal Lennard-Jones parameters using fudgeLJ
+; fudgeLJ is the factor by which to multiply Lennard-Jones 1-4 interactions, default 1
+; fudgeQQ is the factor by which to multiply electrostatic 1-4 interactions, default 1
+[ defaults ]
+; nbfunc   comb-rule   gen-pairs   fudgeLJ   fudgeQQ
+   1         2            yes       0.5      0.8333333333
+
+#include "ffnonbonded.itp"
+#include "ffbonded.itp"

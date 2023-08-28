@@ -1,0 +1,24 @@
+; Created by Alec Glisman (GitHub: @alec-glisman) on December 31st, 2021
+; Modified by Alec Glisman (GitHub: @alec-glisman) on April 8st, 2022
+;   for new atom names to be consistent with other force fields.
+; Modified by Alec Glisman (GitHub: @alec-glisman) on November 23rd, 2022
+;   to remove ion masses.
+
+[ moleculetype ]
+; molname       nrexcl
+CA              1
+[ atoms ]
+; id    at type         res nr  residu name     at name  cg nr  charge
+   1    C0                  1       CA             CA      1    1.50000
+
+
+[ moleculetype ]
+CL              1
+[ atoms ]
+   1    Cl                  1       CL             CL      1   -0.75000
+
+
+[ moleculetype ]
+NA              1
+[ atoms ]
+   1    Na                  1       NA             NA      1    0.75000

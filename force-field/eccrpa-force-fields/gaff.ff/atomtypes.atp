@@ -1,0 +1,21 @@
+; Created by Alec Glisman (GitHub: @alec-glisman) on April 24th, 2023
+; Polymer atoms
+C                 12.01000	; sp2 C carbonyl group 
+C3                12.01000	; sp3 aliphatic C
+H1                 1.00800	; H aliph. bond. to C with 1 electrwd. group
+HC                 1.00800	; H aliph. bond. to C without electrwd.group
+HO                 1.00800	; hydroxyl group
+O                 16.00000	; carbonyl group oxygen
+OC                16.00000	; oxygen in primary alcohol
+OH                16.00000	; oxygen in hydroxyl group
+OS                16.00000	; ether and ester oxygen
+; Carbonate atoms
+CX                12.01000	; carbonate C
+OX                16.00000	; carbonate oxygen
+; Small ions
+Cl                35.45000  ; CL, sodium
+C0                40.08000  ; CA, calcium
+Na                22.98980  ; NA, clorine
+; Water atoms
+HW_spc             1.00800  ; SPC/E Water HW
+OW_spc            15.99940  ; SPC/E Water OW

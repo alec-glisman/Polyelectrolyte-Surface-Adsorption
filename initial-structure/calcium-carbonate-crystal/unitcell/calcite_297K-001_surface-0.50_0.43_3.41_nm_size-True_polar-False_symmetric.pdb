@@ -1,0 +1,59 @@
+HEADER    
+TITLE     MDANALYSIS FRAME 0: CaCO3 crystal structure generated with OB and MDA
+COMPND    CaCO3
+CRYST1    4.988    4.988   34.122  90.00  90.00 120.00 P 1           1
+HETATM    1 CA   CA  X   1       0.416   0.720  25.307  1.00  0.00      SYSTCA
+HETATM    2 CA   CA  X   2       0.416   3.600  11.090  1.00  0.00      SYSTCA
+HETATM    3 CA   CA  X   3       2.910   2.160  13.933  1.00  0.00      SYSTCA
+HETATM    4 CA   CA  X   4       0.416   0.720  16.777  1.00  0.00      SYSTCA
+HETATM    5 CA   CA  X   5       0.416   3.600  19.620  1.00  0.00      SYSTCA
+HETATM    6 CA   CA  X   6       2.910   2.160  22.464  1.00  0.00      SYSTCA
+HETATM    7  CX1 CRB X   7       0.416   0.720  12.511  1.00  0.00      SYST C
+HETATM    8  CX1 CRB X   7       2.910   2.160   9.668  1.00  0.00      SYST C
+HETATM    9  CX1 CRB X   8       2.910   2.160  18.198  1.00  0.00      SYST C
+HETATM   10  CX1 CRB X   9       0.416   3.600  15.355  1.00  0.00      SYST C
+HETATM   11  CX1 CRB X  10       0.416   3.600  23.885  1.00  0.00      SYST C
+HETATM   12  CX1 CRB X   8       0.416   0.720  21.042  1.00  0.00      SYST C
+HETATM   13  OX1 CRB X   7       1.696   0.720  12.511  1.00  0.00      SYST O
+HETATM   14  OX1 CRB X   7       3.550   3.269   9.668  1.00  0.00      SYST O
+HETATM   15  OX2 CRB X   7      -0.224   1.829  12.511  1.00  0.00      SYST O
+HETATM   16  OX2 CRB X   7       1.630   2.160   9.668  1.00  0.00      SYST O
+HETATM   17  OX3 CRB X  11      -0.224  -0.389  12.511  1.00  0.00      SYST O
+HETATM   18  OX3 CRB X   7       3.550   1.051   9.668  1.00  0.00      SYST O
+HETATM   19  OX1 CRB X   8       4.190   2.160  18.198  1.00  0.00      SYST O
+HETATM   20  OX1 CRB X   9       1.056   4.709  15.355  1.00  0.00      SYST O
+HETATM   21  OX2 CRB X   8       2.270   3.269  18.198  1.00  0.00      SYST O
+HETATM   22  OX2 CRB X   9      -0.864   3.600  15.355  1.00  0.00      SYST O
+HETATM   23  OX3 CRB X   8       2.270   1.051  18.198  1.00  0.00      SYST O
+HETATM   24  OX3 CRB X   9       1.056   2.491  15.355  1.00  0.00      SYST O
+HETATM   25  OX1 CRB X  10       1.696   3.600  23.885  1.00  0.00      SYST O
+HETATM   26  OX1 CRB X   8       1.056   1.829  21.042  1.00  0.00      SYST O
+HETATM   27  OX2 CRB X  10      -0.224   4.709  23.885  1.00  0.00      SYST O
+HETATM   28  OX2 CRB X  12      -0.864   0.720  21.042  1.00  0.00      SYST O
+HETATM   29  OX3 CRB X  10      -0.224   2.491  23.885  1.00  0.00      SYST O
+HETATM   30  OX3 CRB X  13       1.056  -0.389  21.042  1.00  0.00      SYST O
+CONECT    7   13   15   17
+CONECT    8   14   16   18
+CONECT    9   19   21   23
+CONECT   10   20   22   24
+CONECT   11   25   27   29
+CONECT   12   26   28   30
+CONECT   13    7
+CONECT   14    8
+CONECT   15    7
+CONECT   16    8
+CONECT   17    7
+CONECT   18    8
+CONECT   19    9
+CONECT   20   10
+CONECT   21    9
+CONECT   22   10
+CONECT   23    9
+CONECT   24   10
+CONECT   25   11
+CONECT   26   12
+CONECT   27   11
+CONECT   28   12
+CONECT   29   11
+CONECT   30   12
+END

@@ -1,0 +1,12 @@
+Aragonite
+de Villiers J P R
+American Mineralogist 56 (1971) 758-767
+Crystal structures of aragonite, strontianite, and witherite
+_database_code_amcsd 0000233
+4.9614 7.9671 5.7404 90 90 90 Pmcn
+atom     x     y      z B(1,1) B(2,2) B(3,3) B(1,2) B(1,3) B(2,3)
+Ca     .25 .4150  .7597  .0062  .0021  .0063      0      0  .0001
+C      .25 .7622 -.0862  .0065  .0027  .0025      0      0 -.0006
+O1     .25 .9225 -.0962  .0122  .0028  .0086      0      0 -.0011
+O2   .4736 .6810 -.0862  .0053  .0042  .0069  .0008 -.0001  -.003
+

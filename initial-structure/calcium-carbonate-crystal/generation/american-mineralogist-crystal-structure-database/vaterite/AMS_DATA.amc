@@ -1,0 +1,20 @@
+Vaterite
+Wang J, Becker U
+American Mineralogist 94 (2009) 380-386
+Structure and carbonate orientation of vaterite (CaCO3)
+Locality: theoretical
+Note: Coordinates corrected by Wang, Sept, 2009
+_database_code_amcsd 0004854
+7.290 7.290 25.302 90 90 120 P6_522
+atom      x      y      z
+Ca1  .99061 .00939 .08333
+Ca2  .69615 .30385 .08333
+Ca3  .33860 .66140 .08333
+C1   .05054 .37261 .99480
+C2        0 .30905 .66667
+O1        0 .13101 .66667
+O2   .98950 .39074 .62171
+O3   .96481 .28935 .94960
+O4   .22645 .55089 .99617
+O5   .96346 .28119 .03914
+

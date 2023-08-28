@@ -1,0 +1,71 @@
+# Personal
+**/data/*
+**/data-clean/*
+**/data-archive/*
+**/logs
+
+# MacOSX
+.DS_Store
+**/.DS_Store
+
+# GROMACS
+*.a
+*.cache
+*.egg-info
+*.gch
+*.o
+*.pyc
+*.so
+*.swp
+.eggs
+.idea
+lib*.pc
+.project
+.python-version
+.tox
+.cproject
+build
+_build
+CMakeLists.txt.user
+/VersionInfo*.cmake
+Testing
+/.vs
+/CMakeSettings.json
+
+# Gromacs regression tests
+*.xvg
+ener.edr
+ener.part*.edr
+traj.trr
+traj.part*.trr
+*#
+state*.cpt
+md.log
+md.part*.log
+confout*.gro
+mdout.mdp
+topol.tpr
+*~
+*.orig
+*.tmp
+*.xtc
+grompp.err
+grompp.warn
+rot*.log
+make_edi.err
+sam.edi
+
+# Include specific .gitkeep files
+!data/.gitkeep
+!submission/logs/.gitkeep
+
+# Include documentation
+!**/README.md
+
+# Keep all files in software directory
+!software/**
+**/.DS_Store
+!force-field/**/*
+!**/test/**
+*.pyc
+!submission/logs/.gitkeep
