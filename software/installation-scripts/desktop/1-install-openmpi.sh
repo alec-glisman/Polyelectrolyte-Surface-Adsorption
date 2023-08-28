@@ -19,11 +19,6 @@ cuda_toolkit="/usr/local/cuda-12.0"
 project_base_dir="$(pwd)"
 compilers="gcc_12.3.0-cuda_12.0.140"
 
-# GDRCopy
-gdrcopy_version="R2.3.1"
-gdr_name="gdrcopy-${gdrcopy_version}"
-gdr_install_dir="/home/aglisman/software/${gdr_name}-${compilers}"
-
 # UCX path variables
 ucx_version="1.14.1"
 ucx_name="ucx-${ucx_version}"
@@ -37,50 +32,6 @@ mpi_install_dir="/home/aglisman/software/openmpi_${mpi_version}-${compilers}"
 # move to project base directory
 cd "${project_base_dir}" || exit
 
-# Install GDRCopy #######################################################################
-# FIXME: Currently all "sanity" tests fail
-echo "INFO: Installing GDRCopy"
-
-# unpack
-cd "${project_base_dir}" || exit
-tar -xvf "${gdr_name}.tar.xz"
-cd "${gdr_name}" || exit
-
-# # install APT packages
-sudo apt install -y \
-    build-essential \
-    devscripts \
-    debhelper \
-    check \
-    libsubunit0 \
-    libsubunit-dev \
-    fakeroot \
-    pkg-config \
-    dkms
-
-# install
-cd 'packages' || exit
-chmod +x ./build-deb-packages.sh
-CUDA="${cuda_toolkit}" ./build-deb-packages.sh
-sudo dpkg -i gdrdrv-dkms_*.deb
-sudo dpkg -i libgdrapi_*.deb
-sudo dpkg -i gdrcopy-tests_*.deb
-sudo dpkg -i gdrcopy_*.deb
-
-# remove source
-cd "${project_base_dir}" || exit
-rm -rf "${gdr_name}"
-
-# unit tests
-echo "INFO: Running GDRCopy sanity test"
-sanity
-echo "INFO: Running GDRCopy copybw test"
-copybw
-echo "INFO: Running GDRCopy copylat test"
-copylat
-echo "INFO: Running GDRCopy api test"
-apiperf -s 8
-
 # Install UCX ###########################################################################
 echo "INFO: Installing UCX"
 
@@ -90,19 +41,37 @@ tar -xvf "${ucx_name}.tar.xz"
 cd "${ucx_name}" || exit
 
 # configure
+./contrib/configure-release \
+    --prefix="${ucx_install_dir}" \
+    CXX="${cxx_compiler}" \
+    CC="${c_compiler}" \
+    PYTHON_BIN="${python_exe}"
+
+# make and install
+make -j24
+make install
+
+# remove unpacked directory
+cd "${project_base_dir}" || exit
+rm -rf "${ucx_name}"
 
 # Install OpenMPI #######################################################################
 echo "INFO: Installing OpenMPI"
 
-# # configure
-# ./configure \
-#     --with-cuda="${cuda_toolkit}" \
-#     --prefix="${mpi_install_dir}" \
-#     CXX="${cxx_compiler}" \
-#     CC="${c_compiler}" \
-#     PYTHON_BIN="${python_exe}"
+# unpack
+cd "${project_base_dir}" || exit
+tar -xvf "${mpi_name}.tar.xz"
+cd "${mpi_name}" || exit
 
-# # install
-# make -j24 all install
+# configure
+./configure \
+    --with-cuda="${cuda_toolkit}" \
+    --prefix="${mpi_install_dir}" \
+    CXX="${cxx_compiler}" \
+    CC="${c_compiler}" \
+    PYTHON_BIN="${python_exe}"
 
-# cd "${project_base_dir}" || exit
+# install
+make -j24 all install
+
+cd "${project_base_dir}" || exit
