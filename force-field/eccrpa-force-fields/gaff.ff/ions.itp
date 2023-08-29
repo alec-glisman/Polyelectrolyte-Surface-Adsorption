@@ -22,3 +22,11 @@ CL              1
 NA              1
 [ atoms ]
    1    Na                  1       NA             NA      1    0.75000
+
+[ moleculetype ]
+CRB           1
+[ atoms ]
+   1    CX                  1       CRB            CX1     1    0.9238401379312500
+   2    OX                  1       CRB            OX1     1   -0.8079467126437501
+   3    OX                  1       CRB            OX2     1   -0.8079467126437501
+   4    OX                  1       CRB            OX3     1   -0.8079467126437501
