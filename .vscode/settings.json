@@ -1,5 +1,6 @@
 {
     "cSpell.words": [
+        "conect",
         "CPPFLAGS",
         "cuda",
         "DBUILD",
@@ -9,6 +10,7 @@
         "DREGRESSIONTEST",
         "FFTW",
         "GROMACS",
+        "HETATM",
         "icpc",
         "LDFLAGS",
         "libplumed",
@@ -20,8 +22,12 @@
         "ompi",
         "openmpi",
         "PLUMEDROOT",
+        "resid",
+        "resname",
         "sasa",
-        "supercell"
+        "segid",
+        "supercell",
+        "vdwradii"
     ],
     "cSpell.enableFiletypes": [
         "shellscript"
