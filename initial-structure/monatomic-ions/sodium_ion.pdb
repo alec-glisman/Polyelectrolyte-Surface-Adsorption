@@ -1,0 +1,5 @@
+TITLE     Isolated sodium ion in vacuum
+REMARK    Sample input file with atom placed at origin
+ATOM    1   Na    NA  1          0.000   0.000   0.000  1.00  0.00          Na
+TER
+ENDMDL

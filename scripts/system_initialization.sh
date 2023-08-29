@@ -19,17 +19,34 @@ echo "INFO: Setting default preferences"
 mpi_bin="/home/aglisman/software/openmpi_4.1.5-gcc_12.3.0-cuda_12.0.140/bin/mpirun"
 gmx_bin="/home/aglisman/software/gromacs_mpi_2023-plumed_mpi_2.9.0-gcc_12.3.0-cuda_12.0.140/bin/gmx_mpi"
 
+# Hardware parameters
+cpu_threads='16'
+pin_offset='0'
+gpu_ids='0'
+
+# System parameters
+N_CHAIN='4'
+N_SODIUM='4'
+N_CALCIUM='4'
+N_CARBONATE='4'
+N_CHLORINE='4'
+
 # Gromacs files
 mdp_file="../parameters/mdp/energy-minimization/em.mdp"
 ff_dir="../force-field/eccrpa-force-fields/gaff.ff"
 
-# Structure files
-pdb_crystal_file="../initial-structure/calcium-carbonate-crystal/generation/python/calcite_297K-104_surface-2.99_3.22_3.66_nm_size-False_polar-True_symmetric.pdb"
+# find path to this script
+script_path="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 
-# Simulation parameters
-cpu_threads='16'
-pin_offset='0'
-gpu_ids='0'
+# Structure files
+PDB_CRYSTAL="../initial-structure/calcium-carbonate-crystal/generation/python/calcite_297K-104_surface-2.99_3.22_3.66_nm_size-False_polar-True_symmetric.pdb"
+PDB_CHAIN="../initial-structure/polyelectrolyte/chain/homopolymer/PAcr-3mer-atactic-Hend.pdb"
+PACKMOL_INPUT="../parameters/packmol/crystal_surface.inp"
+
+# Default structure files
+structure_path="${script_path}/../initial-structure"
+PDB_CARBONATE="${structure_path}/polyatomic-ions/carbonate_ion.pdb"
+GRO_WATER="spc216.gro"
 
 # Output files
 cwd="$(pwd)"
@@ -49,16 +66,63 @@ echo "INFO: Copying input files to working directory"
 
     # copy files
     cp -p "${mdp_file}" "mdin.mdp"
-    cp -p "${pdb_crystal_file}" "crystal.pdb"
+    cp -p "${PDB_CRYSTAL}" "crystal.pdb"
+    cp -p "${PDB_CHAIN}" "chain.pdb"
+    cp -p "${PACKMOL_INPUT}" "packmol.inp"
 } >>"${log_file}" 2>&1
+
+# Make Simulation Box with Packmol ######################################################
+# echo "INFO: Making simulation box with Packmol"
+
+# {
+# # modify packmol input file with pdb file names
+# sed -i "s|PDB_CRYSTAL|${PDB_CRYSTAL}|g" "packmol.inp"
+# sed -i "s|PDB_CHAIN|${PDB_CHAIN}|g" "packmol.inp"
+# sed -i "s|PDB_CALCIUM|${PDB_CALCIUM}|g" "packmol.inp"
+# sed -i "s|PDB_SODIUM|${PDB_SODIUM}|g" "packmol.inp"
+# sed -i "s|PDB_CHLORINE|${PDB_CHLORINE}|g" "packmol.inp"
+# sed -i "s|PDB_CARBONATE|${PDB_CARBONATE}|g" "packmol.inp"
+# # modify packmol input file with number of molecules to place in box
+# sed -i "s|N_SODIUM|${N_SODIUM}|g" "packmol.inp"
+# sed -i "s|N_CALCIUM|${N_CALCIUM}|g" "packmol.inp"
+# sed -i "s|N_CHLORINE|${N_CHLORINE}|g" "packmol.inp"
+# sed -i "s|N_CARBONATE|${N_CARBONATE}|g" "packmol.inp"
+
+# # run packmol to make simulation box
+# packmol <"packmol.inp"
+
+# # add water to simulation box
+# solvate.tcl -charge '0' -density '1.0' -o 'system.pdb' -noions
+
+# } >>"${log_file}" 2>&1
 
 # Import Structure to Gromacs ##########################################################
 echo "INFO: Importing structure to Gromacs"
 
 {
-    # Create topology file
-    "${gmx_bin}" -nocopyright -quiet pdb2gmx -v \
+    # insert-molecules to create simulation box of crystal and chains
+    "${gmx_bin}" -nocopyright -quiet insert-molecules \
         -f "crystal.pdb" \
+        -ci "chain.pdb" \
+        -o "${sim_name}.pdb" \
+        -nmol "${N_CHAIN}" \
+        -radius '0.5' \
+        -try '100'
+
+    # insert-molecules to add carbonate ions
+    if [[ "${N_CARBONATE}" -gt 0 ]]; then
+        "${gmx_bin}" -quiet insert-molecules \
+            -f "${sim_name}.pdb" \
+            -ci "${PDB_CARBONATE}" \
+            -o "${sim_name}.pdb" \
+            -nmol "${N_CARBONATE}" \
+            -radius '0.5' \
+            -try '100'
+    fi
+
+    # convert pdb to gro
+    "${gmx_bin}" -nocopyright -quiet pdb2gmx -v \
+        -f "${sim_name}.pdb" \
         -o "${sim_name}.gro" \
         -n "index.ndx" \
         -q "pdb2gmx_clean.pdb" \
@@ -67,13 +131,15 @@ echo "INFO: Importing structure to Gromacs"
         -noignh \
         -renum \
         -rtpres
-} >>"${log_file}" 2>&1
 
-# Create TPR file ######################################################################
-echo "INFO: Creating TPR file"
+    # add solvent
+    "${gmx_bin}" -nocopyright -quiet solvate \
+        -cp "${sim_name}.gro" \
+        -cs "${GRO_WATER}" \
+        -o "${sim_name}.gro" \
+        -p "topol.top"
 
-{
-    # use grompp to create tpr file and full top file
+    # make tpr file
     "${gmx_bin}" -nocopyright -quiet grompp -v \
         -f "mdin.mdp" \
         -n "index.ndx" \
@@ -81,8 +147,56 @@ echo "INFO: Creating TPR file"
         -p "topol.top" \
         -pp "topol_full.top" \
         -o "${sim_name}.tpr" \
-        -maxwarn 1 # NOTE: net electrostatic charge should be < 1e-3
+        -maxwarn '1' # NOTE: net electrostatic charge should be < 1e-3
 
+    # add Ca2+ ions
+    if [[ "${N_CALCIUM}" -gt 0 ]]; then
+        "${gmx_bin}" --nocopyright genion \
+            -s "${sim_name}.tpr" \
+            -p "topol.top" \
+            -o "${sim_name}.gro" \
+            -pname "CA" \
+            -np "${N_CALCIUM}" \
+            -rmin "0.6" \
+            <<EOF
+SOL
+EOF
+    fi
+
+    # add Na+ ions
+    if [[ "${N_SODIUM}" -gt 0 ]]; then
+        "${gmx_bin}" --nocopyright genion \
+            -s "${sim_name}.tpr" \
+            -p "topol.top" \
+            -o "${sim_name}.gro" \
+            -pname "NA" \
+            -np "${N_SODIUM}" \
+            -rmin "0.6" \
+            <<EOF
+SOL
+EOF
+    fi
+
+    # add Cl- ions
+    if [[ "${N_CHLORINE}" -gt 0 ]]; then
+        "${gmx_bin}" --nocopyright genion \
+            -s "${sim_name}.tpr" \
+            -p "topol.top" \
+            -o "${sim_name}.gro" \
+            -pname "CL" \
+            -np "${N_CHLORINE}" \
+            -rmin "0.6" \
+            <<EOF
+SOL
+EOF
+    fi
+
+} >>"${log_file}" 2>&1
+
+# Create TPR file ######################################################################
+echo "INFO: Archiving files"
+
+{
     # copy input files to structure directory
     mkdir -p '0-structure'
     cp -p 'pdb2gmx_clean.pdb' '0-structure/system.pdb'
@@ -111,6 +225,18 @@ echo "INFO: Running energy minimization"
         -deffnm "${sim_name}" \
         -pin on -pinoffset "${pin_offset}" -pinstride 1 -ntomp "${cpu_threads}" \
         -gpu_id "${gpu_ids}"
+
+    # dump last frame of energy minimization as pdb file
+    "${gmx_bin}" -quiet -nocopyright trjconv \
+        -f "${sim_name}.trr" \
+        -s "${sim_name}.tpr" \
+        -o "${sim_name}_final.pdb" \
+        -pbc 'mol' -center -ur 'compact' \
+        -dump '10000' -conect <<EOF
+System
+System
+EOF
+
 } >>"${log_file}" 2>&1
 
 # Clean up #############################################################################
@@ -126,7 +252,7 @@ echo "INFO: Cleaning up"
     find . -type f -name '#*#' -delete || true
 
     # delete other files that are not needed
-    rm -r ./*.mdp ./*.itp index.ndx
+    rm -r ./*.mdp ./*.itp index.ndx step*.pdb
 
     #
 } >>"${log_file}" 2>&1
