@@ -1,0 +1,9 @@
+[submodule "tutorial/masterclass-opes-method"]
+	path = tutorial/masterclass-opes-method
+	url = https://github.com/invemichele/masterclass-22-03.git
+[submodule "tutorial/paper-oneopes"]
+	path = tutorial/paper-oneopes
+	url = https://github.com/valeriorizzi/OneOPES.git
+[submodule "tutorial/masterclass-pytorch-cv"]
+	path = tutorial/masterclass-pytorch-cv
+	url = https://github.com/luigibonati/masterclass-plumed.git

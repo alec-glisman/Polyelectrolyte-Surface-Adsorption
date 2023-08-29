@@ -23,6 +23,7 @@
         "openmpi",
         "PLUMEDROOT",
         "resid",
+        "resids",
         "resname",
         "sasa",
         "segid",

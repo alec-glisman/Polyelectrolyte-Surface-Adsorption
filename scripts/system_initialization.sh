@@ -32,6 +32,7 @@ pin_offset='0'
 gpu_ids='0'
 
 # Output files
+cwd="$(pwd)"
 sim_name="energy_minimization"
 log_file="${sim_name}.log"
 
@@ -39,8 +40,12 @@ log_file="${sim_name}.log"
 echo "INFO: Copying input files to working directory"
 
 {
+    # move to working directory
+    cd "${cwd}" || exit
+
     # copy force field files
-    cp -rp "${ff_dir}" "forcefield.ff"
+    mkdir -p "forcefield.ff"
+    cp -rp "${ff_dir}/"* -t "forcefield.ff"
 
     # copy files
     cp -p "${mdp_file}" "mdin.mdp"
