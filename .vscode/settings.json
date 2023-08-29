@@ -16,10 +16,12 @@
         "Mdrun",
         "mpic",
         "mpicc",
+        "nocopyright",
         "ompi",
         "openmpi",
         "PLUMEDROOT",
-        "sasa"
+        "sasa",
+        "supercell"
     ],
     "cSpell.enableFiletypes": [
         "shellscript"

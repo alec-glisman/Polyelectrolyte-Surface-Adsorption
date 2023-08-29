@@ -39,6 +39,10 @@
  [ impropers ]
     OX1     CX1      OX2      OX3
 
+[ CA ]
+ [ atoms ]
+  CA        C0      1.5            1
+
 
 
 ; SECTION: ACRYLATE ION
