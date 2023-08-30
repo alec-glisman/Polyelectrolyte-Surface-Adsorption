@@ -111,7 +111,7 @@ cd "${project_path}/data/${TAG}" || exit 1
 # initialize simulation
 if [[ "${flag_initialization}" = true ]]; then
     echo "Initializing simulation..."
-    "${project_path}/scripts/method/system_initialization.sh"
+    "${project_path}/scripts/method/initialization.sh"
 fi
 
 # TODO: equilibrate simulation
