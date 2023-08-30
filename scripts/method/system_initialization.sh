@@ -5,47 +5,20 @@
 # Date       : 2023-08-28
 # Description: Script to create initial system for MD simulations
 # Usage      : ./system_initialization.sh
-# Notes      : Script may assume that some global variables are set (all caps)
-
-# built-in shell options
-set -o errexit  # exit when a command fails. Add || true to commands allowed to fail
-set -o nounset  # exit when script tries to use undeclared variables
-set -o pipefail # exit when a command in a pipe fails
+# Notes      : Script assumes that global variables have been set in a
+#             submission/input/*.sh script. Script should only be called from
+#             the main run.sh script.
 
 # Default Preferences ###################################################################
 echo "INFO: Setting default preferences"
 
-# Executables
-MPI_BIN="/home/aglisman/software/openmpi_4.1.5-gcc_12.3.0-cuda_12.0.140/bin/mpirun"
-GMX_BIN="/home/aglisman/software/gromacs_mpi_2023-plumed_mpi_2.9.0-gcc_12.3.0-cuda_12.0.140/bin/gmx_mpi"
-
-# Hardware parameters
-CPU_THREADS='16'
-PIN_OFFSET='0'
-GPU_IDS='0'
-
-# System parameters
-N_MONOMER='32'
-N_CHAIN='4'
-N_CARBONATE='128'
-N_SODIUM='128'
-N_CALCIUM='144'
-N_CHLORINE='32'
-
-echo "Total positive charge: $(bc <<<"${N_SODIUM} + 2*${N_CALCIUM}")"
-echo "Total negative charge: $(bc <<<"-${N_CHLORINE} - 2*${N_CARBONATE} - ${N_MONOMER}*${N_CHAIN}")"
-
 # find path to this script
 script_path="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
-structure_path="${script_path}/../initial-structure"
+project_path="${script_path}/../.."
+structure_path="${project_path}/initial-structure"
 
 # Gromacs files
-FF_DIR="${script_path}/../force-field/eccrpa-force-fields/gaff.ff"
-mdp_file="${script_path}/../parameters/mdp/energy-minimization/em.mdp"
-
-# Variable structure files
-PDB_CRYSTAL="${structure_path}/calcium-carbonate-crystal/supercell/calcite_297K-104_surface-11.97_12.14_13.36_nm_size-False_polar-True_symmetric.pdb"
-PDB_CHAIN="${structure_path}/polyelectrolyte/chain/homopolymer/PAcr-${N_MONOMER}mer-atactic-Hend.pdb"
+mdp_file="${project_path}/parameters/mdp/energy-minimization/em.mdp"
 
 # Default structure files
 pdb_carbonate="${structure_path}/polyatomic-ions/carbonate_ion.pdb"
@@ -56,22 +29,34 @@ cwd="$(pwd)/1-energy-minimization"
 sim_name="energy_minimization"
 log_file="system_initialization.log"
 
-# Copy input files to working directory ################################################
-echo "INFO: Copying input files to working directory"
+# Check for existing files #############################################################
+echo "CRITICAL: Starting system initialization"
 
 # move to working directory
 mkdir -p "${cwd}"
 cd "${cwd}" || exit
 
+# see if "2-output/system.gro" exists
+if [[ -f "2-output/system.gro" ]]; then
+    echo "WARNING: 2-output/system.gro already exists"
+    echo "INFO: Exiting script"
+    exit 0
+fi
+
+# Copy input files to working directory ################################################
+echo "INFO: Copying input files to working directory"
+
 {
     # copy force field files
     mkdir -p "forcefield.ff"
-    cp -rp "${FF_DIR}/"* -t "forcefield.ff"
+    cp -rp "${FF_DIR}/"* -t "forcefield.ff" || exit 1
 
     # copy files
-    cp -p "${mdp_file}" "mdin.mdp"
-    cp -p "${PDB_CRYSTAL}" "crystal.pdb"
-    cp -p "${PDB_CHAIN}" "chain.pdb"
+    # if any cp commands failed, exit script
+    cp -p "${mdp_file}" "mdin.mdp" || exit 1
+    cp -p "${PDB_CRYSTAL}" "crystal.pdb" || exit 1
+    cp -p "${PDB_CHAIN}" "chain.pdb" || exit 1
+
 } >>"${log_file}" 2>&1
 
 # Import Structure to Gromacs ##########################################################
@@ -232,18 +217,18 @@ echo "INFO: Archiving files"
 {
     # copy input files to structure directory
     mkdir -p '0-structure'
-    cp -p 'pdb2gmx_clean.pdb' '0-structure/system.pdb'
-    cp -p 'topol_full.top' '0-structure/topol.top'
-    cp -p 'index.ndx' '0-structure/index.ndx'
-    cp -rp ./*.itp '0-structure/'
+    cp -p 'pdb2gmx_clean.pdb' '0-structure/system.pdb' || exit 1
+    cp -p 'topol_full.top' '0-structure/topol.top' || exit 1
+    cp -p 'index.ndx' '0-structure/index.ndx' || exit 1
+    cp -rp ./*.itp '0-structure/' || exit 1
 
     # copy simulation files to simulation directory
     mkdir -p '1-energy-minimization'
-    cp -p 'mdin.mdp' '1-energy-minimization/mdin.mdp'
-    cp -p 'mdout.mdp' '1-energy-minimization/mdout.mdp'
-    cp -p 'index.ndx' '1-energy-minimization/index.ndx'
-    cp -p 'topol_full.top' '1-energy-minimization/topol.top'
-    cp -p "${sim_name}.tpr" "1-energy-minimization/${sim_name}.tpr"
+    cp -p 'mdin.mdp' '1-energy-minimization/mdin.mdp' || exit 1
+    cp -p 'mdout.mdp' '1-energy-minimization/mdout.mdp' || exit 1
+    cp -p 'index.ndx' '1-energy-minimization/index.ndx' || exit 1
+    cp -p 'topol_full.top' '1-energy-minimization/topol.top' || exit 1
+    cp -p "${sim_name}.tpr" "1-energy-minimization/${sim_name}.tpr" || exit 1
 } >>"${log_file}" 2>&1
 
 # Run Energy Minimization ##############################################################
@@ -251,13 +236,22 @@ echo "INFO: Running energy minimization"
 
 {
     # run energy minimization
-    "${MPI_BIN}" -np 1 \
+    "${MPI_BIN}" -np '1' \
         --map-by "ppr:1:node:PE=${CPU_THREADS}" \
-        --use-hwthread-cpus --bind-to 'hwthread' --report-bindings \
+        --use-hwthread-cpus --bind-to 'hwthread' \
         "${GMX_BIN}" -quiet -nocopyright mdrun -v \
         -deffnm "${sim_name}" \
         -pin on -pinoffset "${PIN_OFFSET}" -pinstride 1 -ntomp "${CPU_THREADS}" \
-        -gpu_id "${GPU_IDS}"
+        -gpu_id "${GPU_IDS}" || exit 1
+
+    # dump last frame of energy minimization as gro file
+    "${GMX_BIN}" -quiet trjconv \
+        -f "${sim_name}.trr" \
+        -s "${sim_name}.tpr" \
+        -o "${sim_name}.gro" \
+        -dump '100000' <<EOF
+System
+EOF
 
     # dump last frame of energy minimization as pdb file
     "${GMX_BIN}" -quiet -nocopyright trjconv \
@@ -265,7 +259,7 @@ echo "INFO: Running energy minimization"
         -s "${sim_name}.tpr" \
         -o "${sim_name}_final.pdb" \
         -pbc 'mol' -ur 'compact' \
-        -dump '10000' -conect <<EOF
+        -dump '100000' -conect <<EOF
 System
 System
 EOF
@@ -387,21 +381,21 @@ echo "INFO: Cleaning up"
 {
     # create output directory
     mkdir -p "2-output"
-    cp -p index.ndx "2-output/index.ndx"
-    cp -p topol_full.top "2-output/topol.top"
-    cp -p "${sim_name}.gro" "2-output/system.gro"
-    cp -p "${sim_name}_final.pdb" "2-output/system.pdb"
+    cp -p index.ndx "2-output/index.ndx" || exit 1
+    cp -p topol_full.top "2-output/topol.top" || exit 1
+    cp -p "${sim_name}.gro" "2-output/system.gro" || exit 1
+    cp -p "${sim_name}_final.pdb" "2-output/system.pdb" || exit 1
 
     # copy files with pattern sim_name to simulation directory
-    cp -p "${sim_name}."* -t "1-energy-minimization"
-    cp -p "${sim_name}.gro" -t "0-structure"
-    rm "${sim_name}."*
+    cp -p "${sim_name}."* -t "1-energy-minimization" || exit 1
+    cp -p "${sim_name}.gro" -t "0-structure" || exit 1
+    rm "${sim_name}."* || true
 
     # delete all backup files
     find . -type f -name '#*#' -delete || true
 
     # delete other files that are not needed
-    rm -r ./*.mdp ./*.itp index.ndx step*.pdb
+    rm -r ./*.mdp ./*.itp index.ndx step*.pdb || true
 } >>"${log_file}" 2>&1
 
-echo "INFO: Energy minimization complete"
+echo "Critical: Finished system initialization"
