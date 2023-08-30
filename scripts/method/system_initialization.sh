@@ -64,13 +64,18 @@ echo "INFO: Importing structure to Gromacs"
 
 {
     # insert-molecules to create simulation box of crystal and chains
+    if [[ "${N_CHAIN}" -gt 0 ]]; then
     "${GMX_BIN}" -nocopyright -quiet insert-molecules \
         -f "crystal.pdb" \
         -ci "chain.pdb" \
         -o "${sim_name}.pdb" \
         -nmol "${N_CHAIN}" \
         -radius '0.5' \
-        -try '100'
+        -try '1000'
+    else
+        cp -p "crystal.pdb" "${sim_name}.pdb"
+    fi
+
 
     # insert-molecules to add carbonate ions
     if [[ "${N_CARBONATE}" -gt 0 ]]; then
@@ -80,7 +85,7 @@ echo "INFO: Importing structure to Gromacs"
             -o "${sim_name}.pdb" \
             -nmol "${N_CARBONATE}" \
             -radius '0.5' \
-            -try '100'
+            -try '1000'
     fi
 
     # convert pdb to gro
@@ -94,7 +99,19 @@ echo "INFO: Importing structure to Gromacs"
         -noignh \
         -renum \
         -rtpres
+
+    # get box dimensions from last line of gro file
+    box_dim="$(tail -n 1 "${sim_name}.gro")"
+    z="$(echo "${box_dim}" | awk '{print $3}')"
+    new_z="$(bc <<<"scale=5; ${BOX_HEIGHT} * 1.00000")"
+
+    # increase z-dimension of box to BOX_HEIGHT by string replacement of 3rd column in last line of gro file
+    sed -i "s/${z}/${new_z}/g" "${sim_name}.gro"
+
 } >>"${log_file}" 2>&1
+
+echo "DEBUG: Initial box height [A]: ${z}"
+echo "DEBUG: Final box height [A]: ${new_z}"
 
 # Add Solvent #########################################################################
 echo "INFO: Adding solvent"
@@ -203,6 +220,11 @@ echo "INFO: Creating topology"
         -o "${sim_name}.tpr" \
         -maxwarn '1'
 } >>"${log_file}" 2>&1
+
+# output the number of water molecules
+n_water="$(grep -c "SOL" "${sim_name}.gro")"
+n_water=$((n_water / 3))
+echo "DEBUG: Number of water molecules: ${n_water}"
 
 # grep lines in log file that contain "System has non-zero total charge" and save to array
 grep -n "System has non-zero total charge" "${log_file}" >charge_lines.log
