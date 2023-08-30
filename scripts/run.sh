@@ -114,12 +114,16 @@ if [[ "${flag_initialization}" = true ]]; then
     "${project_path}/scripts/method/initialization.sh"
 fi
 
-# TODO: equilibrate simulation
+# equilibrate simulation
+if [[ "${flag_equilibration}" = true ]]; then
+    echo "Equilibrating simulation..."
+    "${project_path}/scripts/method/equilibration.sh"
+fi
 
 # TODO: run production simulation
 
 # ##############################################################################
-# End #########################################################################
+# End ##########################################################################
 # ##############################################################################
 
 echo "INFO: ${package} completed successfully."

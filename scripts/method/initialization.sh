@@ -25,6 +25,7 @@ pdb_carbonate="${structure_path}/polyatomic-ions/carbonate_ion.pdb"
 gro_water="spc216.gro"
 
 # Output files
+cwd_initialization="$(pwd)"
 cwd="$(pwd)/1-energy-minimization"
 sim_name="energy_minimization"
 log_file="system_initialization.log"
@@ -65,17 +66,16 @@ echo "INFO: Importing structure to Gromacs"
 {
     # insert-molecules to create simulation box of crystal and chains
     if [[ "${N_CHAIN}" -gt 0 ]]; then
-    "${GMX_BIN}" -nocopyright -quiet insert-molecules \
-        -f "crystal.pdb" \
-        -ci "chain.pdb" \
-        -o "${sim_name}.pdb" \
-        -nmol "${N_CHAIN}" \
-        -radius '0.5' \
-        -try '1000'
+        "${GMX_BIN}" -nocopyright -quiet insert-molecules \
+            -f "crystal.pdb" \
+            -ci "chain.pdb" \
+            -o "${sim_name}.pdb" \
+            -nmol "${N_CHAIN}" \
+            -radius '0.5' \
+            -try '1000'
     else
         cp -p "crystal.pdb" "${sim_name}.pdb"
     fi
-
 
     # insert-molecules to add carbonate ions
     if [[ "${N_CARBONATE}" -gt 0 ]]; then
@@ -421,3 +421,4 @@ echo "INFO: Cleaning up"
 } >>"${log_file}" 2>&1
 
 echo "Critical: Finished system initialization"
+cd "${cwd_initialization}" || exit 1
