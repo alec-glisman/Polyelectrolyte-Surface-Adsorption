@@ -25,11 +25,15 @@ pin_offset='0'
 gpu_ids='0'
 
 # System parameters
-N_CHAIN='4'
-N_SODIUM='4'
+N_MONOMER='3'
+N_CHAIN='3'
+N_CARBONATE='2'
+N_SODIUM='9'
 N_CALCIUM='4'
-N_CARBONATE='4'
 N_CHLORINE='4'
+
+echo "Total positive charge: $(bc <<<"${N_SODIUM} + 2*${N_CALCIUM}")"
+echo "Total negative charge: $(bc <<<"-${N_CHLORINE} - 2*${N_CARBONATE} - ${N_MONOMER}*${N_CHAIN}")"
 
 # Gromacs files
 mdp_file="../parameters/mdp/energy-minimization/em.mdp"
@@ -71,31 +75,6 @@ echo "INFO: Copying input files to working directory"
     cp -p "${PACKMOL_INPUT}" "packmol.inp"
 } >>"${log_file}" 2>&1
 
-# Make Simulation Box with Packmol ######################################################
-# echo "INFO: Making simulation box with Packmol"
-
-# {
-# # modify packmol input file with pdb file names
-# sed -i "s|PDB_CRYSTAL|${PDB_CRYSTAL}|g" "packmol.inp"
-# sed -i "s|PDB_CHAIN|${PDB_CHAIN}|g" "packmol.inp"
-# sed -i "s|PDB_CALCIUM|${PDB_CALCIUM}|g" "packmol.inp"
-# sed -i "s|PDB_SODIUM|${PDB_SODIUM}|g" "packmol.inp"
-# sed -i "s|PDB_CHLORINE|${PDB_CHLORINE}|g" "packmol.inp"
-# sed -i "s|PDB_CARBONATE|${PDB_CARBONATE}|g" "packmol.inp"
-# # modify packmol input file with number of molecules to place in box
-# sed -i "s|N_SODIUM|${N_SODIUM}|g" "packmol.inp"
-# sed -i "s|N_CALCIUM|${N_CALCIUM}|g" "packmol.inp"
-# sed -i "s|N_CHLORINE|${N_CHLORINE}|g" "packmol.inp"
-# sed -i "s|N_CARBONATE|${N_CARBONATE}|g" "packmol.inp"
-
-# # run packmol to make simulation box
-# packmol <"packmol.inp"
-
-# # add water to simulation box
-# solvate.tcl -charge '0' -density '1.0' -o 'system.pdb' -noions
-
-# } >>"${log_file}" 2>&1
-
 # Import Structure to Gromacs ##########################################################
 echo "INFO: Importing structure to Gromacs"
 
@@ -131,7 +110,11 @@ echo "INFO: Importing structure to Gromacs"
         -noignh \
         -renum \
         -rtpres
+} >>"${log_file}" 2>&1
 
+# Add Solvent #########################################################################
+echo "INFO: Adding solvent"
+{
     # add solvent
     "${gmx_bin}" -nocopyright -quiet solvate \
         -cp "${sim_name}.gro" \
@@ -139,19 +122,29 @@ echo "INFO: Importing structure to Gromacs"
         -o "${sim_name}.gro" \
         -p "topol.top"
 
-    # make tpr file
-    "${gmx_bin}" -nocopyright -quiet grompp -v \
-        -f "mdin.mdp" \
-        -n "index.ndx" \
-        -c "${sim_name}.gro" \
-        -p "topol.top" \
-        -pp "topol_full.top" \
-        -o "${sim_name}.tpr" \
-        -maxwarn '1' # NOTE: net electrostatic charge should be < 1e-3
+    # create index file
+    "${gmx_bin}" -quiet make_ndx \
+        -f "${sim_name}.gro" \
+        -o "index.ndx" \
+        <<EOF
+q
+EOF
+} >>"${log_file}" 2>&1
 
+# Add Ions ############################################################################
+echo "INFO: Adding calcium ions"
+{
     # add Ca2+ ions
     if [[ "${N_CALCIUM}" -gt 0 ]]; then
-        "${gmx_bin}" --nocopyright genion \
+        # tpr update
+        "${gmx_bin}" -nocopyright -quiet grompp \
+            -f "mdin.mdp" \
+            -c "${sim_name}.gro" \
+            -p "topol.top" \
+            -o "${sim_name}.tpr" \
+            -maxwarn '1'
+        # add ions
+        "${gmx_bin}" --nocopyright -quiet genion \
             -s "${sim_name}.tpr" \
             -p "topol.top" \
             -o "${sim_name}.gro" \
@@ -162,10 +155,21 @@ echo "INFO: Importing structure to Gromacs"
 SOL
 EOF
     fi
+} >>"${log_file}" 2>&1
 
+echo "INFO: Adding sodium ions"
+{
     # add Na+ ions
     if [[ "${N_SODIUM}" -gt 0 ]]; then
-        "${gmx_bin}" --nocopyright genion \
+        # tpr update
+        "${gmx_bin}" -nocopyright -quiet grompp \
+            -f "mdin.mdp" \
+            -c "${sim_name}.gro" \
+            -p "topol.top" \
+            -o "${sim_name}.tpr" \
+            -maxwarn '1'
+        # add ions
+        "${gmx_bin}" --nocopyright -quiet genion \
             -s "${sim_name}.tpr" \
             -p "topol.top" \
             -o "${sim_name}.gro" \
@@ -176,20 +180,46 @@ EOF
 SOL
 EOF
     fi
+} >>"${log_file}" 2>&1
 
+echo "INFO: Adding chlorine ions"
+{
     # add Cl- ions
     if [[ "${N_CHLORINE}" -gt 0 ]]; then
-        "${gmx_bin}" --nocopyright genion \
+        # tpr update
+        "${gmx_bin}" -nocopyright -quiet grompp \
+            -f "mdin.mdp" \
+            -c "${sim_name}.gro" \
+            -p "topol.top" \
+            -o "${sim_name}.tpr" \
+            -maxwarn '1'
+        # add ions
+        "${gmx_bin}" --nocopyright -quiet genion \
             -s "${sim_name}.tpr" \
             -p "topol.top" \
             -o "${sim_name}.gro" \
-            -pname "CL" \
-            -np "${N_CHLORINE}" \
+            -nname "CL" \
+            -nn "${N_CHLORINE}" \
             -rmin "0.6" \
             <<EOF
 SOL
 EOF
     fi
+} >>"${log_file}" 2>&1
+
+# Create Topology #####################################################################
+echo "INFO: Creating topology"
+{
+    # remake tpr file
+    "${gmx_bin}" -quiet grompp \
+        -f "mdin.mdp" \
+        -c "${sim_name}.gro" \
+        -p "topol.top" \
+        -pp "topol_full.top" \
+        -o "${sim_name}.tpr" \
+        -maxwarn '1'
+
+    # TODO: remake index file
 
 } >>"${log_file}" 2>&1
 
