@@ -16,63 +16,62 @@ set -o pipefail # exit when a command in a pipe fails
 echo "INFO: Setting default preferences"
 
 # Executables
-mpi_bin="/home/aglisman/software/openmpi_4.1.5-gcc_12.3.0-cuda_12.0.140/bin/mpirun"
-gmx_bin="/home/aglisman/software/gromacs_mpi_2023-plumed_mpi_2.9.0-gcc_12.3.0-cuda_12.0.140/bin/gmx_mpi"
+MPI_BIN="/home/aglisman/software/openmpi_4.1.5-gcc_12.3.0-cuda_12.0.140/bin/mpirun"
+GMX_BIN="/home/aglisman/software/gromacs_mpi_2023-plumed_mpi_2.9.0-gcc_12.3.0-cuda_12.0.140/bin/gmx_mpi"
 
 # Hardware parameters
-cpu_threads='16'
-pin_offset='0'
-gpu_ids='0'
+CPU_THREADS='16'
+PIN_OFFSET='0'
+GPU_IDS='0'
 
 # System parameters
-N_MONOMER='3'
-N_CHAIN='3'
-N_CARBONATE='2'
-N_SODIUM='9'
-N_CALCIUM='4'
-N_CHLORINE='4'
+N_MONOMER='32'
+N_CHAIN='4'
+N_CARBONATE='128'
+N_SODIUM='128'
+N_CALCIUM='144'
+N_CHLORINE='32'
 
 echo "Total positive charge: $(bc <<<"${N_SODIUM} + 2*${N_CALCIUM}")"
 echo "Total negative charge: $(bc <<<"-${N_CHLORINE} - 2*${N_CARBONATE} - ${N_MONOMER}*${N_CHAIN}")"
 
-# Gromacs files
-mdp_file="../parameters/mdp/energy-minimization/em.mdp"
-ff_dir="../force-field/eccrpa-force-fields/gaff.ff"
-
 # find path to this script
 script_path="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
+structure_path="${script_path}/../initial-structure"
 
-# Structure files
-PDB_CRYSTAL="../initial-structure/calcium-carbonate-crystal/generation/python/calcite_297K-104_surface-2.99_3.22_3.66_nm_size-False_polar-True_symmetric.pdb"
-PDB_CHAIN="../initial-structure/polyelectrolyte/chain/homopolymer/PAcr-3mer-atactic-Hend.pdb"
-PACKMOL_INPUT="../parameters/packmol/crystal_surface.inp"
+# Gromacs files
+FF_DIR="${script_path}/../force-field/eccrpa-force-fields/gaff.ff"
+mdp_file="${script_path}/../parameters/mdp/energy-minimization/em.mdp"
+
+# Variable structure files
+PDB_CRYSTAL="${structure_path}/calcium-carbonate-crystal/supercell/calcite_297K-104_surface-11.97_12.14_13.36_nm_size-False_polar-True_symmetric.pdb"
+PDB_CHAIN="${structure_path}/polyelectrolyte/chain/homopolymer/PAcr-${N_MONOMER}mer-atactic-Hend.pdb"
 
 # Default structure files
-structure_path="${script_path}/../initial-structure"
-PDB_CARBONATE="${structure_path}/polyatomic-ions/carbonate_ion.pdb"
-GRO_WATER="spc216.gro"
+pdb_carbonate="${structure_path}/polyatomic-ions/carbonate_ion.pdb"
+gro_water="spc216.gro"
 
 # Output files
-cwd="$(pwd)"
+cwd="$(pwd)/1-energy-minimization"
 sim_name="energy_minimization"
-log_file="${sim_name}.log"
+log_file="system_initialization.log"
 
 # Copy input files to working directory ################################################
 echo "INFO: Copying input files to working directory"
 
-{
-    # move to working directory
-    cd "${cwd}" || exit
+# move to working directory
+mkdir -p "${cwd}"
+cd "${cwd}" || exit
 
+{
     # copy force field files
     mkdir -p "forcefield.ff"
-    cp -rp "${ff_dir}/"* -t "forcefield.ff"
+    cp -rp "${FF_DIR}/"* -t "forcefield.ff"
 
     # copy files
     cp -p "${mdp_file}" "mdin.mdp"
     cp -p "${PDB_CRYSTAL}" "crystal.pdb"
     cp -p "${PDB_CHAIN}" "chain.pdb"
-    cp -p "${PACKMOL_INPUT}" "packmol.inp"
 } >>"${log_file}" 2>&1
 
 # Import Structure to Gromacs ##########################################################
@@ -80,7 +79,7 @@ echo "INFO: Importing structure to Gromacs"
 
 {
     # insert-molecules to create simulation box of crystal and chains
-    "${gmx_bin}" -nocopyright -quiet insert-molecules \
+    "${GMX_BIN}" -nocopyright -quiet insert-molecules \
         -f "crystal.pdb" \
         -ci "chain.pdb" \
         -o "${sim_name}.pdb" \
@@ -90,9 +89,9 @@ echo "INFO: Importing structure to Gromacs"
 
     # insert-molecules to add carbonate ions
     if [[ "${N_CARBONATE}" -gt 0 ]]; then
-        "${gmx_bin}" -quiet insert-molecules \
+        "${GMX_BIN}" -quiet insert-molecules \
             -f "${sim_name}.pdb" \
-            -ci "${PDB_CARBONATE}" \
+            -ci "${pdb_carbonate}" \
             -o "${sim_name}.pdb" \
             -nmol "${N_CARBONATE}" \
             -radius '0.5' \
@@ -100,7 +99,7 @@ echo "INFO: Importing structure to Gromacs"
     fi
 
     # convert pdb to gro
-    "${gmx_bin}" -nocopyright -quiet pdb2gmx -v \
+    "${GMX_BIN}" -nocopyright -quiet pdb2gmx -v \
         -f "${sim_name}.pdb" \
         -o "${sim_name}.gro" \
         -n "index.ndx" \
@@ -116,14 +115,14 @@ echo "INFO: Importing structure to Gromacs"
 echo "INFO: Adding solvent"
 {
     # add solvent
-    "${gmx_bin}" -nocopyright -quiet solvate \
+    "${GMX_BIN}" -nocopyright -quiet solvate \
         -cp "${sim_name}.gro" \
-        -cs "${GRO_WATER}" \
+        -cs "${gro_water}" \
         -o "${sim_name}.gro" \
         -p "topol.top"
 
     # create index file
-    "${gmx_bin}" -quiet make_ndx \
+    "${GMX_BIN}" -quiet make_ndx \
         -f "${sim_name}.gro" \
         -o "index.ndx" \
         <<EOF
@@ -137,14 +136,14 @@ echo "INFO: Adding calcium ions"
     # add Ca2+ ions
     if [[ "${N_CALCIUM}" -gt 0 ]]; then
         # tpr update
-        "${gmx_bin}" -nocopyright -quiet grompp \
+        "${GMX_BIN}" -nocopyright -quiet grompp \
             -f "mdin.mdp" \
             -c "${sim_name}.gro" \
             -p "topol.top" \
             -o "${sim_name}.tpr" \
             -maxwarn '1'
         # add ions
-        "${gmx_bin}" --nocopyright -quiet genion \
+        "${GMX_BIN}" --nocopyright -quiet genion \
             -s "${sim_name}.tpr" \
             -p "topol.top" \
             -o "${sim_name}.gro" \
@@ -162,14 +161,14 @@ echo "INFO: Adding sodium ions"
     # add Na+ ions
     if [[ "${N_SODIUM}" -gt 0 ]]; then
         # tpr update
-        "${gmx_bin}" -nocopyright -quiet grompp \
+        "${GMX_BIN}" -nocopyright -quiet grompp \
             -f "mdin.mdp" \
             -c "${sim_name}.gro" \
             -p "topol.top" \
             -o "${sim_name}.tpr" \
             -maxwarn '1'
         # add ions
-        "${gmx_bin}" --nocopyright -quiet genion \
+        "${GMX_BIN}" --nocopyright -quiet genion \
             -s "${sim_name}.tpr" \
             -p "topol.top" \
             -o "${sim_name}.gro" \
@@ -187,14 +186,14 @@ echo "INFO: Adding chlorine ions"
     # add Cl- ions
     if [[ "${N_CHLORINE}" -gt 0 ]]; then
         # tpr update
-        "${gmx_bin}" -nocopyright -quiet grompp \
+        "${GMX_BIN}" -nocopyright -quiet grompp \
             -f "mdin.mdp" \
             -c "${sim_name}.gro" \
             -p "topol.top" \
             -o "${sim_name}.tpr" \
             -maxwarn '1'
         # add ions
-        "${gmx_bin}" --nocopyright -quiet genion \
+        "${GMX_BIN}" --nocopyright -quiet genion \
             -s "${sim_name}.tpr" \
             -p "topol.top" \
             -o "${sim_name}.gro" \
@@ -210,18 +209,22 @@ EOF
 # Create Topology #####################################################################
 echo "INFO: Creating topology"
 {
-    # remake tpr file
-    "${gmx_bin}" -quiet grompp \
+    # remake tpr file and topology file with no imports
+    "${GMX_BIN}" -quiet grompp \
         -f "mdin.mdp" \
         -c "${sim_name}.gro" \
         -p "topol.top" \
         -pp "topol_full.top" \
         -o "${sim_name}.tpr" \
         -maxwarn '1'
-
-    # TODO: remake index file
-
 } >>"${log_file}" 2>&1
+
+# grep lines in log file that contain "System has non-zero total charge" and save to array
+grep -n "System has non-zero total charge" "${log_file}" >charge_lines.log
+mapfile -t charge_lines <charge_lines.log
+# print last line in array
+last_charge_line="${charge_lines[-1]}"
+echo "CRITICAL: ${last_charge_line}"
 
 # Create TPR file ######################################################################
 echo "INFO: Archiving files"
@@ -248,20 +251,20 @@ echo "INFO: Running energy minimization"
 
 {
     # run energy minimization
-    "${mpi_bin}" -np 1 \
-        --map-by "ppr:1:node:PE=${cpu_threads}" \
+    "${MPI_BIN}" -np 1 \
+        --map-by "ppr:1:node:PE=${CPU_THREADS}" \
         --use-hwthread-cpus --bind-to 'hwthread' --report-bindings \
-        "${gmx_bin}" -quiet -nocopyright mdrun -v \
+        "${GMX_BIN}" -quiet -nocopyright mdrun -v \
         -deffnm "${sim_name}" \
-        -pin on -pinoffset "${pin_offset}" -pinstride 1 -ntomp "${cpu_threads}" \
-        -gpu_id "${gpu_ids}"
+        -pin on -pinoffset "${PIN_OFFSET}" -pinstride 1 -ntomp "${CPU_THREADS}" \
+        -gpu_id "${GPU_IDS}"
 
     # dump last frame of energy minimization as pdb file
-    "${gmx_bin}" -quiet -nocopyright trjconv \
+    "${GMX_BIN}" -quiet -nocopyright trjconv \
         -f "${sim_name}.trr" \
         -s "${sim_name}.tpr" \
         -o "${sim_name}_final.pdb" \
-        -pbc 'mol' -center -ur 'compact' \
+        -pbc 'mol' -ur 'compact' \
         -dump '10000' -conect <<EOF
 System
 System
@@ -269,10 +272,126 @@ EOF
 
 } >>"${log_file}" 2>&1
 
+# Make Index File #####################################################################
+echo "INFO: Making index file"
+
+{
+    # add crystal groups to index file
+    idx_group='17'
+    "${GMX_BIN}" -quiet make_ndx \
+        -f "crystal.pdb" \
+        -n "index.ndx" \
+        -o "index.ndx" \
+        <<EOF
+a *
+name ${idx_group} Crystal
+a CX* | a OX*
+name $((idx_group + 1)) Crystal_Carbonate
+a CX*
+name $((idx_group + 2)) Crystal_Carbonate_Carbon
+a OX*
+name $((idx_group + 3)) Crystal_Carbonate_Oxygen
+a CA*
+name $((idx_group + 4)) Crystal_Calcium
+
+q
+EOF
+    idx_group=$((idx_group + 5))
+
+    # add chain groups to index file
+    if [[ "${N_CHAIN}" -gt 0 ]]; then
+        "${GMX_BIN}" -quiet make_ndx \
+            -f "${sim_name}_final.pdb" \
+            -n "index.ndx" \
+            -o "index.ndx" \
+            <<EOF
+a * & chain B
+name ${idx_group} Chain
+a O* & chain B
+name $((idx_group + 1)) Chain_Oxygen
+
+q
+EOF
+        idx_group=$((idx_group + 2))
+    fi
+
+    # add aqueous sodium ions to index file
+    if [[ "${N_SODIUM}" -gt 0 ]]; then
+        "${GMX_BIN}" -quiet make_ndx \
+            -f "${sim_name}_final.pdb" \
+            -n "index.ndx" \
+            -o "index.ndx" \
+            <<EOF
+a NA & ! chain A & ! chain B
+name ${idx_group} Aqueous_Sodium
+
+q
+EOF
+        idx_group=$((idx_group + 1))
+    fi
+
+    # add aqueous calcium ions to index file
+    if [[ "${N_CALCIUM}" -gt 0 ]]; then
+        "${GMX_BIN}" -quiet make_ndx \
+            -f "${sim_name}_final.pdb" \
+            -n "index.ndx" \
+            -o "index.ndx" \
+            <<EOF
+a CA & ! chain A & ! chain B
+name ${idx_group} Aqueous_Calcium
+
+q
+EOF
+        idx_group=$((idx_group + 1))
+    fi
+
+    # add aqueous chloride ions to index file
+    if [[ "${N_CHLORINE}" -gt 0 ]]; then
+        "${GMX_BIN}" -quiet make_ndx \
+            -f "${sim_name}_final.pdb" \
+            -n "index.ndx" \
+            -o "index.ndx" \
+            <<EOF
+a CL & ! chain A & ! chain B
+name ${idx_group} Aqueous_Chloride
+
+q
+EOF
+        idx_group=$((idx_group + 1))
+    fi
+
+    # add aqueous carbonate ions to index file
+    if [[ "${N_CARBONATE}" -gt 0 ]]; then
+        "${GMX_BIN}" -quiet make_ndx \
+            -f "${sim_name}_final.pdb" \
+            -n "index.ndx" \
+            -o "index.ndx" \
+            <<EOF
+a CX* | a OX* & ! chain A & ! chain B
+name ${idx_group} Aqueous_Carbonate
+a CX* & ! chain A & ! chain B
+name $((idx_group + 1)) Aqueous_Carbonate_Carbon
+a OX* & ! chain A & ! chain B
+name $((idx_group + 2)) Aqueous_Carbonate_Oxygen
+
+q
+EOF
+        idx_group=$((idx_group + 3))
+    fi
+
+} >>"${log_file}" 2>&1
+
 # Clean up #############################################################################
 echo "INFO: Cleaning up"
 
 {
+    # create output directory
+    mkdir -p "2-output"
+    cp -p index.ndx "2-output/index.ndx"
+    cp -p topol_full.top "2-output/topol.top"
+    cp -p "${sim_name}.gro" "2-output/system.gro"
+    cp -p "${sim_name}_final.pdb" "2-output/system.pdb"
+
     # copy files with pattern sim_name to simulation directory
     cp -p "${sim_name}."* -t "1-energy-minimization"
     cp -p "${sim_name}.gro" -t "0-structure"
@@ -283,8 +402,6 @@ echo "INFO: Cleaning up"
 
     # delete other files that are not needed
     rm -r ./*.mdp ./*.itp index.ndx step*.pdb
-
-    #
 } >>"${log_file}" 2>&1
 
 echo "INFO: Energy minimization complete"
