@@ -97,6 +97,16 @@ else
             -pin on -pinoffset "${PIN_OFFSET}" -pinstride 1 -ntomp "${CPU_THREADS}" \
             -gpu_id "${GPU_IDS}" || exit 1
 
+        # convert final xtc frame to pdb file
+        "${GMX_BIN}" -quiet -nocopyright trjconv \
+            -f "${sim_name}.xtc" \
+            -s "${sim_name}.tpr" \
+            -o "${sim_name}.pdb" \
+            -pbc 'mol' -ur 'compact' -conect \
+            -dump '100000000000' <<EOF
+System
+EOF
+
         # plot system temperature over time
         "${GMX_BIN}" -quiet -nocopyright energy \
             -f "${sim_name}.edr" \
@@ -209,6 +219,15 @@ EOF
             --gro_filename "${sim_name}.gro" \
             --percentile '0.4'
 
+        # convert final gro file to pdb file
+        "${GMX_BIN}" -quiet -nocopyright trjconv \
+            -f "${sim_name}.gro" \
+            -s "${sim_name}.tpr" \
+            -o "${sim_name}.pdb" \
+            -pbc 'mol' -ur 'compact' -conect <<EOF
+System
+EOF
+
         # copy output files to archive directory
         mkdir -p "${archive_dir}"
         cp -p "${sim_name}."* -t "${archive_dir}/" || exit 1
@@ -256,6 +275,16 @@ else
             -deffnm "${sim_name}" \
             -pin on -pinoffset "${PIN_OFFSET}" -pinstride 1 -ntomp "${CPU_THREADS}" \
             -gpu_id "${GPU_IDS}" || exit 1
+
+        # convert final xtc frame to pdb file
+        "${GMX_BIN}" -quiet -nocopyright trjconv \
+            -f "${sim_name}.xtc" \
+            -s "${sim_name}.tpr" \
+            -o "${sim_name}.pdb" \
+            -pbc 'mol' -ur 'compact' -conect \
+            -dump '100000000000' <<EOF
+System
+EOF
 
         # plot system temperature over time
         filename="temperature"
@@ -331,6 +360,7 @@ else
         # copy minimal set of files to archive directory
         mkdir -p "${archive_dir}"
         cp -p "${previous_archive_dir}/${sim_name}.gro" "${archive_dir}/${sim_name}.gro" || exit 1
+        cp -p "${previous_archive_dir}/${sim_name}.pdb" "${archive_dir}/${sim_name}.pdb" || exit 1
         cp -p "topol.top" "${archive_dir}/topol.top" || exit 1
         cp -p "index.ndx" "${archive_dir}/index.ndx" || exit 1
     } >>"${log_file}" 2>&1

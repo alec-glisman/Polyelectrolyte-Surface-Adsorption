@@ -267,7 +267,7 @@ echo "INFO: Running energy minimization"
         -gpu_id "${GPU_IDS}" || exit 1
 
     # dump last frame of energy minimization as gro file
-    "${GMX_BIN}" -quiet trjconv \
+    "${GMX_BIN}" -quiet -nocopyright trjconv \
         -f "${sim_name}.trr" \
         -s "${sim_name}.tpr" \
         -o "${sim_name}.gro" \
