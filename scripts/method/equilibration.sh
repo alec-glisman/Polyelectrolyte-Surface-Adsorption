@@ -18,6 +18,9 @@ echo "INFO: Setting default preferences"
 script_path="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 project_path="${script_path}/../.."
 
+# python scripts
+npt_script="${project_path}/python/mean_frame_xvg_2_col.py"
+
 # Gromacs files
 mdp_path="${project_path}/parameters/mdp/molecular-dynamics"
 mdp_file_nvt="${mdp_path}/nvt_eqbm_10ns.mdp"
@@ -58,10 +61,11 @@ fi
 echo "INFO: Starting NVT equilibration"
 previous_sim_name="em"
 sim_name="nvt_eqbm"
+archive_dir="1-nvt"
 
-# check if "1-nvt/nvt_eqbm.gro" exists
-if [[ -f "1-nvt/${sim_name}.gro" ]]; then
-    echo "WARNING: 1-nvt/nvt_eqbm.gro does not exist"
+# check if output gro file already exists
+if [[ -f "${archive_dir}/${sim_name}.gro" ]]; then
+    echo "WARNING: ${archive_dir}/${sim_name}.gro already exists"
     echo "INFO: Skipping NVT equilibration"
 else
     {
@@ -73,7 +77,8 @@ else
 
         # replace temperature in mdp file
         cp "${mdp_file_nvt}" "${sim_name}.mdp" || exit 1
-        sed -i "s/ref-t                     = 300/ref-t                     = ${TEMPERATURE_K}/g" "nvt_eqbm.mdp" || exit 1
+        sed -i 's/ref-t.*/ref-t                     = '"${TEMPERATURE_K}/g" "${sim_name}.mdp" || exit 1
+        sed -i 's/gen-temp.*/gen-temp                  = '"${TEMPERATURE_K}/g" "${sim_name}.mdp" || exit 1
 
         # make tpr file for NVT equilibration
         "${GMX_BIN}" -quiet -nocopyright grompp \
@@ -106,12 +111,12 @@ EOF
             -printfile "temperature.png" \
             -fixed "3840" "2160"
 
-        # copy output files to 1-nvt
-        mkdir -p "1-nvt"
-        cp -p "${sim_name}."* -t "1-nvt/" || exit 1
-        cp -p "temperature."* -t "1-nvt/" || exit 1
+        # copy output files to archive directory
+        mkdir -p "${archive_dir}"
+        cp -p "${sim_name}."* -t "${archive_dir}/" || exit 1
+        cp -p "temperature."* -t "${archive_dir}/" || exit 1
         rm "${sim_name}."* || exit 1
-        cp -p "1-nvt/${sim_name}.gro" "${sim_name}.gro" || exit 1
+        cp -p "${archive_dir}/${sim_name}.gro" "${sim_name}.gro" || exit 1
     } >>"${log_file}" 2>&1
 fi
 
@@ -121,10 +126,99 @@ fi
 echo "INFO: Starting NPT equilibration"
 previous_sim_name="${sim_name}"
 sim_name="npt_eqbm"
+archive_dir="2-npt"
 
-# TODO: Use sed to replace the following variables in the mdp file:
-#       - TEMP
-#       - PRESSURE
+# check if output gro file already exists
+if [[ -f "${archive_dir}/${sim_name}.gro" ]]; then
+    echo "WARNING: ${archive_dir}/${sim_name}.gro already exists"
+    echo "INFO: Skipping NPT equilibration"
+else
+    {
+        # replace temperature and pressure in mdp file
+        cp "${mdp_file_npt}" "${sim_name}.mdp" || exit 1
+        sed -i 's/ref-t.*/ref-t                     = '"${TEMPERATURE_K}/g" "${sim_name}.mdp" || exit 1
+        sed -i 's/gen-temp.*/gen-temp                  = '"${TEMPERATURE_K}/g" "${sim_name}.mdp" || exit 1
+        sed -i 's/ref-p.*/ref-p                     = '"${PRESSURE_BAR}/g" "${sim_name}.mdp" || exit 1
+
+        # make tpr file
+        "${GMX_BIN}" -quiet -nocopyright grompp \
+            -f "${sim_name}.mdp" \
+            -c "${previous_sim_name}.gro" \
+            -p "topol.top" \
+            -o "${sim_name}.tpr" \
+            -maxwarn '1'
+
+        # call mdrun
+        "${MPI_BIN}" -np '1' \
+            --map-by "ppr:1:node:PE=${CPU_THREADS}" \
+            --use-hwthread-cpus --bind-to 'hwthread' \
+            "${GMX_BIN}" -quiet -nocopyright mdrun -v \
+            -deffnm "${sim_name}" \
+            -pin on -pinoffset "${PIN_OFFSET}" -pinstride 1 -ntomp "${CPU_THREADS}" \
+            -gpu_id "${GPU_IDS}" || exit 1
+
+        # plot system temperature over time
+        filename="temperature"
+        "${GMX_BIN}" -quiet -nocopyright energy \
+            -f "${sim_name}.edr" \
+            -o "${filename}.xvg" <<EOF
+Temperature
+0
+EOF
+        # convert xvg to png
+        gracebat -nxy "${filename}.xvg" \
+            -hdevice "PNG" \
+            -autoscale "xy" \
+            -printfile "${filename}.png" \
+            -fixed "3840" "2160"
+
+        # plot system pressure over time
+        filename="pressure"
+        "${GMX_BIN}" -quiet -nocopyright energy \
+            -f "${sim_name}.edr" \
+            -o "${filename}.xvg" <<EOF
+Pressure
+0
+EOF
+        # convert xvg to png
+        gracebat -nxy "${filename}.xvg" \
+            -hdevice "PNG" \
+            -autoscale "xy" \
+            -printfile "${filename}.png" \
+            -fixed "3840" "2160"
+
+        # plot system density over time
+        filename="density"
+        "${GMX_BIN}" -quiet -nocopyright energy \
+            -f "${sim_name}.edr" \
+            -o "${filename}.xvg" <<EOF
+Density
+0
+EOF
+        # convert xvg to png
+        gracebat -nxy "${filename}.xvg" \
+            -hdevice "PNG" \
+            -autoscale "xy" \
+            -printfile "${filename}.png" \
+            -fixed "3840" "2160"
+
+        # select a representative frame from the NPT equilibration and make new gro file
+        python3 "${npt_script}" \
+            --xvg_filename "density.xvg" \
+            --xtc_filename "${sim_name}.xtc" \
+            --gro_filename "${sim_name}.gro" \
+            --percentile '0.4'
+
+        # copy output files to archive directory
+        mkdir -p "${archive_dir}"
+        cp -p "${sim_name}."* -t "${archive_dir}/" || exit 1
+        cp -p "temperature."* -t "${archive_dir}/" || exit 1
+        cp -p "pressure."* -t "${archive_dir}/" || exit 1
+        cp -p "density."* -t "${archive_dir}/" || exit 1
+        rm "${sim_name}."* || exit 1
+        cp -p "${archive_dir}/${sim_name}.gro" "${sim_name}.gro" || exit 1
+    } >>"${log_file}" 2>&1
+fi
 
 # #######################################################################################
 # Production equilibration ##############################################################
