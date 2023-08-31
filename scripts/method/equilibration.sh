@@ -92,9 +92,24 @@ else
             -pin on -pinoffset "${PIN_OFFSET}" -pinstride 1 -ntomp "${CPU_THREADS}" \
             -gpu_id "${GPU_IDS}" || exit 1
 
+        # plot system temperature over time
+        "${GMX_BIN}" -quiet -nocopyright energy \
+            -f "${sim_name}.edr" \
+            -o "temperature.xvg" <<EOF
+Temperature
+0
+EOF
+        # convert xvg to png
+        gracebat -nxy "temperature.xvg" \
+            -hdevice "PNG" \
+            -autoscale "xy" \
+            -printfile "temperature.png" \
+            -fixed "3840" "2160"
+
         # copy output files to 1-nvt
         mkdir -p "1-nvt"
         cp -p "${sim_name}."* -t "1-nvt/" || exit 1
+        cp -p "temperature."* -t "1-nvt/" || exit 1
         rm "${sim_name}."* || exit 1
         cp -p "1-nvt/${sim_name}.gro" "${sim_name}.gro" || exit 1
     } >>"${log_file}" 2>&1
