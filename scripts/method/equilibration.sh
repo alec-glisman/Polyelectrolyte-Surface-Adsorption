@@ -93,7 +93,7 @@ else
             --map-by "ppr:1:node:PE=${CPU_THREADS}" \
             --use-hwthread-cpus --bind-to 'hwthread' \
             "${GMX_BIN}" -quiet -nocopyright mdrun -v \
-            -deffnm "${sim_name}" \
+            -deffnm "${sim_name}" -cpi "${sim_name}.cpt" \
             -pin on -pinoffset "${PIN_OFFSET}" -pinstride 1 -ntomp "${CPU_THREADS}" \
             -gpu_id "${GPU_IDS}" || exit 1
 
@@ -163,7 +163,7 @@ else
             --map-by "ppr:1:node:PE=${CPU_THREADS}" \
             --use-hwthread-cpus --bind-to 'hwthread' \
             "${GMX_BIN}" -quiet -nocopyright mdrun -v \
-            -deffnm "${sim_name}" \
+            -deffnm "${sim_name}" -cpi "${sim_name}.cpt" \
             -pin on -pinoffset "${PIN_OFFSET}" -pinstride 1 -ntomp "${CPU_THREADS}" \
             -gpu_id "${GPU_IDS}" || exit 1
 
@@ -272,7 +272,7 @@ else
             --map-by "ppr:1:node:PE=${CPU_THREADS}" \
             --use-hwthread-cpus --bind-to 'hwthread' \
             "${GMX_BIN}" -quiet -nocopyright mdrun -v \
-            -deffnm "${sim_name}" \
+            -deffnm "${sim_name}" -cpi "${sim_name}.cpt" \
             -pin on -pinoffset "${PIN_OFFSET}" -pinstride 1 -ntomp "${CPU_THREADS}" \
             -gpu_id "${GPU_IDS}" || exit 1
 
