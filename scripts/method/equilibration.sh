@@ -226,10 +226,114 @@ fi
 echo "INFO: Starting production equilibration"
 previous_sim_name="${sim_name}"
 sim_name="prod_eqbm"
+archive_dir="3-pre-production"
+
+# check if output gro file already exists
+if [[ -f "${archive_dir}/${sim_name}.gro" ]]; then
+    echo "WARNING: ${archive_dir}/${sim_name}.gro already exists"
+    echo "INFO: Skipping NPT equilibration"
+else
+    {
+        # replace temperature and pressure in mdp file
+        cp "${mdp_file_prod}" "${sim_name}.mdp" || exit 1
+        sed -i 's/ref-t.*/ref-t                     = '"${TEMPERATURE_K}/g" "${sim_name}.mdp" || exit 1
+        sed -i 's/gen-temp.*/gen-temp                  = '"${TEMPERATURE_K}/g" "${sim_name}.mdp" || exit 1
+        sed -i 's/ref-p.*/ref-p                     = '"${PRESSURE_BAR}/g" "${sim_name}.mdp" || exit 1
+
+        # make tpr file
+        "${GMX_BIN}" -quiet -nocopyright grompp \
+            -f "${sim_name}.mdp" \
+            -c "${previous_sim_name}.gro" \
+            -p "topol.top" \
+            -o "${sim_name}.tpr" \
+            -maxwarn '1'
+
+        # call mdrun
+        "${MPI_BIN}" -np '1' \
+            --map-by "ppr:1:node:PE=${CPU_THREADS}" \
+            --use-hwthread-cpus --bind-to 'hwthread' \
+            "${GMX_BIN}" -quiet -nocopyright mdrun -v \
+            -deffnm "${sim_name}" \
+            -pin on -pinoffset "${PIN_OFFSET}" -pinstride 1 -ntomp "${CPU_THREADS}" \
+            -gpu_id "${GPU_IDS}" || exit 1
+
+        # plot system temperature over time
+        filename="temperature"
+        "${GMX_BIN}" -quiet -nocopyright energy \
+            -f "${sim_name}.edr" \
+            -o "${filename}.xvg" <<EOF
+Temperature
+0
+EOF
+        # convert xvg to png
+        gracebat -nxy "${filename}.xvg" \
+            -hdevice "PNG" \
+            -autoscale "xy" \
+            -printfile "${filename}.png" \
+            -fixed "3840" "2160"
+
+        # plot system pressure over time
+        filename="pressure"
+        "${GMX_BIN}" -quiet -nocopyright energy \
+            -f "${sim_name}.edr" \
+            -o "${filename}.xvg" <<EOF
+Pressure
+0
+EOF
+        # convert xvg to png
+        gracebat -nxy "${filename}.xvg" \
+            -hdevice "PNG" \
+            -autoscale "xy" \
+            -printfile "${filename}.png" \
+            -fixed "3840" "2160"
+
+        # plot system density over time
+        filename="density"
+        "${GMX_BIN}" -quiet -nocopyright energy \
+            -f "${sim_name}.edr" \
+            -o "${filename}.xvg" <<EOF
+Density
+0
+EOF
+        # convert xvg to png
+        gracebat -nxy "${filename}.xvg" \
+            -hdevice "PNG" \
+            -autoscale "xy" \
+            -printfile "${filename}.png" \
+            -fixed "3840" "2160"
+
+        # copy output files to archive directory
+        mkdir -p "${archive_dir}"
+        cp -p "${sim_name}."* -t "${archive_dir}/" || exit 1
+        cp -p "temperature."* -t "${archive_dir}/" || exit 1
+        cp -p "pressure."* -t "${archive_dir}/" || exit 1
+        cp -p "density."* -t "${archive_dir}/" || exit 1
+        rm "${sim_name}."* || exit 1
+        cp -p "${archive_dir}/${sim_name}.gro" "${sim_name}.gro" || exit 1
+    } >>"${log_file}" 2>&1
+fi
 
 # #######################################################################################
 # Clean up ##############################################################################
 # #######################################################################################
 echo "INFO: Cleaning up"
+previous_sim_name="${sim_name}"
+sim_name="prod_eqbm"
+previous_archive_dir="${archive_dir}"
+archive_dir="4-output"
+
+# check if output gro file already exists
+if [[ -f "${archive_dir}/${sim_name}.gro" ]]; then
+    echo "WARNING: ${archive_dir}/${sim_name}.gro already exists"
+    echo "INFO: Skipping NPT equilibration"
+else
+    {
+        # copy minimal set of files to archive directory
+        mkdir -p "${archive_dir}"
+        cp -p "${previous_archive_dir}/${sim_name}.gro" "${archive_dir}/${sim_name}.gro" || exit 1
+        cp -p "topol.top" "${archive_dir}/topol.top" || exit 1
+        cp -p "index.ndx" "${archive_dir}/index.ndx" || exit 1
+    } >>"${log_file}" 2>&1
+fi
 
 echo "CRITICAL: Finished system equilibration"
