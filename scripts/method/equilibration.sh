@@ -244,6 +244,15 @@ echo "DEBUG: NVT system dimensions: ${previous_sim_gro_box_dimensions}"
 sim_gro_last_line="$(tail -n 1 "${archive_dir}/${sim_name}.gro")"
 sim_gro_box_dimensions="$(echo "${sim_gro_last_line}" | awk '{print $1, $2, $3}')"
 echo "DEBUG: NPT system dimensions: ${sim_gro_box_dimensions}"
+# calculate percent change in each dimension
+previous_sim_gro_box_dimensions_array=(${previous_sim_gro_box_dimensions})
+sim_gro_box_dimensions_array=(${sim_gro_box_dimensions})
+for i in "${!previous_sim_gro_box_dimensions_array[@]}"; do
+    previous_sim_gro_box_dimension="${previous_sim_gro_box_dimensions_array[i]}"
+    sim_gro_box_dimension="${sim_gro_box_dimensions_array[i]}"
+    percent_change="$(echo "scale=4; (${sim_gro_box_dimension} - ${previous_sim_gro_box_dimension}) / ${previous_sim_gro_box_dimension} * 100" | bc)"
+    echo "DEBUG: Percent change in dimension ${i}: ${percent_change}"'%'
+done
 
 # #######################################################################################
 # Production equilibration ##############################################################

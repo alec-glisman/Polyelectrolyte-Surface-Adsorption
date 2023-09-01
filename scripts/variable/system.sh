@@ -55,8 +55,8 @@ else
 fi
 export TAG
 
-# check if TAG_APPEND is set, if so append to TAG
-if [[ -n "${TAG_APPEND+x}" ]]; then
+# check if TAG_APPEND is set and not empty, if so append to TAG
+if [[ -n "${TAG_APPEND+x}" ]] && [[ -n "${TAG_APPEND}" ]]; then
     export TAG="${TAG}-${TAG_APPEND}"
 fi
 
