@@ -87,6 +87,8 @@ else
             -p "topol.top" \
             -o "${sim_name}.tpr" \
             -maxwarn '1'
+        # remove old gro file
+        rm "${previous_sim_name}.gro" || exit 1
 
         # run NVT equilibration
         "${MPI_BIN}" -np '1' \
@@ -124,9 +126,11 @@ EOF
         # copy output files to archive directory
         mkdir -p "${archive_dir}"
         cp -p "${sim_name}."* -t "${archive_dir}/" || exit 1
+        cp -p "mdout.mdp" -t "${archive_dir}/" || exit 1
         cp -p "temperature."* -t "${archive_dir}/" || exit 1
         rm "${sim_name}."* || exit 1
-        cp -p "${archive_dir}/${sim_name}.gro" "${sim_name}.gro" || exit 1
+        rm "temperature."* || exit 1
+        rm ./*.cpt mdout.mdp || exit 1
     } >>"${log_file}" 2>&1
 fi
 
@@ -136,6 +140,7 @@ fi
 echo "INFO: Starting NPT equilibration"
 previous_sim_name="${sim_name}"
 sim_name="npt_eqbm"
+previous_archive_dir="${archive_dir}"
 archive_dir="2-npt"
 
 # check if output gro file already exists
@@ -144,11 +149,14 @@ if [[ -f "${archive_dir}/${sim_name}.gro" ]]; then
     echo "INFO: Skipping NPT equilibration"
 else
     {
+        # copy output files from NVT equilibration
+        cp -p "${previous_archive_dir}/${previous_sim_name}.gro" "${previous_sim_name}.gro" || exit 1
+
         # replace temperature and pressure in mdp file
         cp "${mdp_file_npt}" "${sim_name}.mdp" || exit 1
         sed -i 's/ref-t.*/ref-t                     = '"${TEMPERATURE_K}/g" "${sim_name}.mdp" || exit 1
         sed -i 's/gen-temp.*/gen-temp                  = '"${TEMPERATURE_K}/g" "${sim_name}.mdp" || exit 1
-        sed -i 's/ref-p.*/ref-p                     = '"${PRESSURE_BAR}/g" "${sim_name}.mdp" || exit 1
+        sed -i 's/ref-p.*/ref-p                     = '"${PRESSURE_BAR} ${PRESSURE_BAR}/g" "${sim_name}.mdp" || exit 1
 
         # make tpr file
         "${GMX_BIN}" -quiet -nocopyright grompp \
@@ -157,6 +165,7 @@ else
             -p "topol.top" \
             -o "${sim_name}.tpr" \
             -maxwarn '1'
+        rm "${previous_sim_name}.gro" || exit 1
 
         # call mdrun
         "${MPI_BIN}" -np '1' \
@@ -231,10 +240,15 @@ EOF
         # copy output files to archive directory
         mkdir -p "${archive_dir}"
         cp -p "${sim_name}."* -t "${archive_dir}/" || exit 1
+        cp -p "mdout.mdp" -t "${archive_dir}/" || exit 1
         cp -p "temperature."* -t "${archive_dir}/" || exit 1
         cp -p "pressure."* -t "${archive_dir}/" || exit 1
         cp -p "density."* -t "${archive_dir}/" || exit 1
         rm "${sim_name}."* || exit 1
+        rm "temperature."* || exit 1
+        rm "pressure."* || exit 1
+        rm "density."* || exit 1
+        rm ./*.cpt mdout.mdp || exit 1
         cp -p "${archive_dir}/${sim_name}.gro" "${sim_name}.gro" || exit 1
     } >>"${log_file}" 2>&1
 fi
@@ -245,6 +259,7 @@ fi
 echo "INFO: Starting production equilibration"
 previous_sim_name="${sim_name}"
 sim_name="prod_eqbm"
+previous_archive_dir="${archive_dir}"
 archive_dir="3-pre-production"
 
 # check if output gro file already exists
@@ -253,11 +268,14 @@ if [[ -f "${archive_dir}/${sim_name}.gro" ]]; then
     echo "INFO: Skipping NPT equilibration"
 else
     {
+        # copy output files from NVT equilibration
+        cp -p "${previous_archive_dir}/${previous_sim_name}.gro" "${previous_sim_name}.gro" || exit 1
+
         # replace temperature and pressure in mdp file
         cp "${mdp_file_prod}" "${sim_name}.mdp" || exit 1
         sed -i 's/ref-t.*/ref-t                     = '"${TEMPERATURE_K}/g" "${sim_name}.mdp" || exit 1
         sed -i 's/gen-temp.*/gen-temp                  = '"${TEMPERATURE_K}/g" "${sim_name}.mdp" || exit 1
-        sed -i 's/ref-p.*/ref-p                     = '"${PRESSURE_BAR}/g" "${sim_name}.mdp" || exit 1
+        sed -i 's/ref-p.*/ref-p                     = '"${PRESSURE_BAR} ${PRESSURE_BAR}/g" "${sim_name}.mdp" || exit 1
 
         # make tpr file
         "${GMX_BIN}" -quiet -nocopyright grompp \
@@ -266,6 +284,7 @@ else
             -p "topol.top" \
             -o "${sim_name}.tpr" \
             -maxwarn '1'
+        rm "${previous_sim_name}.gro" || exit 1
 
         # call mdrun
         "${MPI_BIN}" -np '1' \
@@ -334,10 +353,15 @@ EOF
         # copy output files to archive directory
         mkdir -p "${archive_dir}"
         cp -p "${sim_name}."* -t "${archive_dir}/" || exit 1
+        cp -p "mdout.mdp" -t "${archive_dir}/" || exit 1
         cp -p "temperature."* -t "${archive_dir}/" || exit 1
         cp -p "pressure."* -t "${archive_dir}/" || exit 1
         cp -p "density."* -t "${archive_dir}/" || exit 1
         rm "${sim_name}."* || exit 1
+        rm "temperature."* || exit 1
+        rm "pressure."* || exit 1
+        rm "density."* || exit 1
+        rm ./*.cpt mdout.mdp || exit 1
         cp -p "${archive_dir}/${sim_name}.gro" "${sim_name}.gro" || exit 1
     } >>"${log_file}" 2>&1
 fi
