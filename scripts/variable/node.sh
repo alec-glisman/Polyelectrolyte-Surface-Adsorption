@@ -43,6 +43,9 @@ if [[ ! -n "${SLURM_JOB_NUM_NODES+x}" ]]; then
     export SLURM_JOB_NUM_NODES='1'
 fi
 
+# Allow direct GPU communication
+export GMX_ENABLE_DIRECT_GPU_COMM='1'
+
 # Hamiltonian replica exchange defaults
 n_threads_per_node="$(grep -c ^processor /proc/cpuinfo)"
 export N_SIM_PER_NODE=$(((N_REPLICA + SLURM_JOB_NUM_NODES - 1) / SLURM_JOB_NUM_NODES)) # number of replicas run per node (ceil division)
