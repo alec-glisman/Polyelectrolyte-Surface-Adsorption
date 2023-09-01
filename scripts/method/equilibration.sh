@@ -23,12 +23,12 @@ npt_script="${project_path}/python/mean_frame_xvg_2_col.py"
 
 # Gromacs files
 mdp_path="${project_path}/parameters/mdp/molecular-dynamics"
-mdp_file_nvt="${mdp_path}/nvt_eqbm_10ns.mdp"
-mdp_file_npt="${mdp_path}/npt_eqbm_10ns.mdp"
+mdp_file_nvt="${mdp_path}/nvt_eqbm_5ns.mdp"
+mdp_file_npt="${mdp_path}/npt_eqbm_5ns.mdp"
 if [[ "${PRODUCTION_ENSEMBLE^^}" == "NVT" ]]; then
-    mdp_file_prod="${mdp_path}/nvt_eqbm_10ns.mdp"
+    mdp_file_prod="${mdp_path}/nvt_eqbm_5ns.mdp"
 elif [[ "${PRODUCTION_ENSEMBLE^^}" == "NPT" ]]; then
-    mdp_file_prod="${mdp_path}/npt_eqbm_10ns.mdp"
+    mdp_file_prod="${mdp_path}/npt_eqbm_5ns.mdp"
 else
     echo "ERROR: PRODUCTION_ENSEMBLE must be set to NVT or NPT"
     exit 1
@@ -109,28 +109,37 @@ else
 System
 EOF
 
-        # plot system temperature over time
-        "${GMX_BIN}" -quiet -nocopyright energy \
-            -f "${sim_name}.edr" \
-            -o "temperature.xvg" <<EOF
-Temperature
+        # plot system parameters over time
+        params=('Potential' 'Kinetic-En.' 'Total-Energy' 'Temperature' 'Pressure')
+        for param in "${params[@]}"; do
+            filename="${param,,}"
+            "${GMX_BIN}" -quiet -nocopyright energy \
+                -f "${sim_name}.edr" \
+                -o "${filename}.xvg" <<EOF
+${param}
 0
 EOF
-        # convert xvg to png
-        gracebat -nxy "temperature.xvg" \
-            -hdevice "PNG" \
-            -autoscale "xy" \
-            -printfile "temperature.png" \
-            -fixed "3840" "2160"
+            # convert xvg to png
+            gracebat -nxy "${filename}.xvg" \
+                -hdevice "PNG" \
+                -autoscale "xy" \
+                -printfile "${filename}.png" \
+                -fixed "3840" "2160"
+        done
 
-        # copy output files to archive directory
+        # move simulation files to archive directory
         mkdir -p "${archive_dir}"
         cp -p "${sim_name}."* -t "${archive_dir}/" || exit 1
-        cp -p "mdout.mdp" -t "${archive_dir}/" || exit 1
-        cp -p "temperature."* -t "${archive_dir}/" || exit 1
         rm "${sim_name}."* || exit 1
-        rm "temperature."* || exit 1
+        cp -p "mdout.mdp" -t "${archive_dir}/" || exit 1
         rm ./*.cpt mdout.mdp || exit 1
+        # move xvg and png files to archive directory
+        mkdir -p "${archive_dir}/figures"
+        cp -p ./*.xvg -t "${archive_dir}/figures/" || exit 1
+        cp -p ./*.png -t "${archive_dir}/figures/" || exit 1
+        rm ./*.xvg ./*.png || exit 1
+        # copy gro file to current directory
+        cp -p "${archive_dir}/${sim_name}.gro" "${sim_name}.gro" || exit 1
     } >>"${log_file}" 2>&1
 fi
 
@@ -176,50 +185,23 @@ else
             -pin on -pinoffset "${PIN_OFFSET}" -pinstride 1 -ntomp "${CPU_THREADS}" \
             -gpu_id "${GPU_IDS}" || exit 1
 
-        # plot system temperature over time
-        filename="temperature"
-        "${GMX_BIN}" -quiet -nocopyright energy \
-            -f "${sim_name}.edr" \
-            -o "${filename}.xvg" <<EOF
-Temperature
+        # plot system parameters over time
+        params=('Potential' 'Kinetic-En.' 'Total-Energy' 'Temperature' 'Pressure' 'Density')
+        for param in "${params[@]}"; do
+            filename="${param,,}"
+            "${GMX_BIN}" -quiet -nocopyright energy \
+                -f "${sim_name}.edr" \
+                -o "${filename}.xvg" <<EOF
+${param}
 0
 EOF
-        # convert xvg to png
-        gracebat -nxy "${filename}.xvg" \
-            -hdevice "PNG" \
-            -autoscale "xy" \
-            -printfile "${filename}.png" \
-            -fixed "3840" "2160"
-
-        # plot system pressure over time
-        filename="pressure"
-        "${GMX_BIN}" -quiet -nocopyright energy \
-            -f "${sim_name}.edr" \
-            -o "${filename}.xvg" <<EOF
-Pressure
-0
-EOF
-        # convert xvg to png
-        gracebat -nxy "${filename}.xvg" \
-            -hdevice "PNG" \
-            -autoscale "xy" \
-            -printfile "${filename}.png" \
-            -fixed "3840" "2160"
-
-        # plot system density over time
-        filename="density"
-        "${GMX_BIN}" -quiet -nocopyright energy \
-            -f "${sim_name}.edr" \
-            -o "${filename}.xvg" <<EOF
-Density
-0
-EOF
-        # convert xvg to png
-        gracebat -nxy "${filename}.xvg" \
-            -hdevice "PNG" \
-            -autoscale "xy" \
-            -printfile "${filename}.png" \
-            -fixed "3840" "2160"
+            # convert xvg to png
+            gracebat -nxy "${filename}.xvg" \
+                -hdevice "PNG" \
+                -autoscale "xy" \
+                -printfile "${filename}.png" \
+                -fixed "3840" "2160"
+        done
 
         # select a representative frame from the NPT equilibration and make new gro file
         python3 "${npt_script}" \
@@ -237,21 +219,31 @@ EOF
 System
 EOF
 
-        # copy output files to archive directory
+        # move simulation files to archive directory
         mkdir -p "${archive_dir}"
         cp -p "${sim_name}."* -t "${archive_dir}/" || exit 1
-        cp -p "mdout.mdp" -t "${archive_dir}/" || exit 1
-        cp -p "temperature."* -t "${archive_dir}/" || exit 1
-        cp -p "pressure."* -t "${archive_dir}/" || exit 1
-        cp -p "density."* -t "${archive_dir}/" || exit 1
         rm "${sim_name}."* || exit 1
-        rm "temperature."* || exit 1
-        rm "pressure."* || exit 1
-        rm "density."* || exit 1
+        cp -p "mdout.mdp" -t "${archive_dir}/" || exit 1
         rm ./*.cpt mdout.mdp || exit 1
+        # move xvg and png files to archive directory
+        mkdir -p "${archive_dir}/figures"
+        cp -p ./*.xvg -t "${archive_dir}/figures/" || exit 1
+        cp -p ./*.png -t "${archive_dir}/figures/" || exit 1
+        rm ./*.xvg ./*.png || exit 1
+        # copy gro file to current directory
         cp -p "${archive_dir}/${sim_name}.gro" "${sim_name}.gro" || exit 1
     } >>"${log_file}" 2>&1
 fi
+
+# Print initial and final system volumes
+# get last line of previous sim gro file
+previous_sim_gro_last_line="$(tail -n 1 "${previous_archive_dir}/${previous_sim_name}.gro")"
+previous_sim_gro_box_dimensions="$(echo "${previous_sim_gro_last_line}" | awk '{print $1, $2, $3}')"
+echo "DEBUG: NVT system dimensions: ${previous_sim_gro_box_dimensions}"
+# get last line of current sim gro file
+sim_gro_last_line="$(tail -n 1 "${archive_dir}/${sim_name}.gro")"
+sim_gro_box_dimensions="$(echo "${sim_gro_last_line}" | awk '{print $1, $2, $3}')"
+echo "DEBUG: NPT system dimensions: ${sim_gro_box_dimensions}"
 
 # #######################################################################################
 # Production equilibration ##############################################################
@@ -305,63 +297,39 @@ else
 System
 EOF
 
-        # plot system temperature over time
-        filename="temperature"
-        "${GMX_BIN}" -quiet -nocopyright energy \
-            -f "${sim_name}.edr" \
-            -o "${filename}.xvg" <<EOF
-Temperature
+        # plot system parameters over time
+        params=('Potential' 'Kinetic-En.' 'Total-Energy' 'Temperature' 'Pressure')
+        if [[ "${PRODUCTION_ENSEMBLE^^}" == "NPT" ]]; then
+            params+=('Density')
+        fi
+        for param in "${params[@]}"; do
+            filename="${param,,}"
+            "${GMX_BIN}" -quiet -nocopyright energy \
+                -f "${sim_name}.edr" \
+                -o "${filename}.xvg" <<EOF
+${param}
 0
 EOF
-        # convert xvg to png
-        gracebat -nxy "${filename}.xvg" \
-            -hdevice "PNG" \
-            -autoscale "xy" \
-            -printfile "${filename}.png" \
-            -fixed "3840" "2160"
+            # convert xvg to png
+            gracebat -nxy "${filename}.xvg" \
+                -hdevice "PNG" \
+                -autoscale "xy" \
+                -printfile "${filename}.png" \
+                -fixed "3840" "2160"
+        done
 
-        # plot system pressure over time
-        filename="pressure"
-        "${GMX_BIN}" -quiet -nocopyright energy \
-            -f "${sim_name}.edr" \
-            -o "${filename}.xvg" <<EOF
-Pressure
-0
-EOF
-        # convert xvg to png
-        gracebat -nxy "${filename}.xvg" \
-            -hdevice "PNG" \
-            -autoscale "xy" \
-            -printfile "${filename}.png" \
-            -fixed "3840" "2160"
-
-        # plot system density over time
-        filename="density"
-        "${GMX_BIN}" -quiet -nocopyright energy \
-            -f "${sim_name}.edr" \
-            -o "${filename}.xvg" <<EOF
-Density
-0
-EOF
-        # convert xvg to png
-        gracebat -nxy "${filename}.xvg" \
-            -hdevice "PNG" \
-            -autoscale "xy" \
-            -printfile "${filename}.png" \
-            -fixed "3840" "2160"
-
-        # copy output files to archive directory
+        # move simulation files to archive directory
         mkdir -p "${archive_dir}"
         cp -p "${sim_name}."* -t "${archive_dir}/" || exit 1
-        cp -p "mdout.mdp" -t "${archive_dir}/" || exit 1
-        cp -p "temperature."* -t "${archive_dir}/" || exit 1
-        cp -p "pressure."* -t "${archive_dir}/" || exit 1
-        cp -p "density."* -t "${archive_dir}/" || exit 1
         rm "${sim_name}."* || exit 1
-        rm "temperature."* || exit 1
-        rm "pressure."* || exit 1
-        rm "density."* || exit 1
+        cp -p "mdout.mdp" -t "${archive_dir}/" || exit 1
         rm ./*.cpt mdout.mdp || exit 1
+        # move xvg and png files to archive directory
+        mkdir -p "${archive_dir}/figures"
+        cp -p ./*.xvg -t "${archive_dir}/figures/" || exit 1
+        cp -p ./*.png -t "${archive_dir}/figures/" || exit 1
+        rm ./*.xvg ./*.png || exit 1
+        # copy gro file to current directory
         cp -p "${archive_dir}/${sim_name}.gro" "${sim_name}.gro" || exit 1
     } >>"${log_file}" 2>&1
 fi

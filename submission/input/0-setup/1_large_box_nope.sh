@@ -21,12 +21,15 @@ export SURFACE_SIZE='12' # size of crystal surface in nm {3, 5, 8, 9, 10, 11, 12
 export BOX_HEIGHT='12'   # height of simulation box in nm
 
 # number of each component
-export N_MONOMER='32'    # number of monomers in chain {1, 2, 5, 8, 16, 32}
-export N_CHAIN='0'       # number of chains
+export N_MONOMER='32'  # number of monomers in chain {1, 2, 5, 8, 16, 32}
+export N_CHAIN='0'     # number of chains
 export N_CARBONATE='0' # number of aqueous carbonate ions
 export N_SODIUM='0'    # number of aqueous sodium ions
 export N_CALCIUM='0'   # number of aqueous calcium ions
-export N_CHLORINE='0'   # number of aqueous chlorine ions
+export N_CHLORINE='0'  # number of aqueous chlorine ions
+
+# tag for system
+export TAG_APPEND="" # tag to append to system name
 
 # System sampling #############################################################
 

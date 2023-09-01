@@ -28,6 +28,9 @@ export N_SODIUM='128'    # number of aqueous sodium ions
 export N_CALCIUM='144'   # number of aqueous calcium ions
 export N_CHLORINE='32'   # number of aqueous chlorine ions
 
+# tag for system
+export TAG_APPEND="" # tag to append to system name
+
 # System sampling #############################################################
 
 # statistical mechanics
