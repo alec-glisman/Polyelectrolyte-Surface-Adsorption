@@ -30,7 +30,7 @@ npt_script="${project_path}/python/mean_frame_xvg_2_col.py"
 mdp_path="${project_path}/parameters/mdp/molecular-dynamics"
 mdp_file_nvt="${mdp_path}/nvt_eqbm.mdp"
 mdp_file_npt="${mdp_path}/npt_eqbm.mdp"
-mdp_file_prod="${mdp_path}/${PRODUCTION_ENSEMBLE,,}_prod.mdp"
+mdp_file_prod="${mdp_path}/${PRODUCTION_ENSEMBLE,,}_eqbm.mdp"
 
 # Output files
 cwd_init="$(pwd)"
