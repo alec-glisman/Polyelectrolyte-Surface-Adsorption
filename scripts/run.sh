@@ -33,6 +33,10 @@ global_preferences="${1}"
 flag_initialization=false
 flag_equilibration=false
 flag_production=false
+flag_sampling_md=false
+
+# action flags
+flag_archive=false
 
 # remove global preferences from command line arguments
 shift
@@ -54,6 +58,12 @@ for arg in "$@"; do
         flag_equilibration=true
         flag_production=true
         ;;
+    -m | --md)
+        flag_sampling_md=true
+        ;;
+    -r | --archive)
+        flag_archive=true
+        ;;
     -h | --help)
         echo "Usage: ${package} [global_preferences] [simulation_preferences]"
         echo ""
@@ -63,14 +73,18 @@ for arg in "$@"; do
         echo "  -p, --production    Run the production simulation."
         echo "  -a, --all           Run all simulations."
         echo ""
+        echo "Production sampling methods:"
+        echo "  -m, --md            Molecular dynamics (unbiased)."
+        echo ""
         echo "Other:"
+        echo "  -r, --archive       Archive the simulation."
         echo "  -h, --help          Display this help message."
         echo ""
         exit 0
         ;;
     *)
         echo "ERROR: Unrecognized argument: ${arg}"
-        echo "Usage: ${package} [global_preferences] [simulation_preferences]"
+        echo "Usage: ${package} [global_preferences] [simulation_preferences] [sampling]"
         exit 1
         ;;
     esac
@@ -79,6 +93,14 @@ done
 # check that at least one simulation method was selected
 if [[ "${flag_initialization}" = false ]] && [[ "${flag_equilibration}" = false ]] && [[ "${flag_production}" = false ]]; then
     echo "ERROR: No simulation methods selected."
+    echo "Usage: ${package} [global_preferences] [simulation_preferences]"
+    echo "Use '${package} --help' for more information."
+    exit 1
+fi
+
+# check that if production was selected, at least one sampling method was selected
+if [[ "${flag_production}" = true ]] && [[ "${flag_sampling_md}" = false ]]; then
+    echo "ERROR: No production sampling methods selected."
     echo "Usage: ${package} [global_preferences] [simulation_preferences]"
     echo "Use '${package} --help' for more information."
     exit 1
@@ -120,7 +142,22 @@ if [[ "${flag_equilibration}" = true ]]; then
     "${project_path}/scripts/method/equilibration.sh"
 fi
 
-# TODO: run production simulation
+# run production simulation
+if [[ "${flag_production}" = true ]]; then
+    echo "INFO: Archiving simulation: ${flag_archive}"
+    export FLAG_ARCHIVE="${flag_archive}"
+
+    # find walltime remaining
+    # shellcheck source=variable/slurm.sh
+    source "${project_path}/scripts/variable/slurm.sh"
+    echo "INFO: WALLTIME_HOURS: ${WALLTIME_HOURS}"
+
+    # molecular dynamics
+    if [[ "${flag_sampling_md}" = true ]]; then
+        echo "Sampling molecular dynamics..."
+        "${project_path}/scripts/method/sampling_md.sh"
+    fi
+fi
 
 # ##############################################################################
 # End ##########################################################################

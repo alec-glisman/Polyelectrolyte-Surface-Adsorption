@@ -3,7 +3,7 @@
 ;;; Run control ;;;
 integrator                = md           ; "steep" for ener minimization and "md" for a leap frog algorithm for integrating Newton's eq of motion
 dt                        = 0.002        ; 2 femtoseconds
-nsteps                    = 500000000    ; 1 microsecond
+nsteps                    = 5000000000   ; 10 microseconds
 comm-mode                 = Linear       ; "Linear" (remove center for mass translation) "Angular" ( >> >> and rotation around the center of mass) "None" (no restric) 
 nstcomm                   = 100          ; [steps] frequency for center of mass motion removal
 ;;; Output control ;;;

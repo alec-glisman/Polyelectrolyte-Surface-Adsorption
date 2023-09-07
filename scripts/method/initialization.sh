@@ -54,9 +54,9 @@ echo "INFO: Copying input files to working directory"
 
     # copy files
     # if any cp commands failed, exit script
-    cp -p "${mdp_file}" "mdin.mdp" || exit 1
-    cp -p "${PDB_CRYSTAL}" "crystal.pdb" || exit 1
-    cp -p "${PDB_CHAIN}" "chain.pdb" || exit 1
+    cp -np "${mdp_file}" "mdin.mdp" || exit 1
+    cp -np "${PDB_CRYSTAL}" "crystal.pdb" || exit 1
+    cp -np "${PDB_CHAIN}" "chain.pdb" || exit 1
 
 } >>"${log_file}" 2>&1
 
@@ -74,7 +74,7 @@ echo "INFO: Importing structure to Gromacs"
             -radius '0.5' \
             -try '1000'
     else
-        cp -p "crystal.pdb" "${sim_name}.pdb"
+        cp -np "crystal.pdb" "${sim_name}.pdb"
     fi
 
     # insert-molecules to add carbonate ions
@@ -233,27 +233,31 @@ mapfile -t charge_lines <charge_lines.log
 last_charge_line="${charge_lines[-1]}"
 echo "CRITICAL: ${last_charge_line}"
 
-# Create TPR file ######################################################################
+# ##############################################################################
+# Create TPR file ##############################################################
+# ##############################################################################
 echo "INFO: Archiving files"
 
 {
     # copy input files to structure directory
     mkdir -p '0-structure'
-    cp -p 'pdb2gmx_clean.pdb' '0-structure/system.pdb' || exit 1
-    cp -p 'topol_full.top' '0-structure/topol.top' || exit 1
-    cp -p 'index.ndx' '0-structure/index.ndx' || exit 1
+    cp -np 'pdb2gmx_clean.pdb' '0-structure/system.pdb' || exit 1
+    cp -np 'topol_full.top' '0-structure/topol.top' || exit 1
+    cp -np 'index.ndx' '0-structure/index.ndx' || exit 1
     cp -rp ./*.itp '0-structure/' || exit 1
 
     # copy simulation files to simulation directory
-    mkdir -p '1-energy-minimization'
-    cp -p 'mdin.mdp' '1-energy-minimization/mdin.mdp' || exit 1
-    cp -p 'mdout.mdp' '1-energy-minimization/mdout.mdp' || exit 1
-    cp -p 'index.ndx' '1-energy-minimization/index.ndx' || exit 1
-    cp -p 'topol_full.top' '1-energy-minimization/topol.top' || exit 1
-    cp -p "${sim_name}.tpr" "1-energy-minimization/${sim_name}.tpr" || exit 1
+    mkdir -np '1-energy-minimization'
+    cp -np 'mdin.mdp' '1-energy-minimization/mdin.mdp' || exit 1
+    cp -np 'mdout.mdp' '1-energy-minimization/mdout.mdp' || exit 1
+    cp -np 'index.ndx' '1-energy-minimization/index.ndx' || exit 1
+    cp -np 'topol_full.top' '1-energy-minimization/topol.top' || exit 1
+    cp -np "${sim_name}.tpr" "1-energy-minimization/${sim_name}.tpr" || exit 1
 } >>"${log_file}" 2>&1
 
-# Run Energy Minimization ##############################################################
+# ##############################################################################
+# Run Energy Minimization ######################################################
+# ##############################################################################
 echo "INFO: Running energy minimization"
 
 {
@@ -288,7 +292,9 @@ EOF
 
 } >>"${log_file}" 2>&1
 
-# Make Index File #####################################################################
+# ##############################################################################
+# Make Index File ##############################################################
+# ##############################################################################
 echo "INFO: Making index file"
 
 {
@@ -397,20 +403,22 @@ EOF
 
 } >>"${log_file}" 2>&1
 
-# Clean up #############################################################################
+# ##############################################################################
+# Clean Up #####################################################################
+# ##############################################################################
 echo "INFO: Cleaning up"
 
 {
     # create output directory
     mkdir -p "2-output"
-    cp -p index.ndx "2-output/index.ndx" || exit 1
-    cp -p topol_full.top "2-output/topol.top" || exit 1
-    cp -p "${sim_name}.gro" "2-output/system.gro" || exit 1
-    cp -p "${sim_name}_final.pdb" "2-output/system.pdb" || exit 1
+    cp -np index.ndx "2-output/index.ndx" || exit 1
+    cp -np topol_full.top "2-output/topol.top" || exit 1
+    cp -np "${sim_name}.gro" "2-output/system.gro" || exit 1
+    cp -np "${sim_name}_final.pdb" "2-output/system.pdb" || exit 1
 
     # copy files with pattern sim_name to simulation directory
-    cp -p "${sim_name}."* -t "1-energy-minimization" || exit 1
-    cp -p "${sim_name}.gro" -t "0-structure" || exit 1
+    cp -np "${sim_name}."* -t "1-energy-minimization" || exit 1
+    cp -np "${sim_name}.gro" -t "0-structure" || exit 1
     rm "${sim_name}."* || true
 
     # delete all backup files

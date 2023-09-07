@@ -23,16 +23,9 @@ npt_script="${project_path}/python/mean_frame_xvg_2_col.py"
 
 # Gromacs files
 mdp_path="${project_path}/parameters/mdp/molecular-dynamics"
-mdp_file_nvt="${mdp_path}/nvt_eqbm_5ns.mdp"
-mdp_file_npt="${mdp_path}/npt_eqbm_5ns.mdp"
-if [[ "${PRODUCTION_ENSEMBLE^^}" == "NVT" ]]; then
-    mdp_file_prod="${mdp_path}/nvt_eqbm_5ns.mdp"
-elif [[ "${PRODUCTION_ENSEMBLE^^}" == "NPT" ]]; then
-    mdp_file_prod="${mdp_path}/npt_eqbm_5ns.mdp"
-else
-    echo "ERROR: PRODUCTION_ENSEMBLE must be set to NVT or NPT"
-    exit 1
-fi
+mdp_file_nvt="${mdp_path}/nvt_eqbm.mdp"
+mdp_file_npt="${mdp_path}/npt_eqbm.mdp"
+mdp_file_prod="${mdp_path}/${PRODUCTION_ENSEMBLE,,}_prod.mdp"
 
 # Output files
 cwd_init="$(pwd)"
@@ -60,6 +53,7 @@ fi
 # #######################################################################################
 echo "INFO: Starting NVT equilibration"
 previous_sim_name="em"
+previous_archive_dir="../1-energy-minimization/2-output"
 sim_name="nvt_eqbm"
 archive_dir="1-nvt"
 
@@ -70,10 +64,9 @@ if [[ -f "${archive_dir}/${sim_name}.gro" ]]; then
 else
     {
         # copy output files from initialization
-        prev_dir_base="../1-energy-minimization/2-output"
-        cp -p "${prev_dir_base}/system.gro" "${previous_sim_name}.gro" || exit 1
-        cp -p "${prev_dir_base}/topol.top" "topol.top" || exit 1
-        cp -p "${prev_dir_base}/index.ndx" "index.ndx" || exit 1
+        cp -np "${previous_archive_dir}/system.gro" "${previous_sim_name}.gro" || exit 1
+        cp -np "${previous_archive_dir}/topol.top" "topol.top" || exit 1
+        cp -np "${previous_archive_dir}/index.ndx" "index.ndx" || exit 1
 
         # replace temperature in mdp file
         cp "${mdp_file_nvt}" "${sim_name}.mdp" || exit 1
@@ -129,17 +122,17 @@ EOF
 
         # move simulation files to archive directory
         mkdir -p "${archive_dir}"
-        cp -p "${sim_name}."* -t "${archive_dir}/" || exit 1
+        cp -np "${sim_name}."* -t "${archive_dir}/" || exit 1
         rm "${sim_name}."* || exit 1
-        cp -p "mdout.mdp" -t "${archive_dir}/" || exit 1
+        cp -np "mdout.mdp" -t "${archive_dir}/" || exit 1
         rm ./*.cpt mdout.mdp || exit 1
         # move xvg and png files to archive directory
         mkdir -p "${archive_dir}/figures"
-        cp -p ./*.xvg -t "${archive_dir}/figures/" || exit 1
-        cp -p ./*.png -t "${archive_dir}/figures/" || exit 1
+        cp -np ./*.xvg -t "${archive_dir}/figures/" || exit 1
+        cp -np ./*.png -t "${archive_dir}/figures/" || exit 1
         rm ./*.xvg ./*.png || exit 1
         # copy gro file to current directory
-        cp -p "${archive_dir}/${sim_name}.gro" "${sim_name}.gro" || exit 1
+        cp -np "${archive_dir}/${sim_name}.gro" "${sim_name}.gro" || exit 1
     } >>"${log_file}" 2>&1
 fi
 
@@ -148,8 +141,8 @@ fi
 # #######################################################################################
 echo "INFO: Starting NPT equilibration"
 previous_sim_name="${sim_name}"
-sim_name="npt_eqbm"
 previous_archive_dir="${archive_dir}"
+sim_name="npt_eqbm"
 archive_dir="2-npt"
 
 # check if output gro file already exists
@@ -159,7 +152,7 @@ if [[ -f "${archive_dir}/${sim_name}.gro" ]]; then
 else
     {
         # copy output files from NVT equilibration
-        cp -p "${previous_archive_dir}/${previous_sim_name}.gro" "${previous_sim_name}.gro" || exit 1
+        cp -np "${previous_archive_dir}/${previous_sim_name}.gro" "${previous_sim_name}.gro" || exit 1
 
         # replace temperature and pressure in mdp file
         cp "${mdp_file_npt}" "${sim_name}.mdp" || exit 1
@@ -221,17 +214,17 @@ EOF
 
         # move simulation files to archive directory
         mkdir -p "${archive_dir}"
-        cp -p "${sim_name}."* -t "${archive_dir}/" || exit 1
+        cp -np "${sim_name}."* -t "${archive_dir}/" || exit 1
         rm "${sim_name}."* || exit 1
-        cp -p "mdout.mdp" -t "${archive_dir}/" || exit 1
+        cp -np "mdout.mdp" -t "${archive_dir}/" || exit 1
         rm ./*.cpt mdout.mdp || exit 1
         # move xvg and png files to archive directory
         mkdir -p "${archive_dir}/figures"
-        cp -p ./*.xvg -t "${archive_dir}/figures/" || exit 1
-        cp -p ./*.png -t "${archive_dir}/figures/" || exit 1
+        cp -np ./*.xvg -t "${archive_dir}/figures/" || exit 1
+        cp -np ./*.png -t "${archive_dir}/figures/" || exit 1
         rm ./*.xvg ./*.png || exit 1
         # copy gro file to current directory
-        cp -p "${archive_dir}/${sim_name}.gro" "${sim_name}.gro" || exit 1
+        cp -np "${archive_dir}/${sim_name}.gro" "${sim_name}.gro" || exit 1
     } >>"${log_file}" 2>&1
 fi
 
@@ -245,7 +238,9 @@ sim_gro_last_line="$(tail -n 1 "${archive_dir}/${sim_name}.gro")"
 sim_gro_box_dimensions="$(echo "${sim_gro_last_line}" | awk '{print $1, $2, $3}')"
 echo "DEBUG: NPT system dimensions: ${sim_gro_box_dimensions}"
 # calculate percent change in each dimension
+# shellcheck disable=SC2206
 previous_sim_gro_box_dimensions_array=(${previous_sim_gro_box_dimensions})
+# shellcheck disable=SC2206
 sim_gro_box_dimensions_array=(${sim_gro_box_dimensions})
 for i in "${!previous_sim_gro_box_dimensions_array[@]}"; do
     previous_sim_gro_box_dimension="${previous_sim_gro_box_dimensions_array[i]}"
@@ -259,8 +254,8 @@ done
 # #######################################################################################
 echo "INFO: Starting production equilibration"
 previous_sim_name="${sim_name}"
-sim_name="prod_eqbm"
 previous_archive_dir="${archive_dir}"
+sim_name="prod_eqbm"
 archive_dir="3-pre-production"
 
 # check if output gro file already exists
@@ -270,7 +265,7 @@ if [[ -f "${archive_dir}/${sim_name}.gro" ]]; then
 else
     {
         # copy output files from NVT equilibration
-        cp -p "${previous_archive_dir}/${previous_sim_name}.gro" "${previous_sim_name}.gro" || exit 1
+        cp -np "${previous_archive_dir}/${previous_sim_name}.gro" "${previous_sim_name}.gro" || exit 1
 
         # replace temperature and pressure in mdp file
         cp "${mdp_file_prod}" "${sim_name}.mdp" || exit 1
@@ -329,17 +324,17 @@ EOF
 
         # move simulation files to archive directory
         mkdir -p "${archive_dir}"
-        cp -p "${sim_name}."* -t "${archive_dir}/" || exit 1
+        cp -np "${sim_name}."* -t "${archive_dir}/" || exit 1
         rm "${sim_name}."* || exit 1
-        cp -p "mdout.mdp" -t "${archive_dir}/" || exit 1
+        cp -np "mdout.mdp" -t "${archive_dir}/" || exit 1
         rm ./*.cpt mdout.mdp || exit 1
         # move xvg and png files to archive directory
         mkdir -p "${archive_dir}/figures"
-        cp -p ./*.xvg -t "${archive_dir}/figures/" || exit 1
-        cp -p ./*.png -t "${archive_dir}/figures/" || exit 1
+        cp -np ./*.xvg -t "${archive_dir}/figures/" || exit 1
+        cp -np ./*.png -t "${archive_dir}/figures/" || exit 1
         rm ./*.xvg ./*.png || exit 1
         # copy gro file to current directory
-        cp -p "${archive_dir}/${sim_name}.gro" "${sim_name}.gro" || exit 1
+        cp -np "${archive_dir}/${sim_name}.gro" "${sim_name}.gro" || exit 1
     } >>"${log_file}" 2>&1
 fi
 
@@ -360,10 +355,10 @@ else
     {
         # copy minimal set of files to archive directory
         mkdir -p "${archive_dir}"
-        cp -p "${previous_archive_dir}/${sim_name}.gro" "${archive_dir}/${sim_name}.gro" || exit 1
-        cp -p "${previous_archive_dir}/${sim_name}.pdb" "${archive_dir}/${sim_name}.pdb" || exit 1
-        cp -p "topol.top" "${archive_dir}/topol.top" || exit 1
-        cp -p "index.ndx" "${archive_dir}/index.ndx" || exit 1
+        cp -np "${previous_archive_dir}/${sim_name}.gro" "${archive_dir}/${sim_name}.gro" || exit 1
+        cp -np "${previous_archive_dir}/${sim_name}.pdb" "${archive_dir}/${sim_name}.pdb" || exit 1
+        cp -np "topol.top" "${archive_dir}/topol.top" || exit 1
+        cp -np "index.ndx" "${archive_dir}/index.ndx" || exit 1
     } >>"${log_file}" 2>&1
 fi
 
