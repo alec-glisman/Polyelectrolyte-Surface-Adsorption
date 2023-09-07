@@ -91,7 +91,7 @@ def dump_gro_frame(xtc_filename, gro_filename, time):
     """
     std_in = "System\nSystem\n"
     cmd = [
-        "gmx",
+        "gmx_mpi",
         "-nocopyright",
         "-quiet",
         "trjconv",

@@ -9,6 +9,11 @@
 #             submission/input/*.sh script. Script should only be called from
 #             the main run.sh script after initialization is complete.
 
+# built-in shell options
+set -o errexit  # exit when a command fails. Add || true to commands allowed to fail
+set -o nounset  # exit when script tries to use undeclared variables
+set -o pipefail # exit when a command in a pipe fails
+
 # #######################################################################################
 # Default Preferences ###################################################################
 # #######################################################################################

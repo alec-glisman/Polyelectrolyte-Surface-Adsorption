@@ -9,6 +9,11 @@
 #             submission/input/*.sh script. Script should only be called from
 #             the main run.sh script.
 
+# built-in shell options
+set -o errexit  # exit when a command fails. Add || true to commands allowed to fail
+set -o nounset  # exit when script tries to use undeclared variables
+set -o pipefail # exit when a command in a pipe fails
+
 # Default Preferences ###################################################################
 echo "INFO: Setting default preferences"
 
@@ -247,7 +252,7 @@ echo "INFO: Archiving files"
     cp -rp ./*.itp '0-structure/' || exit 1
 
     # copy simulation files to simulation directory
-    mkdir -np '1-energy-minimization'
+    mkdir -p '1-energy-minimization'
     cp -np 'mdin.mdp' '1-energy-minimization/mdin.mdp' || exit 1
     cp -np 'mdout.mdp' '1-energy-minimization/mdout.mdp' || exit 1
     cp -np 'index.ndx' '1-energy-minimization/index.ndx' || exit 1
