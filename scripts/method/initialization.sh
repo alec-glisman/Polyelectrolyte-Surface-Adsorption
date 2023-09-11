@@ -9,6 +9,11 @@
 #             submission/input/*.sh script. Script should only be called from
 #             the main run.sh script.
 
+# built-in shell options
+set -o errexit  # exit when a command fails. Add || true to commands allowed to fail
+set -o nounset  # exit when script tries to use undeclared variables
+set -o pipefail # exit when a command in a pipe fails
+
 # Default Preferences ###################################################################
 echo "INFO: Setting default preferences"
 
@@ -25,6 +30,7 @@ pdb_carbonate="${structure_path}/polyatomic-ions/carbonate_ion.pdb"
 gro_water="spc216.gro"
 
 # Output files
+cwd_initialization="$(pwd)"
 cwd="$(pwd)/1-energy-minimization"
 sim_name="energy_minimization"
 log_file="system_initialization.log"
@@ -53,9 +59,9 @@ echo "INFO: Copying input files to working directory"
 
     # copy files
     # if any cp commands failed, exit script
-    cp -p "${mdp_file}" "mdin.mdp" || exit 1
-    cp -p "${PDB_CRYSTAL}" "crystal.pdb" || exit 1
-    cp -p "${PDB_CHAIN}" "chain.pdb" || exit 1
+    cp -np "${mdp_file}" "mdin.mdp" || exit 1
+    cp -np "${PDB_CRYSTAL}" "crystal.pdb" || exit 1
+    cp -np "${PDB_CHAIN}" "chain.pdb" || exit 1
 
 } >>"${log_file}" 2>&1
 
@@ -64,13 +70,17 @@ echo "INFO: Importing structure to Gromacs"
 
 {
     # insert-molecules to create simulation box of crystal and chains
-    "${GMX_BIN}" -nocopyright -quiet insert-molecules \
-        -f "crystal.pdb" \
-        -ci "chain.pdb" \
-        -o "${sim_name}.pdb" \
-        -nmol "${N_CHAIN}" \
-        -radius '0.5' \
-        -try '100'
+    if [[ "${N_CHAIN}" -gt 0 ]]; then
+        "${GMX_BIN}" -nocopyright -quiet insert-molecules \
+            -f "crystal.pdb" \
+            -ci "chain.pdb" \
+            -o "${sim_name}.pdb" \
+            -nmol "${N_CHAIN}" \
+            -radius '0.5' \
+            -try '1000'
+    else
+        cp -np "crystal.pdb" "${sim_name}.pdb"
+    fi
 
     # insert-molecules to add carbonate ions
     if [[ "${N_CARBONATE}" -gt 0 ]]; then
@@ -80,7 +90,7 @@ echo "INFO: Importing structure to Gromacs"
             -o "${sim_name}.pdb" \
             -nmol "${N_CARBONATE}" \
             -radius '0.5' \
-            -try '100'
+            -try '1000'
     fi
 
     # convert pdb to gro
@@ -94,7 +104,19 @@ echo "INFO: Importing structure to Gromacs"
         -noignh \
         -renum \
         -rtpres
+
+    # get box dimensions from last line of gro file
+    box_dim="$(tail -n 1 "${sim_name}.gro")"
+    z="$(echo "${box_dim}" | awk '{print $3}')"
+    new_z="$(bc <<<"scale=5; ${BOX_HEIGHT} * 1.00000")"
+
+    # increase z-dimension of box to BOX_HEIGHT by string replacement of 3rd column in last line of gro file
+    sed -i "s/${z}/${new_z}/g" "${sim_name}.gro"
+
 } >>"${log_file}" 2>&1
+
+echo "DEBUG: Initial box height [A]: ${z}"
+echo "DEBUG: Final box height [A]: ${new_z}"
 
 # Add Solvent #########################################################################
 echo "INFO: Adding solvent"
@@ -204,6 +226,11 @@ echo "INFO: Creating topology"
         -maxwarn '1'
 } >>"${log_file}" 2>&1
 
+# output the number of water molecules
+n_water="$(grep -c "SOL" "${sim_name}.gro")"
+n_water=$((n_water / 3))
+echo "DEBUG: Number of water molecules: ${n_water}"
+
 # grep lines in log file that contain "System has non-zero total charge" and save to array
 grep -n "System has non-zero total charge" "${log_file}" >charge_lines.log
 mapfile -t charge_lines <charge_lines.log
@@ -211,27 +238,31 @@ mapfile -t charge_lines <charge_lines.log
 last_charge_line="${charge_lines[-1]}"
 echo "CRITICAL: ${last_charge_line}"
 
-# Create TPR file ######################################################################
+# ##############################################################################
+# Create TPR file ##############################################################
+# ##############################################################################
 echo "INFO: Archiving files"
 
 {
     # copy input files to structure directory
     mkdir -p '0-structure'
-    cp -p 'pdb2gmx_clean.pdb' '0-structure/system.pdb' || exit 1
-    cp -p 'topol_full.top' '0-structure/topol.top' || exit 1
-    cp -p 'index.ndx' '0-structure/index.ndx' || exit 1
+    cp -np 'pdb2gmx_clean.pdb' '0-structure/system.pdb' || exit 1
+    cp -np 'topol_full.top' '0-structure/topol.top' || exit 1
+    cp -np 'index.ndx' '0-structure/index.ndx' || exit 1
     cp -rp ./*.itp '0-structure/' || exit 1
 
     # copy simulation files to simulation directory
     mkdir -p '1-energy-minimization'
-    cp -p 'mdin.mdp' '1-energy-minimization/mdin.mdp' || exit 1
-    cp -p 'mdout.mdp' '1-energy-minimization/mdout.mdp' || exit 1
-    cp -p 'index.ndx' '1-energy-minimization/index.ndx' || exit 1
-    cp -p 'topol_full.top' '1-energy-minimization/topol.top' || exit 1
-    cp -p "${sim_name}.tpr" "1-energy-minimization/${sim_name}.tpr" || exit 1
+    cp -np 'mdin.mdp' '1-energy-minimization/mdin.mdp' || exit 1
+    cp -np 'mdout.mdp' '1-energy-minimization/mdout.mdp' || exit 1
+    cp -np 'index.ndx' '1-energy-minimization/index.ndx' || exit 1
+    cp -np 'topol_full.top' '1-energy-minimization/topol.top' || exit 1
+    cp -np "${sim_name}.tpr" "1-energy-minimization/${sim_name}.tpr" || exit 1
 } >>"${log_file}" 2>&1
 
-# Run Energy Minimization ##############################################################
+# ##############################################################################
+# Run Energy Minimization ######################################################
+# ##############################################################################
 echo "INFO: Running energy minimization"
 
 {
@@ -245,7 +276,7 @@ echo "INFO: Running energy minimization"
         -gpu_id "${GPU_IDS}" || exit 1
 
     # dump last frame of energy minimization as gro file
-    "${GMX_BIN}" -quiet trjconv \
+    "${GMX_BIN}" -quiet -nocopyright trjconv \
         -f "${sim_name}.trr" \
         -s "${sim_name}.tpr" \
         -o "${sim_name}.gro" \
@@ -266,7 +297,9 @@ EOF
 
 } >>"${log_file}" 2>&1
 
-# Make Index File #####################################################################
+# ##############################################################################
+# Make Index File ##############################################################
+# ##############################################################################
 echo "INFO: Making index file"
 
 {
@@ -375,20 +408,22 @@ EOF
 
 } >>"${log_file}" 2>&1
 
-# Clean up #############################################################################
+# ##############################################################################
+# Clean Up #####################################################################
+# ##############################################################################
 echo "INFO: Cleaning up"
 
 {
     # create output directory
     mkdir -p "2-output"
-    cp -p index.ndx "2-output/index.ndx" || exit 1
-    cp -p topol_full.top "2-output/topol.top" || exit 1
-    cp -p "${sim_name}.gro" "2-output/system.gro" || exit 1
-    cp -p "${sim_name}_final.pdb" "2-output/system.pdb" || exit 1
+    cp -np index.ndx "2-output/index.ndx" || exit 1
+    cp -np topol_full.top "2-output/topol.top" || exit 1
+    cp -np "${sim_name}.gro" "2-output/system.gro" || exit 1
+    cp -np "${sim_name}_final.pdb" "2-output/system.pdb" || exit 1
 
     # copy files with pattern sim_name to simulation directory
-    cp -p "${sim_name}."* -t "1-energy-minimization" || exit 1
-    cp -p "${sim_name}.gro" -t "0-structure" || exit 1
+    cp -np "${sim_name}."* -t "1-energy-minimization" || exit 1
+    cp -np "${sim_name}.gro" -t "0-structure" || exit 1
     rm "${sim_name}."* || true
 
     # delete all backup files
@@ -399,3 +434,4 @@ echo "INFO: Cleaning up"
 } >>"${log_file}" 2>&1
 
 echo "Critical: Finished system initialization"
+cd "${cwd_initialization}" || exit 1

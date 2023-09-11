@@ -1,19 +1,19 @@
-; Created by Alec Glisman (GitHub: @alec-glisman) on April 7th, 2022
+; Created by Alec Glisman (GitHub: @alec-glisman) on December 31st, 2021
 ;;; GROMACS Documentation: https://manual.gromacs.org/documentation/current/user-guide/mdp-options.html ;;;
 ;;; Run control ;;;
 integrator                = md           ; "steep" for ener minimization and "md" for a leap frog algorithm for integrating Newton's eq of motion
 dt                        = 0.002        ; 2 femtoseconds
-nsteps                    = 150000000    ; 300 nanoseconds
+nsteps                    = 5000000000   ; 10 microseconds
 comm-mode                 = Linear       ; "Linear" (remove center for mass translation) "Angular" ( >> >> and rotation around the center of mass) "None" (no restric) 
 nstcomm                   = 100          ; [steps] frequency for center of mass motion removal
 ;;; Output control ;;;
-nstxout                   = 10000        ; [steps] number of steps that elapse between writing coordinates to the output trajectory file (trr)
-nstvout                   = 10000        ; [steps] number of steps that elapse between writing velocities to the output trajectory file (trr)
-nstfout                   = 10000        ; [steps] number of steps that elapse between writing forces to the output trajectory file (trr)
-nstlog                    = 10000        ; [steps] number of steps that elapse between writing energies to the log file
-nstcalcenergy             = 100          ; [steps] number of steps that elapse between calculating the energies, 0 is never
-nstenergy                 = 1000         ; [steps] number of steps that elapse between writing energies to energy file
-nstxout-compressed        = 2000         ; [steps] number of steps that elapse between writing to .xtc file
+nstxout                   = 10000       ; [steps] number of steps that elapse between writing coordinates to the output trajectory file (trr)
+nstvout                   = 10000       ; [steps] number of steps that elapse between writing velocities to the output trajectory file (trr)
+nstfout                   = 10000       ; [steps] number of steps that elapse between writing forces to the output trajectory file (trr)
+nstlog                    = 10000       ; [steps] number of steps that elapse between writing energies to the log file
+nstcalcenergy             = 100         ; [steps] number of steps that elapse between calculating the energies, 0 is never
+nstenergy                 = 1000        ; [steps] number of steps that elapse between writing energies to energy file
+nstxout-compressed        = 2000        ; [steps] number of steps that elapse between writing to .xtc file
 ;;; Neighbor searching ;;;
 cutoff-scheme             = Verlet       ; algorithm to generate neigbor list
 nstlist                   = 10           ; [steps] frequency to update the neighbor list
@@ -32,7 +32,7 @@ pme-order                 = 4            ; interpolation order for PME. 4 equals
 ewald-rtol                = 1.0e-5       ; the relative strength of the Ewald-shifted direct potential at rcoulomb
 ewald-geometry            = 3d           ; "3d" is the ewald sum which is performed in all the three dimensions or "3dc" the reciprocal sum is still performed in 3D but a forec and potential correction applied in the z dimension to produce a pseudo 2D summation
 ;;; Temperature coupling ;;;
-Tcoupl                    = nose-hoover               ; Temp coupling using velocity rescaling. Temperature coupling using a Nose-Hoover extended ensemble. The reference temperature and coupling groups are selected as above, but in this case tau-t controls the period of the temperature fluctuations at equilibrium, which is slightly different from a relaxation time. For NVT simulations the conserved energy quantity is written to the energy and log files.
+Tcoupl                    = nose-hoover            ; Temp coupling using velocity rescaling. Temperature coupling using a Nose-Hoover extended ensemble. The reference temperature and coupling groups are selected as above, but in this case tau-t controls the period of the temperature fluctuations at equilibrium, which is slightly different from a relaxation time. For NVT simulations the conserved energy quantity is written to the energy and log files.
 tc-grps                   = System                 ; groups to couple separately to Temp bath
 tau-t                     = 0.50                   ; [ps] time constant for coupling (one for each group in tc-grps)
 ref-t                     = 300                    ; [K] reference temperature for coupling (one for each group in tc-grps)

@@ -7,3 +7,9 @@
 [submodule "tutorial/masterclass-pytorch-cv"]
 	path = tutorial/masterclass-pytorch-cv
 	url = https://github.com/luigibonati/masterclass-plumed.git
+[submodule "tutorial/deep-lda"]
+	path = tutorial/deep-lda
+	url = https://github.com/luigibonati/data-driven-CVs.git
+[submodule "tutorial/deep-tica"]
+	path = tutorial/deep-tica
+	url = https://github.com/luigibonati/deep-learning-slow-modes.git
