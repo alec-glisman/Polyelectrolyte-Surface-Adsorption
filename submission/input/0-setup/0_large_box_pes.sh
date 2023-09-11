@@ -43,6 +43,6 @@ export N_REPLICA='1' # number of replicas in replica exchange simulations
 
 # Hardware ####################################################################
 
-export CPU_THREADS='12' # number of CPU threads to use (-1 = all available)
+export CPU_THREADS='16' # number of CPU threads to use (-1 = all available)
 export PIN_OFFSET='0'   # offset for CPU thread pinning (-1 = no offset)
 export GPU_IDS='0'      # GPU device(s) to use (0 = first GPU, 01 = first two GPUs)
