@@ -16,6 +16,7 @@
         "DGMX",
         "DREGRESSIONTEST",
         "eccrpa",
+        "editconf",
         "eneconv",
         "eqbm",
         "FFTW",
@@ -92,7 +93,9 @@
         "trjconv",
         "vaterite",
         "vdwradii",
-        "Walltime"
+        "Walltime",
+        "ZMAX",
+        "ZMIN"
     ],
     "cSpell.enableFiletypes": [
         "shellscript"

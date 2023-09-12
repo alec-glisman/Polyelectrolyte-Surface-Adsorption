@@ -82,9 +82,9 @@ else
         "${GMX_BIN}" -quiet -nocopyright grompp \
             -f "${sim_name}.mdp" \
             -c "${previous_sim_name}.gro" \
+            -n "index.ndx" \
             -p "topol.top" \
-            -o "${sim_name}.tpr" \
-            -maxwarn '1'
+            -o "${sim_name}.tpr"
         # remove old gro file
         rm "${previous_sim_name}.gro" || exit 1
 
@@ -102,7 +102,7 @@ else
             -f "${sim_name}.xtc" \
             -s "${sim_name}.tpr" \
             -o "${sim_name}.pdb" \
-            -pbc 'mol' -ur 'compact' -conect \
+            -pbc 'mol' -ur 'tric' -conect \
             -dump '100000000000' <<EOF
 System
 EOF
@@ -169,9 +169,9 @@ else
         "${GMX_BIN}" -quiet -nocopyright grompp \
             -f "${sim_name}.mdp" \
             -c "${previous_sim_name}.gro" \
+            -n "index.ndx" \
             -p "topol.top" \
-            -o "${sim_name}.tpr" \
-            -maxwarn '1'
+            -o "${sim_name}.tpr"
         rm "${previous_sim_name}.gro" || exit 1
 
         # call mdrun
@@ -213,7 +213,7 @@ EOF
             -f "${sim_name}.gro" \
             -s "${sim_name}.tpr" \
             -o "${sim_name}.pdb" \
-            -pbc 'mol' -ur 'compact' -conect <<EOF
+            -pbc 'mol' -ur 'tric' -conect <<EOF
 System
 EOF
 
@@ -282,9 +282,9 @@ else
         "${GMX_BIN}" -quiet -nocopyright grompp \
             -f "${sim_name}.mdp" \
             -c "${previous_sim_name}.gro" \
+            -n "index.ndx" \
             -p "topol.top" \
-            -o "${sim_name}.tpr" \
-            -maxwarn '1'
+            -o "${sim_name}.tpr"
         rm "${previous_sim_name}.gro" || exit 1
 
         # call mdrun
@@ -301,7 +301,7 @@ else
             -f "${sim_name}.xtc" \
             -s "${sim_name}.tpr" \
             -o "${sim_name}.pdb" \
-            -pbc 'mol' -ur 'compact' -conect \
+            -pbc 'mol' -ur 'tric' -conect \
             -dump '100000000000' <<EOF
 System
 EOF

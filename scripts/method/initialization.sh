@@ -24,6 +24,7 @@ structure_path="${project_path}/initial-structure"
 
 # Gromacs files
 mdp_file="${project_path}/parameters/mdp/energy-minimization/em.mdp"
+ion_mdp_file="${project_path}/parameters/mdp/energy-minimization/ions.mdp"
 
 # Default structure files
 pdb_carbonate="${structure_path}/polyatomic-ions/carbonate_ion.pdb"
@@ -117,6 +118,8 @@ echo "INFO: Importing structure to Gromacs"
     carbonate_carbon_z="$(grep 'CRB' "${sim_name}.gro" | grep -o '.\{6\}$' | awk '{$1=$1};1')"
     minimum_z_coord="$(echo "${carbonate_carbon_z}" | sort -n)"
     z_min="$(echo "${minimum_z_coord}" | awk 'NR==1{print $1}')"
+    # subtract 0.05 nm to z_min to ensure that all atoms are within the box
+    z_min="$(bc <<<"scale=5; ${z_min} - 0.05")"
 
     # shift z-coordinates of all atoms by z_min
     "${GMX_BIN}" -quiet -nocopyright editconf \
@@ -129,7 +132,7 @@ echo "INFO: Importing structure to Gromacs"
         -f "${sim_name}.gro" \
         -s "${sim_name}.gro" \
         -o "${sim_name}.gro" \
-        -pbc 'atom' -ur 'tric' <<EOF
+        -pbc 'atom' <<EOF
 System
 EOF
 } >>"${log_file}" 2>&1
@@ -148,6 +151,57 @@ echo "INFO: Adding solvent"
         -o "${sim_name}.gro" \
         -p "topol.top"
 
+    # subtract z_min from pdb bulk z-coordinates and add 0.2 nm buffer
+    gro_zmin="$(bc <<<"scale=5; ${PDB_BULK_ZMIN} - ${z_min} - 0.2")"
+    gro_zmax="$(bc <<<"scale=5; ${PDB_BULK_ZMAX} - ${z_min} + 0.2")"
+
+    # find "bad" water molecules that are inside the crystal
+    "${GMX_BIN}" -quiet -nocopyright select \
+        -f "${sim_name}.gro" \
+        -s "${sim_name}.gro" \
+        -on "bad_waters.ndx" <<EOF
+"Bad_SOL" same residue as (name OW and (z >= ${gro_zmin} and z <= ${gro_zmax}))
+EOF
+    # remove "f0_t0.000" from index file groups
+    sed -i 's/_f0_t0.000//g' "bad_waters.ndx"
+    # make complement index file
+    "${GMX_BIN}" -quiet make_ndx \
+        -f "${sim_name}.gro" \
+        -n "bad_waters.ndx" \
+        -o "bad_waters.ndx" \
+        <<EOF
+! 0
+name 1 Good_Atoms
+q
+EOF
+
+    # remove "bad" water molecules from gro file
+    "${GMX_BIN}" -quiet -nocopyright trjconv \
+        -f "${sim_name}.gro" \
+        -s "${sim_name}.gro" \
+        -o "${sim_name}.gro" \
+        -n "bad_waters.ndx" \
+        -pbc 'atom' -ur 'tric' <<EOF
+Good_Atoms
+EOF
+} >>"${log_file}" 2>&1
+
+# find number of "bad" water molecules from log file
+n_bad_atoms="$(grep "Bad_SOL" "${log_file}" | head -n 1 | awk '{print $4}')"
+echo "DEBUG: Number of bad atoms: ${n_bad_atoms}"
+# number of bad waters is atoms / 3
+n_bad_waters="$((n_bad_atoms / 3))"
+echo "DEBUG: Number of bad waters: ${n_bad_waters}"
+
+{
+    # remove n_bad_waters from topol.top file
+    n_waters="$(grep "SOL" "topol.top" | awk '{print $2}')"
+    n_waters="$((n_waters - n_bad_waters))"
+    sed -i "s/SOL "'.*'"/SOL ${n_waters} ; ${n_bad_waters} bad waters removed/g" "topol.top"
+
+    # copy output files
+    cp -np "${sim_name}.gro" "solvated.gro" || exit 1
+
     # create index file
     "${GMX_BIN}" -quiet make_ndx \
         -f "${sim_name}.gro" \
@@ -164,7 +218,7 @@ echo "INFO: Adding calcium ions"
     if [[ "${N_CALCIUM}" -gt 0 ]]; then
         # tpr update
         "${GMX_BIN}" -nocopyright -quiet grompp \
-            -f "mdin.mdp" \
+            -f "${ion_mdp_file}" \
             -c "${sim_name}.gro" \
             -p "topol.top" \
             -o "${sim_name}.tpr" \
@@ -189,7 +243,7 @@ echo "INFO: Adding sodium ions"
     if [[ "${N_SODIUM}" -gt 0 ]]; then
         # tpr update
         "${GMX_BIN}" -nocopyright -quiet grompp \
-            -f "mdin.mdp" \
+            -f "${ion_mdp_file}" \
             -c "${sim_name}.gro" \
             -p "topol.top" \
             -o "${sim_name}.tpr" \
@@ -214,7 +268,7 @@ echo "INFO: Adding chlorine ions"
     if [[ "${N_CHLORINE}" -gt 0 ]]; then
         # tpr update
         "${GMX_BIN}" -nocopyright -quiet grompp \
-            -f "mdin.mdp" \
+            -f "${ion_mdp_file}" \
             -c "${sim_name}.gro" \
             -p "topol.top" \
             -o "${sim_name}.tpr" \
@@ -233,17 +287,206 @@ EOF
     fi
 } >>"${log_file}" 2>&1
 
-# Create Topology #####################################################################
-echo "INFO: Creating topology"
+echo "INFO: Create topology file with all solutes"
+{
+    # tpr file
+    "${GMX_BIN}" -nocopyright -quiet grompp \
+        -f "${ion_mdp_file}" \
+        -c "${sim_name}.gro" \
+        -p "topol.top" \
+        -o "${sim_name}.tpr"
+
+    # pdb file
+    "${GMX_BIN}" -nocopyright -quiet trjconv \
+        -f "${sim_name}.gro" \
+        -s "${sim_name}.tpr" \
+        -o "${sim_name}.pdb" \
+        -pbc 'mol' -ur 'tric' \
+        -conect <<EOF
+System
+EOF
+} >>"${log_file}" 2>&1
+
+# ##############################################################################
+# Make Index File ##############################################################
+# ##############################################################################
+echo "INFO: Making index file"
+
+{
+    # create blank index file
+    idx_group='17'
+    "${GMX_BIN}" -quiet make_ndx \
+        -f "${sim_name}.gro" \
+        -o "index.ndx" \
+        <<EOF
+q
+EOF
+
+    # clear index_crystal.ndx file
+    # shellcheck disable=SC2188
+    >"index_crystal.ndx" || true
+
+    # add crystal groups to index file
+    "${GMX_BIN}" -quiet select \
+        -f "crystal.pdb" \
+        -s "crystal.pdb" \
+        -n "index.ndx" \
+        -on "index_crystal.ndx" \
+        <<EOF
+"Crystal" resname CRB CA
+"Crystal_Bulk" same residue as (name CX1 CA and (z >= ${PDB_BULK_ZMIN} and z <= ${PDB_BULK_ZMAX}))
+"Crystal_Surface" same residue as (name CX1 CA and (z < ${PDB_BULK_ZMIN} or z > ${PDB_BULK_ZMAX}))
+EOF
+    # save group numbers
+    group_bulk="$((idx_group + 1))"
+    group_surface="$((idx_group + 2))"
+
+    # remove "f0_t0.000" from index file groups
+    sed -i 's/_f0_t0.000//g' "index_crystal.ndx"
+    # append crystal groups to index file
+    cat "index_crystal.ndx" >>"index.ndx"
+    idx_group=$((idx_group + 3))
+
+    # add crystal sub-groups to index file
+    "${GMX_BIN}" -quiet make_ndx \
+        -f "crystal.pdb" \
+        -n "index.ndx" \
+        -o "index.ndx" \
+        <<EOF
+${group_bulk} & ! a CA*
+name ${idx_group} Crystal_Bulk_Carbonate
+${group_bulk} & a CX*
+name $((idx_group + 1)) Crystal_Bulk_Carbonate_Carbon
+${group_bulk} & a OX*
+name $((idx_group + 2)) Crystal_Bulk_Carbonate_Oxygen
+${group_bulk} & a O*
+name $((idx_group + 3)) Crystal_Bulk_Calcium
+${group_surface} & ! a CA*
+name $((idx_group + 4)) Crystal_Surface_Carbonate
+${group_surface} & a CX*
+name $((idx_group + 5)) Crystal_Surface_Carbonate_Carbon
+${group_surface} & a OX*
+name $((idx_group + 6)) Crystal_Surface_Carbonate_Oxygen
+${group_surface} & a O*
+name $((idx_group + 7)) Crystal_Surface_Calcium
+
+q
+EOF
+    idx_group=$((idx_group + 8))
+
+    # add system section groups to index file
+    "${GMX_BIN}" -quiet make_ndx \
+        -f "${sim_name}.pdb" \
+        -n "index.ndx" \
+        -o "index.ndx" \
+        <<EOF
+${group_bulk}
+name $((idx_group)) Frozen
+! ${group_bulk}
+name $((idx_group + 1)) Mobile 
+! ${group_bulk} & ! ${group_surface}
+name $((idx_group + 2)) Aqueous
+
+q
+EOF
+    idx_group=$((idx_group + 3))
+
+    # add chain groups to index file
+    if [[ "${N_CHAIN}" -gt 0 ]]; then
+        "${GMX_BIN}" -quiet make_ndx \
+            -f "${sim_name}.pdb" \
+            -n "index.ndx" \
+            -o "index.ndx" \
+            <<EOF
+a * & chain B
+name ${idx_group} Chain
+a O* & chain B
+name $((idx_group + 1)) Chain_Oxygen
+
+q
+EOF
+        idx_group=$((idx_group + 2))
+    fi
+
+    # add aqueous sodium ions to index file
+    if [[ "${N_SODIUM}" -gt 0 ]]; then
+        "${GMX_BIN}" -quiet make_ndx \
+            -f "${sim_name}.pdb" \
+            -n "index.ndx" \
+            -o "index.ndx" \
+            <<EOF
+a NA & ! chain A & ! chain B
+name ${idx_group} Aqueous_Sodium
+
+q
+EOF
+        idx_group=$((idx_group + 1))
+    fi
+
+    # add aqueous calcium ions to index file
+    if [[ "${N_CALCIUM}" -gt 0 ]]; then
+        "${GMX_BIN}" -quiet make_ndx \
+            -f "${sim_name}.pdb" \
+            -n "index.ndx" \
+            -o "index.ndx" \
+            <<EOF
+a CA & ! chain A & ! chain B
+name ${idx_group} Aqueous_Calcium
+
+q
+EOF
+        idx_group=$((idx_group + 1))
+    fi
+
+    # add aqueous chloride ions to index file
+    if [[ "${N_CHLORINE}" -gt 0 ]]; then
+        "${GMX_BIN}" -quiet make_ndx \
+            -f "${sim_name}.pdb" \
+            -n "index.ndx" \
+            -o "index.ndx" \
+            <<EOF
+a CL & ! chain A & ! chain B
+name ${idx_group} Aqueous_Chloride
+
+q
+EOF
+        idx_group=$((idx_group + 1))
+    fi
+
+    # add aqueous carbonate ions to index file
+    if [[ "${N_CARBONATE}" -gt 0 ]]; then
+        "${GMX_BIN}" -quiet make_ndx \
+            -f "${sim_name}.pdb" \
+            -n "index.ndx" \
+            -o "index.ndx" \
+            <<EOF
+a CX* | a OX* & ! chain A & ! chain B
+name ${idx_group} Aqueous_Carbonate
+a CX* & ! chain A & ! chain B
+name $((idx_group + 1)) Aqueous_Carbonate_Carbon
+a OX* & ! chain A & ! chain B
+name $((idx_group + 2)) Aqueous_Carbonate_Oxygen
+
+q
+EOF
+        idx_group=$((idx_group + 3))
+    fi
+
+} >>"${log_file}" 2>&1
+
+# ##############################################################################
+# Create Topology ##############################################################
+# ##############################################################################
+echo "INFO: Creating topology file with all parameters merged"
 {
     # remake tpr file and topology file with no imports
     "${GMX_BIN}" -quiet grompp \
         -f "mdin.mdp" \
         -c "${sim_name}.gro" \
+        -n "index.ndx" \
         -p "topol.top" \
         -pp "topol_full.top" \
-        -o "${sim_name}.tpr" \
-        -maxwarn '1'
+        -o "${sim_name}.tpr"
 } >>"${log_file}" 2>&1
 
 # output the number of water molecules
@@ -251,15 +494,8 @@ n_water="$(grep -c "SOL" "${sim_name}.gro")"
 n_water=$((n_water / 3))
 echo "DEBUG: Number of water molecules: ${n_water}"
 
-# grep lines in log file that contain "System has non-zero total charge" and save to array
-grep -n "System has non-zero total charge" "${log_file}" >charge_lines.log
-mapfile -t charge_lines <charge_lines.log
-# print last line in array
-last_charge_line="${charge_lines[-1]}"
-echo "CRITICAL: ${last_charge_line}"
-
 # ##############################################################################
-# Create TPR file ##############################################################
+# Archive data #################################################################
 # ##############################################################################
 echo "INFO: Archiving files"
 
@@ -309,122 +545,11 @@ EOF
         -f "${sim_name}.trr" \
         -s "${sim_name}.tpr" \
         -o "${sim_name}_final.pdb" \
-        -pbc 'mol' -ur 'compact' \
+        -pbc 'mol' -ur 'tric' \
         -dump '100000' -conect <<EOF
 System
 System
 EOF
-
-} >>"${log_file}" 2>&1
-
-# ##############################################################################
-# Make Index File ##############################################################
-# ##############################################################################
-echo "INFO: Making index file"
-
-{
-    # add crystal groups to index file
-    idx_group='17'
-    "${GMX_BIN}" -quiet make_ndx \
-        -f "crystal.pdb" \
-        -n "index.ndx" \
-        -o "index.ndx" \
-        <<EOF
-a *
-name ${idx_group} Crystal
-a CX* | a OX*
-name $((idx_group + 1)) Crystal_Carbonate
-a CX*
-name $((idx_group + 2)) Crystal_Carbonate_Carbon
-a OX*
-name $((idx_group + 3)) Crystal_Carbonate_Oxygen
-a CA*
-name $((idx_group + 4)) Crystal_Calcium
-
-q
-EOF
-    idx_group=$((idx_group + 5))
-
-    # add chain groups to index file
-    if [[ "${N_CHAIN}" -gt 0 ]]; then
-        "${GMX_BIN}" -quiet make_ndx \
-            -f "${sim_name}_final.pdb" \
-            -n "index.ndx" \
-            -o "index.ndx" \
-            <<EOF
-a * & chain B
-name ${idx_group} Chain
-a O* & chain B
-name $((idx_group + 1)) Chain_Oxygen
-
-q
-EOF
-        idx_group=$((idx_group + 2))
-    fi
-
-    # add aqueous sodium ions to index file
-    if [[ "${N_SODIUM}" -gt 0 ]]; then
-        "${GMX_BIN}" -quiet make_ndx \
-            -f "${sim_name}_final.pdb" \
-            -n "index.ndx" \
-            -o "index.ndx" \
-            <<EOF
-a NA & ! chain A & ! chain B
-name ${idx_group} Aqueous_Sodium
-
-q
-EOF
-        idx_group=$((idx_group + 1))
-    fi
-
-    # add aqueous calcium ions to index file
-    if [[ "${N_CALCIUM}" -gt 0 ]]; then
-        "${GMX_BIN}" -quiet make_ndx \
-            -f "${sim_name}_final.pdb" \
-            -n "index.ndx" \
-            -o "index.ndx" \
-            <<EOF
-a CA & ! chain A & ! chain B
-name ${idx_group} Aqueous_Calcium
-
-q
-EOF
-        idx_group=$((idx_group + 1))
-    fi
-
-    # add aqueous chloride ions to index file
-    if [[ "${N_CHLORINE}" -gt 0 ]]; then
-        "${GMX_BIN}" -quiet make_ndx \
-            -f "${sim_name}_final.pdb" \
-            -n "index.ndx" \
-            -o "index.ndx" \
-            <<EOF
-a CL & ! chain A & ! chain B
-name ${idx_group} Aqueous_Chloride
-
-q
-EOF
-        idx_group=$((idx_group + 1))
-    fi
-
-    # add aqueous carbonate ions to index file
-    if [[ "${N_CARBONATE}" -gt 0 ]]; then
-        "${GMX_BIN}" -quiet make_ndx \
-            -f "${sim_name}_final.pdb" \
-            -n "index.ndx" \
-            -o "index.ndx" \
-            <<EOF
-a CX* | a OX* & ! chain A & ! chain B
-name ${idx_group} Aqueous_Carbonate
-a CX* & ! chain A & ! chain B
-name $((idx_group + 1)) Aqueous_Carbonate_Carbon
-a OX* & ! chain A & ! chain B
-name $((idx_group + 2)) Aqueous_Carbonate_Oxygen
-
-q
-EOF
-        idx_group=$((idx_group + 3))
-    fi
 
 } >>"${log_file}" 2>&1
 

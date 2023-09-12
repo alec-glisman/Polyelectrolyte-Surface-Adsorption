@@ -27,8 +27,8 @@ export N_MONOMER='32'  # number of monomers in chain {1, 2, 5, 8, 16, 32}
 export N_CHAIN='1'     # number of chains
 export N_CARBONATE='0' # number of aqueous carbonate ions
 export N_SODIUM='32'   # number of aqueous sodium ions
-export N_CALCIUM='0'   # number of aqueous calcium ions
-export N_CHLORINE='0'  # number of aqueous chlorine ions
+export N_CALCIUM='32'  # number of aqueous calcium ions
+export N_CHLORINE='64' # number of aqueous chlorine ions
 
 # tag for system
 export TAG_APPEND="" # tag to append to system name
@@ -46,5 +46,5 @@ export N_REPLICA='1' # number of replicas in replica exchange simulations
 # Hardware ####################################################################
 
 export CPU_THREADS='12' # number of CPU threads to use (-1 = all available)
-export PIN_OFFSET='0'   # offset for CPU thread pinning (-1 = no offset)
-export GPU_IDS='0'      # GPU device(s) to use (0 = first GPU, 01 = first two GPUs)
+export PIN_OFFSET='12'  # offset for CPU thread pinning (-1 = no offset)
+export GPU_IDS='1'      # GPU device(s) to use (0 = first GPU, 01 = first two GPUs)

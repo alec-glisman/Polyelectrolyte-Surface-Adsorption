@@ -101,9 +101,9 @@ else
             "${GMX_BIN}" -quiet -nocopyright grompp \
                 -f "${sim_name}.mdp" \
                 -c "${previous_sim_name}.gro" \
+                -n "index.ndx" \
                 -p "topol.top" \
-                -o "${sim_name}.tpr" \
-                -maxwarn '1'
+                -o "${sim_name}.tpr"
             rm "${previous_sim_name}.gro" || exit 1
         fi
 
