@@ -76,8 +76,8 @@ echo "INFO: Importing structure to Gromacs"
             -ci "chain.pdb" \
             -o "${sim_name}.pdb" \
             -nmol "${N_CHAIN}" \
-            -radius '0.5' \
-            -try '1000'
+            -radius '20' \
+            -try '10000'
     else
         cp -np "crystal.pdb" "${sim_name}.pdb"
     fi
@@ -89,8 +89,8 @@ echo "INFO: Importing structure to Gromacs"
             -ci "${pdb_carbonate}" \
             -o "${sim_name}.pdb" \
             -nmol "${N_CARBONATE}" \
-            -radius '0.5' \
-            -try '1000'
+            -radius '20' \
+            -try '10000'
     fi
 
     # convert pdb to gro
@@ -113,10 +113,30 @@ echo "INFO: Importing structure to Gromacs"
     # increase z-dimension of box to BOX_HEIGHT by string replacement of 3rd column in last line of gro file
     sed -i "s/${z}/${new_z}/g" "${sim_name}.gro"
 
+    # find minimum z-coordinate of crystal by last 6 columns of each CRB containing line in gro file
+    carbonate_carbon_z="$(grep 'CRB' "${sim_name}.gro" | grep -o '.\{6\}$' | awk '{$1=$1};1')"
+    minimum_z_coord="$(echo "${carbonate_carbon_z}" | sort -n)"
+    z_min="$(echo "${minimum_z_coord}" | awk 'NR==1{print $1}')"
+
+    # shift z-coordinates of all atoms by z_min
+    "${GMX_BIN}" -quiet -nocopyright editconf \
+        -f "${sim_name}.gro" \
+        -o "${sim_name}.gro" \
+        -translate '0' '0' "-${z_min}"
+
+    # wrap all atoms into box
+    "${GMX_BIN}" -quiet -nocopyright trjconv \
+        -f "${sim_name}.gro" \
+        -s "${sim_name}.gro" \
+        -o "${sim_name}.gro" \
+        -pbc 'atom' -ur 'tric' <<EOF
+System
+EOF
 } >>"${log_file}" 2>&1
 
 echo "DEBUG: Initial box height [A]: ${z}"
 echo "DEBUG: Final box height [A]: ${new_z}"
+echo "DEBUG: Minimum z-coordinate of crystal initially [nm]: ${z_min}"
 
 # Add Solvent #########################################################################
 echo "INFO: Adding solvent"
