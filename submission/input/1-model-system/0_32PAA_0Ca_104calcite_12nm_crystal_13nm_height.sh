@@ -41,7 +41,18 @@ export TEMPERATURE_K='300'       # temperature in Kelvin
 export PRESSURE_BAR='1'          # pressure in bar
 
 # replica exchange
-export N_REPLICA='1' # number of replicas in replica exchange simulations
+export N_REPLICA='8' # number of replicas in replica exchange simulations
+
+# harmonic restraints
+export PE_WALL_MAX='9'       # z-coordinate of lower wall in nm
+export ATOM_REFERENCE='1407' # atom number of reference atom for harmonic restraints
+export ATOM_OFFSET='-0.225'  # z-coordinate offset of reference atom from crystal surface in nm
+
+# OPES MultiThermal
+export TEMP_MAX_4='350' # maximum temperature in Kelvin for replica 4
+export TEMP_MAX_5='365' # maximum temperature in Kelvin for replica 5
+export TEMP_MAX_6='380' # maximum temperature in Kelvin for replica 6
+export TEMP_MAX_7='400' # maximum temperature in Kelvin for replica 7
 
 # Hardware ####################################################################
 

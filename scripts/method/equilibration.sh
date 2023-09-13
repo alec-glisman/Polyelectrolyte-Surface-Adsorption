@@ -26,6 +26,10 @@ project_path="${script_path}/../.."
 # python scripts
 npt_script="${project_path}/python/mean_frame_xvg_2_col.py"
 
+# Plumed files
+dat_path="${project_path}/plumed/harmonic"
+dat_file="${dat_path}/plumed.dat"
+
 # Gromacs files
 mdp_path="${project_path}/parameters/mdp/molecular-dynamics"
 mdp_file_nvt="${mdp_path}/nvt_eqbm.mdp"
@@ -269,23 +273,38 @@ if [[ -f "${archive_dir}/${sim_name}.gro" ]]; then
     echo "INFO: Skipping NPT equilibration"
 else
     {
-        # copy output files from NVT equilibration
-        cp -np "${previous_archive_dir}/${previous_sim_name}.gro" "${previous_sim_name}.gro" || exit 1
+        # if tpr file does not exist, create it
+        if [[ ! -f "${sim_name}.tpr" ]]; then
+            echo "DEBUG: Creating tpr file"
+            # copy output files from NVT equilibration
+            cp -np "${previous_archive_dir}/${previous_sim_name}.gro" "${previous_sim_name}.gro" || exit 1
 
-        # replace temperature and pressure in mdp file
-        cp "${mdp_file_prod}" "${sim_name}.mdp" || exit 1
-        sed -i 's/ref-t.*/ref-t                     = '"${TEMPERATURE_K}/g" "${sim_name}.mdp" || exit 1
-        sed -i 's/gen-temp.*/gen-temp                  = '"${TEMPERATURE_K}/g" "${sim_name}.mdp" || exit 1
-        sed -i 's/ref-p.*/ref-p                     = '"${PRESSURE_BAR} ${PRESSURE_BAR}/g" "${sim_name}.mdp" || exit 1
+            # replace temperature and pressure in mdp file
+            cp "${mdp_file_prod}" "${sim_name}.mdp" || exit 1
+            sed -i 's/ref-t.*/ref-t                     = '"${TEMPERATURE_K}/g" "${sim_name}.mdp" || exit 1
+            sed -i 's/gen-temp.*/gen-temp                  = '"${TEMPERATURE_K}/g" "${sim_name}.mdp" || exit 1
+            sed -i 's/ref-p.*/ref-p                     = '"${PRESSURE_BAR} ${PRESSURE_BAR}/g" "${sim_name}.mdp" || exit 1
 
-        # make tpr file
-        "${GMX_BIN}" -quiet -nocopyright grompp \
-            -f "${sim_name}.mdp" \
-            -c "${previous_sim_name}.gro" \
-            -n "index.ndx" \
-            -p "topol.top" \
-            -o "${sim_name}.tpr"
-        rm "${previous_sim_name}.gro" || exit 1
+            # copy plumed file
+            cp "${dat_file}" "plumed.dat" || exit 1
+            sed -i 's/{WALL_HEIGHT}/'"${PE_WALL_MAX}"'/g' "plumed.dat" || exit 1
+            sed -i 's/{WALL_OFFSET}/'"${ATOM_OFFSET}"'/g' "plumed.dat" || exit 1
+            sed -i 's/{ATOM_REFERENCE}/'"${ATOM_REFERENCE}"'/g' "plumed.dat" || exit 1
+
+            # make tpr file
+            "${GMX_BIN}" -quiet -nocopyright grompp \
+                -f "${sim_name}.mdp" \
+                -c "${previous_sim_name}.gro" \
+                -n "index.ndx" \
+                -p "topol.top" \
+                -o "${sim_name}.tpr"
+            rm "${previous_sim_name}.gro" || exit 1
+
+        else
+            echo "DEBUG: Using existing tpr file"
+            # activate restart in plumed file
+            sed -i 's/#RESTART/RESTART/g' "plumed.dat" || exit 1
+        fi
 
         # call mdrun
         "${MPI_BIN}" -np '1' \
@@ -293,6 +312,7 @@ else
             --use-hwthread-cpus --bind-to 'hwthread' \
             "${GMX_BIN}" -quiet -nocopyright mdrun -v \
             -deffnm "${sim_name}" -cpi "${sim_name}.cpt" \
+            -plumed "${dat_file}" \
             -pin on -pinoffset "${PIN_OFFSET}" -pinstride 1 -ntomp "${CPU_THREADS}" \
             -gpu_id "${GPU_IDS}" || exit 1
 

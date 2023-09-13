@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 #
 # Author     : Alec Glisman (GitHub: @alec-glisman)
-# Date       : 2023-09-06
-# Usage      : ./sampling_md.sh
+# Date       : 2023-09-12
+# Usage      : ./sampling_opes_explore.sh
 # Notes      : Script assumes that global variables have been set in a
 #             submission/input/*.sh script. Script should only be called from
 #             the main run.sh script after initialization is complete.
@@ -26,19 +26,23 @@ project_path="${script_path}/../.."
 mdp_path="${project_path}/parameters/mdp/molecular-dynamics"
 mdp_file="${mdp_path}/${PRODUCTION_ENSEMBLE,,}_prod.mdp"
 
+# Plumed files
+dat_path="${project_path}/plumed/opes-explore"
+dat_file="${dat_path}/plumed.dat"
+
 # initial time with _ as separator
 time_init="$(date +%Y_%m_%d_%H_%M_%S)"
 
 # Output files
 cwd_init="$(pwd)"
-cwd="${cwd_init}/3-sampling-md"
+cwd="${cwd_init}/3-sampling-opes-explore"
 log_dir="${cwd}/logs"
 log_file="${log_dir}/${time_init}-md.log"
 
 # #######################################################################################
 # Check for existing files ##############################################################
 # #######################################################################################
-echo "CRITICAL: Starting MD production"
+echo "CRITICAL: Starting OPES Explore production"
 
 # move to working directory
 mkdir -p "${cwd}"
@@ -58,7 +62,7 @@ fi
 echo "INFO: Running production MD simulation"
 previous_sim_name="prod_eqbm"
 previous_archive_dir="${cwd_init}/2-equilibration/4-output"
-sim_name="prod_md"
+sim_name="prod_opes_explore"
 
 # write header to log file
 {
@@ -97,6 +101,12 @@ else
             sed -i 's/gen-temp.*/gen-temp                  = '"${TEMPERATURE_K}/g" "${sim_name}.mdp" || exit 1
             sed -i 's/ref-p.*/ref-p                     = '"${PRESSURE_BAR} ${PRESSURE_BAR}/g" "${sim_name}.mdp" || exit 1
 
+            # copy plumed file
+            cp "${dat_file}" "plumed.dat" || exit 1
+            sed -i 's/{WALL_HEIGHT}/'"${PE_WALL_MAX}"'/g' "plumed.dat" || exit 1
+            sed -i 's/{WALL_OFFSET}/'"${ATOM_OFFSET}"'/g' "plumed.dat" || exit 1
+            sed -i 's/{ATOM_REFERENCE}/'"${ATOM_REFERENCE}"'/g' "plumed.dat" || exit 1
+
             # create tpr file
             "${GMX_BIN}" -quiet -nocopyright grompp \
                 -f "${sim_name}.mdp" \
@@ -105,6 +115,11 @@ else
                 -p "topol.top" \
                 -o "${sim_name}.tpr"
             rm "${previous_sim_name}.gro" || exit 1
+
+        else
+            echo "DEBUG: Using existing tpr file"
+            # activate restart in plumed file
+            sed -i 's/#RESTART/RESTART/g' "plumed.dat" || exit 1
         fi
 
         # call mdrun
@@ -114,6 +129,7 @@ else
             "${GMX_BIN}" -quiet -nocopyright mdrun -v \
             -maxh "${WALLTIME_HOURS}" \
             -deffnm "${sim_name}" -cpi "${sim_name}.cpt" \
+            -plumed "plumed.dat" \
             -pin on -pinoffset "${PIN_OFFSET}" -pinstride 1 -ntomp "${CPU_THREADS}" \
             -gpu_id "${GPU_IDS}" \
             -noappend || exit 1
@@ -149,6 +165,10 @@ archive_dir="1-runs"
 {
     rsync --archive --verbose --progress --human-readable --itemize-changes \
         "${sim_name}."* "${archive_dir}/" || exit 1
+    rsync --archive --verbose --progress --human-readable --itemize-changes \
+        ./*.data "${archive_dir}/" || exit 1
+    rsync --archive --verbose --progress --human-readable --itemize-changes \
+        ./*.Kernels* "${archive_dir}/" || exit 1
 } >>"${log_file}" 2>&1
 
 # concatenate files into single trajectory
@@ -188,6 +208,9 @@ EOF
         -dump "1000000000000" <<EOF
 System
 EOF
+
+    # copy *.data files
+    cp "${archive_dir}/"*.data "${concat_dir}/" || exit 1
 } >>"${log_file}" 2>&1
 
 # dump trajectory without solvent
@@ -215,6 +238,8 @@ EOF
 non-Water
 EOF
 
+    # copy *.data files
+    cp "${concat_dir}/"*.data "${nosol_dir}/" || exit 1
 } >>"${log_file}" 2>&1
 
 # #######################################################################################
@@ -283,4 +308,4 @@ done
 # move to initial working directory
 cd "${cwd_init}" || exit 1
 
-echo "CRITICAL: Finished MD sampling"
+echo "CRITICAL: Finished OPES Explore production"

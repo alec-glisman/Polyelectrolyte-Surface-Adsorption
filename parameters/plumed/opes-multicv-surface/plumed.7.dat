@@ -1,0 +1,88 @@
+# Allow restarting (continuing) previous simulation
+#RESTART
+
+# Select groups from Gromacs index file
+gr_chain: GROUP NDX_FILE=index.ndx NDX_GROUP=Chain
+gr_chain_o: GROUP NDX_FILE=index.ndx NDX_GROUP=Chain_Oxygen
+gr_soln_ca: GROUP NDX_FILE=index.ndx NDX_GROUP=Aqueous_Calcium
+gr_frozen: GROUP NDX_FILE=index.ndx NDX_GROUP=Crystal_Bulk_Calcium
+
+# Unwrap molecules
+WHOLEMOLECULES ENTITY0=gr_chain
+
+# System energy
+ene: ENERGY
+
+# CV1: Distance between chain center of mass and crystal surface in z-direction
+com_chain: COM ATOMS=gr_chain
+dist_chain: DISTANCE ATOMS=com_chain,{ATOM_REFERENCE} COMPONENTS NOPBC
+
+# CV2: Chain radius of gyration
+rg_chain: GYRATION TYPE=RADIUS ATOMS=gr_chain
+
+# CV3: Coordination number of aqueous calcium ions around chain oxygen atoms
+cn_ca_co: COORDINATION GROUPA=gr_soln_ca GROUPB=gr_chain_o SWITCH={RATIONAL R_0=0.35 NN=8 MM=16} NLIST NL_CUTOFF=2.0 NL_STRIDE=20
+
+# CV4: Average distance between aqueous calcium ions and crystal surface in z-direction
+com_ca: COM ATOMS=gr_soln_ca
+dist_ca: DISTANCE ATOMS=com_ca,com_frozen COMPONENTS NOPBC
+
+# Harmonic wall for CV1
+upper_wall: UPPER_WALLS ARG=d1.z AT={WALL_HEIGHT} KAPPA=1000.0 EXP=2 OFFSET={WALL_OFFSET}
+lower_wall: LOWER_WALLS ARG=d1.z AT=0.2 KAPPA=1000.0 EXP=2 OFFSET={WALL_OFFSET}
+
+# OPES MultiThermal
+ecv: ECV_MULTITHERMAL ARG=ene TEMP_MAX={TEMP_MAX_7}
+opesX: OPES_EXPANDED ARG=ecv.* FILE=DeltaFs.data PACE=100 CALC_WORK
+
+# OPES Explore
+OPES_METAD_EXPLORE ...
+LABEL=opes
+ARG=dist_chain.z
+SIGMA=0.02
+FILE=Kernels.data
+STATE_RFILE=compressed.Kernels
+STATE_WFILE=compressed.Kernels
+PACE=10000
+BARRIER=30
+CALC_WORK
+... OPES_METAD_EXPLORE
+
+OPES_METAD_EXPLORE ...
+LABEL=opesE1
+ARG=rg
+SIGMA=0.006
+FILE=Kernels1.data
+STATE_RFILE=compressed.Kernels1
+STATE_WFILE=compressed.Kernels1
+PACE=20000
+BARRIER=3
+CALC_WORK
+... OPES_METAD_EXPLORE
+
+OPES_METAD_EXPLORE ...
+LABEL=opesE2
+ARG=cn_ca_co
+SIGMA=0.05
+FILE=Kernels2.data
+STATE_RFILE=compressed.Kernels2
+STATE_WFILE=compressed.Kernels2
+PACE=20000
+BARRIER=3
+CALC_WORK
+... OPES_METAD_EXPLORE
+
+OPES_METAD_EXPLORE ...
+LABEL=opesE3
+ARG=dist_ca.z
+SIGMA=0.02
+FILE=Kernels3.data
+STATE_RFILE=compressed.Kernels3
+STATE_WFILE=compressed.Kernels3
+PACE=20000
+BARRIER=3
+CALC_WORK
+... OPES_METAD_EXPLORE
+
+# Output
+PRINT STRIDE=500 ARG=dist_chain.*,opes.*,rg,opesE1.*,cn_ca_co,opesE2.*,dist_ca.*,opesE3.*,ene,opesX.*,upper_wall.*,lower_wall.* FILE=COLVAR.data
