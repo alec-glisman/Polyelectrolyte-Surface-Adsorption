@@ -34,6 +34,7 @@ flag_initialization=false
 flag_equilibration=false
 flag_production=false
 flag_sampling_md=false
+flag_sampling_opes_explore=false
 
 # action flags
 flag_archive=false
@@ -61,6 +62,9 @@ for arg in "$@"; do
     -m | --md)
         flag_sampling_md=true
         ;;
+    -o | --opes)
+        flag_sampling_opes_explore=true
+        ;;
     -r | --archive)
         flag_archive=true
         ;;
@@ -75,6 +79,7 @@ for arg in "$@"; do
         echo ""
         echo "Production sampling methods:"
         echo "  -m, --md            Molecular dynamics (unbiased)."
+        echo "  -o, --opes          OPES Explore (biased)."
         echo ""
         echo "Other:"
         echo "  -r, --archive       Archive the simulation."
@@ -156,6 +161,12 @@ if [[ "${flag_production}" = true ]]; then
     if [[ "${flag_sampling_md}" = true ]]; then
         echo "Sampling molecular dynamics..."
         "${project_path}/scripts/method/sampling_md.sh"
+    fi
+
+    # OPES explore
+    if [[ "${flag_sampling_opes_explore}" = true ]]; then
+        echo "Sampling OPES explore..."
+        "${project_path}/scripts/method/sampling_opes_explore.sh"
     fi
 fi
 
