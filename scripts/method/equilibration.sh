@@ -27,7 +27,7 @@ project_path="${script_path}/../.."
 npt_script="${project_path}/python/mean_frame_xvg_2_col.py"
 
 # Plumed files
-dat_path="${project_path}/plumed/harmonic"
+dat_path="${project_path}/parameters/plumed/harmonic"
 dat_file="${dat_path}/plumed.dat"
 
 # Gromacs files
@@ -290,6 +290,9 @@ else
             sed -i 's/{WALL_HEIGHT}/'"${PE_WALL_MAX}"'/g' "plumed.dat" || exit 1
             sed -i 's/{WALL_OFFSET}/'"${ATOM_OFFSET}"'/g' "plumed.dat" || exit 1
             sed -i 's/{ATOM_REFERENCE}/'"${ATOM_REFERENCE}"'/g' "plumed.dat" || exit 1
+            if [[ "${N_CALCIUM}" -eq '0' ]]; then
+                sed -i 's/NDX_GROUP=Aqueous_Calcium/NDX_GROUP=Aqueous_Sodium/g' "plumed.dat" || exit 1
+            fi
 
             # make tpr file
             "${GMX_BIN}" -quiet -nocopyright grompp \

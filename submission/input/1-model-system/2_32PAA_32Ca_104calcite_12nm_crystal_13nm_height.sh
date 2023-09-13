@@ -48,12 +48,6 @@ export PE_WALL_MAX='9'       # z-coordinate of lower wall in nm
 export ATOM_REFERENCE='1407' # atom number of reference atom for harmonic restraints
 export ATOM_OFFSET='-0.225'  # z-coordinate offset of reference atom from crystal surface in nm
 
-# OPES MultiThermal
-export TEMP_MAX_4='350' # maximum temperature in Kelvin for replica 4
-export TEMP_MAX_5='365' # maximum temperature in Kelvin for replica 5
-export TEMP_MAX_6='380' # maximum temperature in Kelvin for replica 6
-export TEMP_MAX_7='400' # maximum temperature in Kelvin for replica 7
-
 # Hardware ####################################################################
 
 export CPU_THREADS='12' # number of CPU threads to use (-1 = all available)

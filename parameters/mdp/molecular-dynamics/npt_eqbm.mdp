@@ -43,8 +43,8 @@ ref-t                     = 300                    ; [K] reference temperature f
 Pcoupl                    = Parrinello-Rahman     ; No pressure coupling, This means fixed box size. Extended-ensemble pressure coupling where the box vectors are subject to an equation of motion. The equation of motion for the atoms is coupled to this. No instantaneous scaling takes place.
 Pcoupltype                = semiisotropic         ; specifies the kind of isotropy of the pressure coupling used.
 tau-p                     = 5.0                   ; [ps] The time constant for pressure coupling (one value for all directions).
-ref-p                     = 1.0 1.0                ; [bar] the reference pressure for coupling
-compressibility           = 4.5e-15 4.5e-15 4.5e-5 ; [bar^{-1}] for water at 1 atm and 300K the compressibility is 4.5e-5 bar-1
+ref-p                     = 1.0 1.0               ; [bar] the reference pressure for coupling
+compressibility           = 4.5e-15 4.5e-5        ; [bar^{-1}] for water at 1 atm and 300K the compressibility is 4.5e-5 bar-1
 refcoord-scaling          = all                   ; The reference coordinates are scaled with the scaling matrix of the pressure coupling.
 ;;; Velocity generation ;;;
 gen-vel                   = no           ; "no" do not generate velocities "yes" generate velocities in grompp at temp gen-temp which is only meanigful with integrator "md"
@@ -55,6 +55,3 @@ constraint-algorithm      = lincs        ; chooses which solver satisfies any no
 lincs-order               = 4            ; accuracy of lincs: the number of matrices in the expansion for the matrix inversion
 lincs-iter                = 1            ; number of iterative corrections to matrix inversion to compensate for lengthening due to rotation
 lincs-warnangle           = 30           ; print warning to log file and stderr if bond rotations be more than this angle
-;;; Frozen groups ;;;
-freezegrps                = Frozen            ; groups that are to be frozen
-freezedim                 = Y Y Y         ; directions in which the groups are frozen

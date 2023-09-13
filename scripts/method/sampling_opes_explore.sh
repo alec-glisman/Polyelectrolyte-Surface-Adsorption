@@ -27,7 +27,7 @@ mdp_path="${project_path}/parameters/mdp/molecular-dynamics"
 mdp_file="${mdp_path}/${PRODUCTION_ENSEMBLE,,}_prod.mdp"
 
 # Plumed files
-dat_path="${project_path}/plumed/opes-explore"
+dat_path="${project_path}/parameters/plumed/opes-explore"
 dat_file="${dat_path}/plumed.dat"
 
 # initial time with _ as separator
@@ -106,6 +106,9 @@ else
             sed -i 's/{WALL_HEIGHT}/'"${PE_WALL_MAX}"'/g' "plumed.dat" || exit 1
             sed -i 's/{WALL_OFFSET}/'"${ATOM_OFFSET}"'/g' "plumed.dat" || exit 1
             sed -i 's/{ATOM_REFERENCE}/'"${ATOM_REFERENCE}"'/g' "plumed.dat" || exit 1
+            if [[ "${N_CALCIUM}" -eq '0' ]]; then
+                sed -i 's/NDX_GROUP=Aqueous_Calcium/NDX_GROUP=Aqueous_Sodium/g' "plumed.dat" || exit 1
+            fi
 
             # create tpr file
             "${GMX_BIN}" -quiet -nocopyright grompp \

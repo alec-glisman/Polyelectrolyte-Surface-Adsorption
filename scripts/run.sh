@@ -120,7 +120,7 @@ script_path="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 project_path="${script_path}/.."
 
 # load global preferences
-# shellcheck source=../submission/input/0-setup/0_large_box_pe.sh
+# shellcheck source=../submission/input/1-model-system/1_32PAA_0Ca_104calcite_12nm_crystal_13nm_height.sh
 source "${global_preferences}"
 # shellcheck source=variable/system.sh
 source "${project_path}/scripts/variable/system.sh"
