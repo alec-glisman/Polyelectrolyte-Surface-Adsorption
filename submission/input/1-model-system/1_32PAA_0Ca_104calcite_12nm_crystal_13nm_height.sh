@@ -44,12 +44,12 @@ export PRESSURE_BAR='1'          # pressure in bar
 export N_REPLICA='8' # number of replicas in replica exchange simulations
 
 # harmonic restraints
-export PE_WALL_MAX='9'       # z-coordinate of lower wall in nm
+export PE_WALL_MAX='6'       # z-coordinate of lower wall in nm
 export ATOM_REFERENCE='1407' # atom number of reference atom for harmonic restraints (1 = first atom)
 export ATOM_OFFSET='-0.225'  # z-coordinate offset of reference atom from crystal surface in nm
 
 # Hardware ####################################################################
 
 export CPU_THREADS='12' # number of CPU threads to use (-1 = all available)
-export PIN_OFFSET='0'   # offset for CPU thread pinning (-1 = no offset)
-export GPU_IDS='0'      # GPU device(s) to use (0 = first GPU, 01 = first two GPUs)
+export PIN_OFFSET='12'  # offset for CPU thread pinning (-1 = no offset)
+export GPU_IDS='1'      # GPU device(s) to use (0 = first GPU, 01 = first two GPUs)

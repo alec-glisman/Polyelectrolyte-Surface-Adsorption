@@ -35,6 +35,7 @@ flag_equilibration=false
 flag_production=false
 flag_sampling_md=false
 flag_sampling_opes_explore=false
+flag_sampling_opes_one=false
 
 # action flags
 flag_archive=false
@@ -62,8 +63,11 @@ for arg in "$@"; do
     -m | --md)
         flag_sampling_md=true
         ;;
-    -o | --opes)
+    -o | --opes-explore)
         flag_sampling_opes_explore=true
+        ;;
+    -n | --opes-one)
+        flag_sampling_opes_one=true
         ;;
     -r | --archive)
         flag_archive=true
@@ -79,7 +83,8 @@ for arg in "$@"; do
         echo ""
         echo "Production sampling methods:"
         echo "  -m, --md            Molecular dynamics (unbiased)."
-        echo "  -o, --opes          OPES Explore (biased)."
+        echo "  -o, --opes-explore  OPES Explore (biased)."
+        echo "  -n, --opes-one      OneOPES (biased)."
         echo ""
         echo "Other:"
         echo "  -r, --archive       Archive the simulation."
@@ -104,7 +109,7 @@ if [[ "${flag_initialization}" = false ]] && [[ "${flag_equilibration}" = false 
 fi
 
 # check that if production was selected, at least one sampling method was selected
-if [[ "${flag_production}" = true ]] && [[ "${flag_sampling_md}" = false ]] && [[ "${flag_sampling_opes_explore}" = false ]]; then
+if [[ "${flag_production}" = true ]] && [[ "${flag_sampling_md}" = false ]] && [[ "${flag_sampling_opes_explore}" = false ]] && [[ "${flag_sampling_opes_one}" = false ]]; then
     echo "ERROR: No production sampling methods selected."
     echo "Usage: ${package} [global_preferences] [simulation_preferences]"
     echo "Use '${package} --help' for more information."
@@ -165,8 +170,14 @@ if [[ "${flag_production}" = true ]]; then
 
     # OPES explore
     if [[ "${flag_sampling_opes_explore}" = true ]]; then
-        echo "Sampling OPES explore..."
+        echo "Sampling OPES Explore..."
         "${project_path}/scripts/method/sampling_opes_explore.sh"
+    fi
+
+    # OneOPES
+    if [[ "${flag_sampling_opes_one}" = true ]]; then
+        echo "Sampling OneOPES..."
+        "${project_path}/scripts/method/sampling_opes_one.sh"
     fi
 fi
 

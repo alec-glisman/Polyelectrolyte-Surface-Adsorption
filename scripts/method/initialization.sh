@@ -46,6 +46,27 @@ cd "${cwd}" || exit
 # see if "2-output/system.gro" exists
 if [[ -f "2-output/system.gro" ]]; then
     echo "WARNING: 2-output/system.gro already exists"
+
+    # output the number of water molecules
+    n_water="$(grep "SOL " "${log_file}" | tail -n 1 | awk '{print $4}')"
+    n_water=$((n_water / 3))
+
+    # output number of atoms in system from number of values in index.ndx
+    n_crystal="$(grep "Crystal " "${log_file}" | tail -n 1 | awk '{print $4}')"
+    n_crystal_residues="$(bc <<<"scale=5; ${n_crystal} / 5 * 2")"
+    n_crystal_residues="${n_crystal_residues%.*}"
+    n_na="$(grep "Aqueous_Sodium " "${log_file}" | tail -n 1 | awk '{print $4}')" || n_na='0'
+    n_ca="$(grep "Aqueous_Calcium " "${log_file}" | tail -n 1 | awk '{print $4}')" || n_ca='0'
+    n_cl="$(grep "Aqueous_Chloride " "${log_file}" | tail -n 1 | awk '{print $4}')" || n_cl='0'
+    n_carbonate="$(grep "Aqueous_Carbonate " "${log_file}" | tail -n 1 | awk '{print $4}')" || n_carbonate='0'
+
+    echo "DEBUG: Number of water molecules: ${n_water}"
+    echo "DEBUG: Number of crystal (CaCO3) residues: ${n_crystal_residues}"
+    echo "DEBUG: Number of aqueous sodium ions: ${n_na}"
+    echo "DEBUG: Number of aqueous calcium ions: ${n_ca}"
+    echo "DEBUG: Number of aqueous chloride ions: ${n_cl}"
+    echo "DEBUG: Number of aqueous carbonate ions: ${n_carbonate}"
+
     echo "INFO: Exiting script"
     exit 0
 fi
@@ -118,8 +139,8 @@ echo "INFO: Importing structure to Gromacs"
     carbonate_carbon_z="$(grep 'CRB' "${sim_name}.gro" | grep -o '.\{6\}$' | awk '{$1=$1};1')"
     minimum_z_coord="$(echo "${carbonate_carbon_z}" | sort -n)"
     z_min="$(echo "${minimum_z_coord}" | awk 'NR==1{print $1}')"
-    # subtract 0.05 nm to z_min to ensure that all atoms are within the box
-    z_min="$(bc <<<"scale=5; ${z_min} - 0.05")"
+    # subtract 1 nm to z_min to ensure that all atoms are within the box
+    z_min="$(bc <<<"scale=5; ${z_min} - 1.0")"
 
     # shift z-coordinates of all atoms by z_min
     "${GMX_BIN}" -quiet -nocopyright editconf \
@@ -447,7 +468,7 @@ EOF
             <<EOF
 a CL & ! chain A & ! chain B
 name ${idx_group} Aqueous_Chloride
-
+l
 q
 EOF
         idx_group=$((idx_group + 1))
@@ -490,9 +511,24 @@ echo "INFO: Creating topology file with all parameters merged"
 } >>"${log_file}" 2>&1
 
 # output the number of water molecules
-n_water="$(grep -c "SOL" "${sim_name}.gro")"
+n_water="$(grep "SOL " "${log_file}" | tail -n 1 | awk '{print $4}')"
 n_water=$((n_water / 3))
+
+# output number of atoms in system from number of values in index.ndx
+n_crystal="$(grep "Crystal " "${log_file}" | tail -n 1 | awk '{print $4}')"
+n_crystal_residues="$(bc <<<"scale=5; ${n_crystal} / 5 * 2")"
+n_crystal_residues="${n_crystal_residues%.*}"
+n_na="$(grep "Aqueous_Sodium " "${log_file}" | tail -n 1 | awk '{print $4}')" || n_na='0'
+n_ca="$(grep "Aqueous_Calcium " "${log_file}" | tail -n 1 | awk '{print $4}')" || n_ca='0'
+n_cl="$(grep "Aqueous_Chloride " "${log_file}" | tail -n 1 | awk '{print $4}')" || n_cl='0'
+n_carbonate="$(grep "Aqueous_Carbonate " "${log_file}" | tail -n 1 | awk '{print $4}')" || n_carbonate='0'
+
 echo "DEBUG: Number of water molecules: ${n_water}"
+echo "DEBUG: Number of crystal (CaCO3) residues: ${n_crystal_residues}"
+echo "DEBUG: Number of aqueous sodium ions: ${n_na}"
+echo "DEBUG: Number of aqueous calcium ions: ${n_ca}"
+echo "DEBUG: Number of aqueous chloride ions: ${n_cl}"
+echo "DEBUG: Number of aqueous carbonate ions: ${n_carbonate}"
 
 # ##############################################################################
 # Archive data #################################################################
