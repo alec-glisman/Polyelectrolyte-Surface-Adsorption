@@ -178,6 +178,9 @@ else
             -o "${sim_name}.tpr"
         rm "${previous_sim_name}.gro" || exit 1
 
+        # plumed performance
+        export PLUMED_NUM_THREADS="${CPU_THREADS}"
+
         # call mdrun
         "${MPI_BIN}" -np '1' \
             --map-by "ppr:1:node:PE=${CPU_THREADS}" \
@@ -315,7 +318,7 @@ else
             --use-hwthread-cpus --bind-to 'hwthread' \
             "${GMX_BIN}" -quiet -nocopyright mdrun -v \
             -deffnm "${sim_name}" -cpi "${sim_name}.cpt" \
-            -plumed "${dat_file}" \
+            -plumed "plumed.dat" \
             -pin on -pinoffset "${PIN_OFFSET}" -pinstride 1 -ntomp "${CPU_THREADS}" \
             -gpu_id "${GPU_IDS}" || exit 1
 

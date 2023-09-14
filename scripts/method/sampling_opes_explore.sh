@@ -125,6 +125,9 @@ else
             sed -i 's/#RESTART/RESTART/g' "plumed.dat" || exit 1
         fi
 
+        # plumed performance
+        export PLUMED_NUM_THREADS="${CPU_THREADS}"
+
         # call mdrun
         "${MPI_BIN}" -np '1' \
             --map-by "ppr:1:node:PE=${CPU_THREADS}" \

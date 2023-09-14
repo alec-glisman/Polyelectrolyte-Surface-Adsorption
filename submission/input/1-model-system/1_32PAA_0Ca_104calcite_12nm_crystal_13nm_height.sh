@@ -45,7 +45,7 @@ export N_REPLICA='8' # number of replicas in replica exchange simulations
 
 # harmonic restraints
 export PE_WALL_MAX='9'       # z-coordinate of lower wall in nm
-export ATOM_REFERENCE='1407' # atom number of reference atom for harmonic restraints
+export ATOM_REFERENCE='1407' # atom number of reference atom for harmonic restraints (1 = first atom)
 export ATOM_OFFSET='-0.225'  # z-coordinate offset of reference atom from crystal surface in nm
 
 # Hardware ####################################################################
