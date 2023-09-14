@@ -39,7 +39,7 @@ FILE=Kernels.data
 STATE_RFILE=compressed.Kernels
 STATE_WFILE=compressed.Kernels
 PACE=10000
-BARRIER=30
+BARRIER=50
 CALC_WORK
 ... OPES_METAD_EXPLORE
 
