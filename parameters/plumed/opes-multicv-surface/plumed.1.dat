@@ -34,7 +34,7 @@ lower_wall: LOWER_WALLS ARG=dist_chain.z AT=0.2 KAPPA=1000.0 EXP=2 OFFSET={WALL_
 OPES_METAD_EXPLORE ...
 LABEL=opes
 ARG=dist_chain.z
-SIGMA=0.02
+SIGMA=0.1
 FILE=Kernels.data
 STATE_RFILE=compressed.Kernels
 STATE_WFILE=compressed.Kernels
@@ -46,7 +46,7 @@ CALC_WORK
 OPES_METAD_EXPLORE ...
 LABEL=opesE1
 ARG=rg_chain
-SIGMA=0.006
+SIGMA=0.02
 FILE=Kernels1.data
 STATE_RFILE=compressed.Kernels1
 STATE_WFILE=compressed.Kernels1

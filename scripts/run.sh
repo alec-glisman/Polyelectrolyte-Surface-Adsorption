@@ -104,7 +104,7 @@ if [[ "${flag_initialization}" = false ]] && [[ "${flag_equilibration}" = false 
 fi
 
 # check that if production was selected, at least one sampling method was selected
-if [[ "${flag_production}" = true ]] && [[ "${flag_sampling_md}" = false ]]; then
+if [[ "${flag_production}" = true ]] && [[ "${flag_sampling_md}" = false ]] && [[ "${flag_sampling_opes_explore}" = false ]]; then
     echo "ERROR: No production sampling methods selected."
     echo "Usage: ${package} [global_preferences] [simulation_preferences]"
     echo "Use '${package} --help' for more information."

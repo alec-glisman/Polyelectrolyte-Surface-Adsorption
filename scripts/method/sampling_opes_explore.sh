@@ -59,7 +59,7 @@ fi
 # #######################################################################################
 # Run simulation ########################################################################
 # #######################################################################################
-echo "INFO: Running production MD simulation"
+echo "INFO: Running production OPES Explore simulation"
 previous_sim_name="prod_eqbm"
 previous_archive_dir="${cwd_init}/2-equilibration/4-output"
 sim_name="prod_opes_explore"
@@ -78,11 +78,11 @@ sim_name="prod_opes_explore"
 
 if [[ -f "completed.txt" ]]; then
     echo "WARNING: completed.txt already exists"
-    echo "INFO: Skipping production MD simulation"
+    echo "INFO: Skipping production OPES Explore simulation"
 
 elif [[ "${FLAG_ARCHIVE}" = true ]]; then
     echo "WARNING: Archive flag is set, mdrun will not be called"
-    echo "INFO: Skipping production MD simulation"
+    echo "INFO: Skipping production OPES Explore simulation"
 
 else
     {
@@ -174,6 +174,8 @@ archive_dir="1-runs"
     rsync --archive --verbose --progress --human-readable --itemize-changes \
         ./*.data "${archive_dir}/" || exit 1
     rsync --archive --verbose --progress --human-readable --itemize-changes \
+        ./*.dat "${archive_dir}/" || exit 1
+    rsync --archive --verbose --progress --human-readable --itemize-changes \
         ./*.Kernels* "${archive_dir}/" || exit 1
 } >>"${log_file}" 2>&1
 
@@ -215,7 +217,7 @@ EOF
 System
 EOF
 
-    # copy *.data files
+    # copy plumed files
     cp "${archive_dir}/"*.data "${concat_dir}/" || exit 1
 } >>"${log_file}" 2>&1
 
@@ -245,7 +247,7 @@ non-Water
 EOF
 
     # copy *.data files
-    cp "${concat_dir}/"*.data "${nosol_dir}/" || exit 1
+    cp "${concat_dir}/"*.data -t "${nosol_dir}/" || exit 1
 } >>"${log_file}" 2>&1
 
 # #######################################################################################
