@@ -3,7 +3,7 @@
 **Summary:** PLUMED-patched GROMACS molecular dynamics simulations repository used for my anti-scaling research project in the Wang Group.  
 **Authors:** [Alec Glisman](https://github.com/alec-glisman)  
 **GitHub actions:**
-[![Code Linting](https://github.com/zgw-group/Polyelectrolyte-Ion-Adsorption/actions/workflows/code-linting.yml/badge.svg)](https://github.com/zgw-group/Polyelectrolyte-Ion-Adsorption/actions/workflows/code-linting.yml)
+[![Code Linting](https://github.com/zgw-group/Polyelectrolyte-Ion-Adsorption/actions/workflows/code-linting.yml/badge.svg)](https://github.com/zgw-group/Polyelectrolyte-Ion-Adsorption/actions/workflows/code-linting.yml)  
 **Third-party services:**
 [![wakatime](https://wakatime.com/badge/github/alec-glisman/Polyelectrolyte-Surface-Adsorption.svg)](https://wakatime.com/badge/github/alec-glisman/Polyelectrolyte-Surface-Adsorption)
 

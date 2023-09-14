@@ -13,10 +13,15 @@ jobs:
     runs-on: "ubuntu-latest"
 
     steps:
+      - name: Fetch actions (v3)
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+
       - name: Create Release
         uses: "marvinpinto/action-automatic-releases@latest"
         with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
           prerelease: false
           files: |
             LICENSE
