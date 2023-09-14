@@ -1,5 +1,5 @@
 ---
-name: "Automatic Releases"
+name: "Automatic Release on Tag Push"
 
 on:
   push:
@@ -19,5 +19,4 @@ jobs:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           prerelease: false
           files: |
-            LICENSE.txt
-            *.jar
+            LICENSE
