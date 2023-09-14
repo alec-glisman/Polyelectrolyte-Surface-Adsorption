@@ -47,20 +47,24 @@ cd "${cwd}" || exit
 if [[ -f "2-output/system.gro" ]]; then
     echo "WARNING: 2-output/system.gro already exists"
 
+    n_system="$(grep " System " "${log_file}" | tail -n 1 | awk '{print $4}')"
+
     # output the number of water molecules
-    n_water="$(grep "SOL " "${log_file}" | tail -n 1 | awk '{print $4}')"
+    n_water="$(grep " Water " "${log_file}" | tail -n 1 | awk '{print $4}')"
     n_water=$((n_water / 3))
 
     # output number of atoms in system from number of values in index.ndx
-    n_crystal="$(grep "Crystal " "${log_file}" | tail -n 1 | awk '{print $4}')"
-    n_crystal_residues="$(bc <<<"scale=5; ${n_crystal} / 5 * 2")"
+    n_crystal_atoms="$(grep "Crystal " "${log_file}" | tail -n 1 | awk '{print $4}')"
+    n_crystal_residues="$(bc <<<"scale=5; ${n_crystal_atoms} * 2.0 / 5.0")"
     n_crystal_residues="${n_crystal_residues%.*}"
+
     n_na="$(grep "Aqueous_Sodium " "${log_file}" | tail -n 1 | awk '{print $4}')" || n_na='0'
     n_ca="$(grep "Aqueous_Calcium " "${log_file}" | tail -n 1 | awk '{print $4}')" || n_ca='0'
     n_cl="$(grep "Aqueous_Chloride " "${log_file}" | tail -n 1 | awk '{print $4}')" || n_cl='0'
     n_carbonate="$(grep "Aqueous_Carbonate " "${log_file}" | tail -n 1 | awk '{print $4}')" || n_carbonate='0'
 
-    echo "DEBUG: Number of water molecules: ${n_water}"
+    echo "DEBUG: Total number of atoms: ${n_system}"
+    echo "DEBUG: Number of crystal (CaCO3) atoms: ${n_crystal_atoms}"
     echo "DEBUG: Number of crystal (CaCO3) residues: ${n_crystal_residues}"
     echo "DEBUG: Number of aqueous sodium ions: ${n_na}"
     echo "DEBUG: Number of aqueous calcium ions: ${n_ca}"
@@ -105,6 +109,7 @@ echo "INFO: Importing structure to Gromacs"
     fi
 
     # insert-molecules to add carbonate ions
+    # shellcheck disable=SC2153
     if [[ "${N_CARBONATE}" -gt 0 ]]; then
         "${GMX_BIN}" -quiet insert-molecules \
             -f "${sim_name}.pdb" \
@@ -139,8 +144,9 @@ echo "INFO: Importing structure to Gromacs"
     carbonate_carbon_z="$(grep 'CRB' "${sim_name}.gro" | grep -o '.\{6\}$' | awk '{$1=$1};1')"
     minimum_z_coord="$(echo "${carbonate_carbon_z}" | sort -n)"
     z_min="$(echo "${minimum_z_coord}" | awk 'NR==1{print $1}')"
-    # subtract 1 nm to z_min to ensure that all atoms are within the box
-    z_min="$(bc <<<"scale=5; ${z_min} - 1.0")"
+    # subtract 1.5 nm to z_min to ensure that all atoms are within the box and we can see water structure
+    offset='1.5'
+    z_min="$(bc <<<"scale=5; ${z_min} - ${offset}")"
 
     # shift z-coordinates of all atoms by z_min
     "${GMX_BIN}" -quiet -nocopyright editconf \
@@ -172,16 +178,17 @@ echo "INFO: Adding solvent"
         -o "${sim_name}.gro" \
         -p "topol.top"
 
-    # subtract z_min from pdb bulk z-coordinates and add 0.2 nm buffer
-    gro_zmin="$(bc <<<"scale=5; ${PDB_BULK_ZMIN} - ${z_min} - 0.2")"
-    gro_zmax="$(bc <<<"scale=5; ${PDB_BULK_ZMAX} - ${z_min} + 0.2")"
+    # subtract z_min from pdb bulk z-coordinates and add buffer for outer layers
+    buffer='0.3'
+    gro_zmin="$(bc <<<"scale=5; ${PDB_BULK_ZMIN} - ${z_min} - ${buffer}")"
+    gro_zmax="$(bc <<<"scale=5; ${PDB_BULK_ZMAX} - ${z_min} + ${buffer}")"
 
     # find "bad" water molecules that are inside the crystal
     "${GMX_BIN}" -quiet -nocopyright select \
         -f "${sim_name}.gro" \
         -s "${sim_name}.gro" \
         -on "bad_waters.ndx" <<EOF
-"Bad_SOL" same residue as (name OW and (z >= ${gro_zmin} and z <= ${gro_zmax}))
+"Bad_SOL" same residue as (name OW HW1 HW2 and (z >= ${gro_zmin} and z <= ${gro_zmax}))
 EOF
     # remove "f0_t0.000" from index file groups
     sed -i 's/_f0_t0.000//g' "bad_waters.ndx"
@@ -207,12 +214,13 @@ Good_Atoms
 EOF
 } >>"${log_file}" 2>&1
 
+echo "DEBUG: Minimum z-coordinate of crystal after solvation [nm]: ${gro_zmin}"
+echo "DEBUG: Maximum z-coordinate of crystal after solvation [nm]: ${gro_zmax}"
+
 # find number of "bad" water molecules from log file
 n_bad_atoms="$(grep "Bad_SOL" "${log_file}" | head -n 1 | awk '{print $4}')"
-echo "DEBUG: Number of bad atoms: ${n_bad_atoms}"
-# number of bad waters is atoms / 3
 n_bad_waters="$((n_bad_atoms / 3))"
-echo "DEBUG: Number of bad waters: ${n_bad_waters}"
+echo "DEBUG: Number of water molecules inside crystal (removed): ${n_bad_waters}"
 
 {
     # remove n_bad_waters from topol.top file
@@ -468,7 +476,6 @@ EOF
             <<EOF
 a CL & ! chain A & ! chain B
 name ${idx_group} Aqueous_Chloride
-l
 q
 EOF
         idx_group=$((idx_group + 1))
@@ -500,6 +507,16 @@ EOF
 # ##############################################################################
 echo "INFO: Creating topology file with all parameters merged"
 {
+    # print index file to log
+    "${GMX_BIN}" -quiet make_ndx \
+        -f "${sim_name}.pdb" \
+        -n "index.ndx" \
+        -o "index.ndx" \
+        <<EOF
+l
+q
+EOF
+
     # remake tpr file and topology file with no imports
     "${GMX_BIN}" -quiet grompp \
         -f "mdin.mdp" \
@@ -510,20 +527,25 @@ echo "INFO: Creating topology file with all parameters merged"
         -o "${sim_name}.tpr"
 } >>"${log_file}" 2>&1
 
+n_system="$(grep " System " "${log_file}" | tail -n 1 | awk '{print $4}')"
+
 # output the number of water molecules
-n_water="$(grep "SOL " "${log_file}" | tail -n 1 | awk '{print $4}')"
+n_water="$(grep " Water " "${log_file}" | tail -n 1 | awk '{print $4}')"
 n_water=$((n_water / 3))
+echo "DEBUG: Number of water molecules: ${n_water}"
 
 # output number of atoms in system from number of values in index.ndx
-n_crystal="$(grep "Crystal " "${log_file}" | tail -n 1 | awk '{print $4}')"
-n_crystal_residues="$(bc <<<"scale=5; ${n_crystal} / 5 * 2")"
+n_crystal_atoms="$(grep "Crystal " "${log_file}" | tail -n 1 | awk '{print $4}')"
+n_crystal_residues="$(bc <<<"scale=5; ${n_crystal_atoms} * 2.0 / 5.0")"
 n_crystal_residues="${n_crystal_residues%.*}"
+
 n_na="$(grep "Aqueous_Sodium " "${log_file}" | tail -n 1 | awk '{print $4}')" || n_na='0'
 n_ca="$(grep "Aqueous_Calcium " "${log_file}" | tail -n 1 | awk '{print $4}')" || n_ca='0'
 n_cl="$(grep "Aqueous_Chloride " "${log_file}" | tail -n 1 | awk '{print $4}')" || n_cl='0'
 n_carbonate="$(grep "Aqueous_Carbonate " "${log_file}" | tail -n 1 | awk '{print $4}')" || n_carbonate='0'
 
-echo "DEBUG: Number of water molecules: ${n_water}"
+echo "DEBUG: Total number of atoms: ${n_system}"
+echo "DEBUG: Number of crystal (CaCO3) atoms: ${n_crystal_atoms}"
 echo "DEBUG: Number of crystal (CaCO3) residues: ${n_crystal_residues}"
 echo "DEBUG: Number of aqueous sodium ions: ${n_na}"
 echo "DEBUG: Number of aqueous calcium ions: ${n_ca}"

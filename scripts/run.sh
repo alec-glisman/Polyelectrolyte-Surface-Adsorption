@@ -62,12 +62,15 @@ for arg in "$@"; do
         ;;
     -m | --md)
         flag_sampling_md=true
+        flag_production=true
         ;;
     -o | --opes-explore)
         flag_sampling_opes_explore=true
+        flag_production=true
         ;;
     -n | --opes-one)
         flag_sampling_opes_one=true
+        flag_production=true
         ;;
     -r | --archive)
         flag_archive=true
