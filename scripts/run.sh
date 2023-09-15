@@ -119,6 +119,26 @@ if [[ "${flag_production}" = true ]] && [[ "${flag_sampling_md}" = false ]] && [
     exit 1
 fi
 
+# check that only one production sampling method was selected
+if [[ "${flag_sampling_md}" = true ]] && [[ "${flag_sampling_opes_explore}" = true ]]; then
+    echo "ERROR: Multiple production sampling methods selected."
+    echo "Usage: ${package} [global_preferences] [simulation_preferences]"
+    echo "Use '${package} --help' for more information."
+    exit 1
+fi
+if [[ "${flag_sampling_md}" = true ]] && [[ "${flag_sampling_opes_one}" = true ]]; then
+    echo "ERROR: Multiple production sampling methods selected."
+    echo "Usage: ${package} [global_preferences] [simulation_preferences]"
+    echo "Use '${package} --help' for more information."
+    exit 1
+fi
+if [[ "${flag_sampling_opes_explore}" = true ]] && [[ "${flag_sampling_opes_one}" = true ]]; then
+    echo "ERROR: Multiple production sampling methods selected."
+    echo "Usage: ${package} [global_preferences] [simulation_preferences]"
+    echo "Use '${package} --help' for more information."
+    exit 1
+fi
+
 # ##############################################################################
 # Load input preferences #######################################################
 # ##############################################################################

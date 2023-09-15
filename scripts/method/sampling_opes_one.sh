@@ -27,33 +27,113 @@ mdp_path="${project_path}/parameters/mdp/molecular-dynamics"
 mdp_file="${mdp_path}/${PRODUCTION_ENSEMBLE,,}_prod.mdp"
 
 # Plumed files
-dat_path="${project_path}/parameters/plumed/opes-explore"
-dat_file="${dat_path}/plumed.dat"
+dat_path="${project_path}/parameters/plumed/opes-multicv"
 
 # initial time with _ as separator
 time_init="$(date +%Y_%m_%d_%H_%M_%S)"
 
 # Output files
 cwd_init="$(pwd)"
-cwd="${cwd_init}/3-sampling-opes-explore"
+cwd="${cwd_init}/3-sampling-opes-one"
 log_dir="${cwd}/logs"
-log_file="${log_dir}/${time_init}-md.log"
+log_file_prep="${log_dir}/${time_init}-0-prep.log"
+log_file_md="${log_dir}/${time_init}-1-md.log"
+log_file_concat="${log_dir}/${time_init}-2-concatenation.log"
+log_file_cleanup="${log_dir}/${time_init}-3-cleanup.log"
 
 # move to working directory
 mkdir -p "${cwd}"
 cd "${cwd}" || exit
 mkdir -p "${log_dir}"
-echo "CRITICAL: Starting OPES Explore production"
+echo "CRITICAL: Starting OneOPES production"
+
+# #######################################################################################
+# Create replica dirs and copy files ####################################################
+# #######################################################################################
+echo "INFO: Creating replica dirs and copying input files"
+previous_sim_name="prod_eqbm"
+previous_archive_dir="${cwd_init}/2-equilibration/4-output"
+sim_name="prod_opes_one_multicv"
+
+{
+    # header
+    echo "################################################################################"
+    echo "Script: ${BASH_SOURCE[0]}"
+    echo "Date: $(date)"
+    echo "Host: $(hostname)"
+    echo "System: ${MONOMER}-${BLOCK}-${CRYSTAL}-${SURFACE}-${SURFACE_SIZE}nm-${BOX_HEIGHT}nm-${N_MONOMER}mon-${N_CHAIN}chain-${N_CARBONATE}co3-${N_SODIUM}na-${N_CALCIUM}ca-${N_CHLORINE}cl-${TAG_APPEND}"
+    echo "Ensemble: ${PRODUCTION_ENSEMBLE} ${TEMPERATURE_K}K ${PRESSURE_BAR}bar"
+    echo "################################################################################"
+    echo ""
+
+    mapfile -t arr_replica_num < <(seq -f "%02g" 0 "$((N_REPLICA - 1))")
+    echo "Replica index array: ${arr_replica_num[*]}"
+
+    for replica_num in "${arr_replica_num[@]}"; do
+        replica_dir="${cwd}/replica_${replica_num}"
+        echo "DEBUG: replica_dir: ${replica_dir}"
+
+        # if directory does not exist, create it and copy equilibration files
+        if [[ ! -d "${replica_dir}" ]]; then
+            echo "DEBUG: Creating replica directory"
+            mkdir -p "${replica_dir}"
+            cp -np "${previous_archive_dir}/${previous_sim_name}.gro" "${replica_dir}/${previous_sim_name}.gro"
+            cp -np "${previous_archive_dir}/topol.top" "${replica_dir}/topol.top"
+            cp -np "${previous_archive_dir}/index.ndx" "${replica_dir}/index.ndx"
+        else
+            echo "DEBUG: Replica directory already exists"
+        fi
+        cd "${replica_dir}" || exit
+
+        # if tpr file does not exist, create it
+        if [[ ! -f "${replica_dir}/${sim_name}.tpr" ]]; then
+
+            # copy mdp file
+            echo "DEBUG: Copying mdp file"
+            cp "${mdp_file}" "${replica_dir}/${sim_name}.mdp"
+            sed -i 's/ref-t.*/ref-t                     = '"${TEMPERATURE_K}/g" "${replica_dir}/${sim_name}.mdp"
+            sed -i 's/gen-temp.*/gen-temp                  = '"${TEMPERATURE_K}/g" "${replica_dir}/${sim_name}.mdp"
+            sed -i 's/ref-p.*/ref-p                     = '"${PRESSURE_BAR} ${PRESSURE_BAR}/g" "${replica_dir}/${sim_name}.mdp"
+
+            # copy plumed file
+            echo "DEBUG: Copying plumed file"
+            dat_file="${dat_path}/plumed.${replica_num}.dat"
+            cp "${dat_file}" "${replica_dir}/plumed.dat"
+            sed -i 's/{WALL_HEIGHT}/'"${PE_WALL_MAX}"'/g' "${replica_dir}/plumed.dat"
+            sed -i 's/{WALL_OFFSET}/'"${ATOM_OFFSET}"'/g' "${replica_dir}/plumed.dat"
+            sed -i 's/{ATOM_REFERENCE}/'"${ATOM_REFERENCE}"'/g' "${replica_dir}/plumed.dat"
+            if [[ "${N_CALCIUM}" -eq '0' ]]; then
+                sed -i 's/NDX_GROUP=Aqueous_Calcium/NDX_GROUP=Aqueous_Sodium/g' "plumed.dat"
+            fi
+
+            # create tpr file
+            echo "DEBUG: Creating tpr file"
+            "${GMX_BIN}" -quiet -nocopyright grompp \
+                -f "${sim_name}.mdp" \
+                -c "${previous_sim_name}.gro" \
+                -n "index.ndx" \
+                -p "topol.top" \
+                -o "${sim_name}.tpr"
+            rm "${previous_sim_name}.gro"
+
+        else
+            echo "DEBUG: Using existing tpr file"
+
+            # activate restart in plumed file
+            sed -i 's/#RESTART/RESTART/g' "plumed.dat"
+        fi
+
+    done
+
+} >>"${log_file_prep}" 2>&1
 
 # #######################################################################################
 # Run simulation ########################################################################
 # #######################################################################################
-echo "INFO: Running production OPES Explore simulation"
-previous_sim_name="prod_eqbm"
-previous_archive_dir="${cwd_init}/2-equilibration/4-output"
-sim_name="prod_opes_explore"
+echo "INFO: Running production OneOPES"
+cd "${cwd}" || exit
 
-# write header to log file
+# print information to log and console
 {
     echo "################################################################################"
     echo "Script: ${BASH_SOURCE[0]}"
@@ -63,67 +143,41 @@ sim_name="prod_opes_explore"
     echo "Ensemble: ${PRODUCTION_ENSEMBLE} ${TEMPERATURE_K}K ${PRESSURE_BAR}bar"
     echo "################################################################################"
     echo ""
-} >>"${log_file}" 2>&1
+    echo "DEBUG: Requested walltime [hours]: ${WALLTIME_HOURS}"
+    echo "DEBUG: Number of MPI processes: ${N_REPLICA}"
+    echo "DEBUG: Number of MPI processes per node: ${N_SIM_PER_NODE}"
+    echo "DEBUG: Number of threads per MPI process: ${N_THREAD_PER_SIM}"
+    echo "DEBUG: Using $((N_SIM_PER_NODE * N_THREAD_PER_SIM)) threads per node"
+} >>"${log_file_md}" 2>&1
 
-if [[ -f "completed.txt" ]]; then
-    echo "WARNING: completed.txt already exists"
-    echo "INFO: Skipping production OPES Explore simulation"
+echo "DEBUG: Requested walltime [hours]: ${WALLTIME_HOURS}"
+echo "DEBUG: Number of MPI processes: ${N_REPLICA}"
+echo "DEBUG: Number of MPI processes per node: ${N_SIM_PER_NODE}"
+echo "DEBUG: Number of threads per MPI process: ${N_THREAD_PER_SIM}"
+echo "DEBUG: Using $((N_SIM_PER_NODE * N_THREAD_PER_SIM)) threads per node"
 
-elif [[ "${FLAG_ARCHIVE}" = true ]]; then
-    echo "WARNING: Archive flag is set, mdrun will not be called"
-    echo "INFO: Skipping production OPES Explore simulation"
+{
+    if [[ -f "${cwd}/completed.txt" ]]; then
+        echo "WARNING: completed.txt already exists"
+        echo "INFO: Skipping production OneOPES simulation"
 
-else
-    {
-        # copy output files from equilibration
-        cp -np "${previous_archive_dir}/${previous_sim_name}.gro" "${previous_sim_name}.gro" || exit 1
-        cp -np "${previous_archive_dir}/topol.top" "topol.top" || exit 1
-        cp -np "${previous_archive_dir}/index.ndx" "index.ndx" || exit 1
+    elif [[ "${FLAG_ARCHIVE}" = true ]]; then
+        echo "WARNING: Archive flag is set, mdrun will not be called"
+        echo "INFO: Skipping production OneOPES simulation"
 
-        # if tpr file does not exist, create it
-        if [[ ! -f "${sim_name}.tpr" ]]; then
-            echo "DEBUG: Creating tpr file"
-
-            # copy mdp file
-            cp "${mdp_file}" "${sim_name}.mdp" || exit 1
-            sed -i 's/ref-t.*/ref-t                     = '"${TEMPERATURE_K}/g" "${sim_name}.mdp" || exit 1
-            sed -i 's/gen-temp.*/gen-temp                  = '"${TEMPERATURE_K}/g" "${sim_name}.mdp" || exit 1
-            sed -i 's/ref-p.*/ref-p                     = '"${PRESSURE_BAR} ${PRESSURE_BAR}/g" "${sim_name}.mdp" || exit 1
-
-            # copy plumed file
-            cp "${dat_file}" "plumed.dat" || exit 1
-            sed -i 's/{WALL_HEIGHT}/'"${PE_WALL_MAX}"'/g' "plumed.dat" || exit 1
-            sed -i 's/{WALL_OFFSET}/'"${ATOM_OFFSET}"'/g' "plumed.dat" || exit 1
-            sed -i 's/{ATOM_REFERENCE}/'"${ATOM_REFERENCE}"'/g' "plumed.dat" || exit 1
-            if [[ "${N_CALCIUM}" -eq '0' ]]; then
-                sed -i 's/NDX_GROUP=Aqueous_Calcium/NDX_GROUP=Aqueous_Sodium/g' "plumed.dat" || exit 1
-            fi
-
-            # create tpr file
-            "${GMX_BIN}" -quiet -nocopyright grompp \
-                -f "${sim_name}.mdp" \
-                -c "${previous_sim_name}.gro" \
-                -n "index.ndx" \
-                -p "topol.top" \
-                -o "${sim_name}.tpr"
-            rm "${previous_sim_name}.gro" || exit 1
-
-        else
-            echo "DEBUG: Using existing tpr file"
-            # activate restart in plumed file
-            sed -i 's/#RESTART/RESTART/g' "plumed.dat" || exit 1
-        fi
-
+    else
         # call mdrun
-        "${MPI_BIN}" -np '1' \
-            --map-by "ppr:1:node:PE=${CPU_THREADS}" \
-            --use-hwthread-cpus --bind-to 'hwthread' \
+        "${MPI_BIN}" -np "${N_REPLICA}" \
+            --use-hwthread-cpus --bind-to 'hwthread' --report-bindings \
+            --map-by "ppr:${N_SIM_PER_NODE}:node:PE=${N_THREAD_PER_SIM}" \
             "${GMX_BIN}" -quiet -nocopyright mdrun -v \
             -maxh "${WALLTIME_HOURS}" \
+            -multidir 'replica_'* \
             -deffnm "${sim_name}" -cpi "${sim_name}.cpt" \
-            -plumed "plumed.dat" \
             -pin on -pinoffset "${PIN_OFFSET}" -pinstride 1 -ntomp "${CPU_THREADS}" \
             -gpu_id "${GPU_IDS}" \
+            -plumed "plumed.dat" \
+            -hrex -replex "${N_STEPS_HREX}" \
             -noappend
 
         # make completed simulation text file
@@ -132,15 +186,13 @@ else
             touch "${cwd}/completed.txt"
             echo "completed: $(date)" >"${cwd}/completed.txt"
         fi
-
-    } >>"${log_file}" 2>&1
-fi
+    fi
+} >>"${log_file_md}" 2>&1
 
 # #######################################################################################
 # Concatenate trajectories ##############################################################
 # #######################################################################################
-echo "INFO: Archiving simulation"
-log_file="${log_dir}/${time_init}-concatenation.log"
+cd "${cwd}/replica_00" || exit
 
 # write header to log file
 {
@@ -152,23 +204,24 @@ log_file="${log_dir}/${time_init}-concatenation.log"
     echo "Ensemble: ${PRODUCTION_ENSEMBLE} ${TEMPERATURE_K}K ${PRESSURE_BAR}bar"
     echo "################################################################################"
     echo ""
-} >>"${log_file}" 2>&1
+} >>"${log_file_concat}" 2>&1
 
 # rsync output files to archive directory
+echo "INFO: Archiving simulation for replica_00"
 archive_dir="1-runs"
 {
     rsync --archive --verbose --progress --human-readable --itemize-changes \
-        "${sim_name}."* "${archive_dir}/" || exit 1
+        "${sim_name}."* "${archive_dir}/"
     rsync --archive --verbose --progress --human-readable --itemize-changes \
-        ./*.data "${archive_dir}/" || exit 1
+        ./*.data "${archive_dir}/"
     rsync --archive --verbose --progress --human-readable --itemize-changes \
-        ./*.dat "${archive_dir}/" || exit 1
+        ./*.dat "${archive_dir}/"
     rsync --archive --verbose --progress --human-readable --itemize-changes \
-        ./*.Kernels* "${archive_dir}/" || exit 1
-} >>"${log_file}" 2>&1
+        ./*.Kernels* "${archive_dir}/"
+} >>"${log_file_concat}" 2>&1
 
 # concatenate files into single trajectory
-echo "INFO: Concatenating trajectories"
+echo "INFO: Concatenating files"
 concat_dir="2-concatenated"
 {
     mkdir -p "${concat_dir}"
@@ -207,7 +260,7 @@ EOF
 
     # copy plumed files
     cp "${archive_dir}/"*.data "${concat_dir}/" || exit 1
-} >>"${log_file}" 2>&1
+} >>"${log_file_concat}" 2>&1
 
 # dump trajectory without solvent
 echo "INFO: Dumping trajectory without solvent"
@@ -236,13 +289,12 @@ EOF
 
     # copy *.data files
     cp "${concat_dir}/"*.data -t "${nosol_dir}/" || exit 1
-} >>"${log_file}" 2>&1
+} >>"${log_file_concat}" 2>&1
 
 # #######################################################################################
-# Analysis ##############################################################################
+# Clean Up ##############################################################################
 # #######################################################################################
-echo "INFO: Analyzing trajectory"
-log_file="${log_dir}/${time_init}-analysis.log"
+echo "INFO: Cleaning up"
 
 # write header to log file
 {
@@ -254,47 +306,7 @@ log_file="${log_dir}/${time_init}-analysis.log"
     echo "Ensemble: ${PRODUCTION_ENSEMBLE} ${TEMPERATURE_K}K ${PRESSURE_BAR}bar"
     echo "################################################################################"
     echo ""
-} >>"${log_file}" 2>&1
-
-{
-    # plot system parameters over time
-    params=('Potential' 'Kinetic-En.' 'Total-Energy' 'Temperature' 'Pressure')
-    if [[ "${PRODUCTION_ENSEMBLE^^}" == "NPT" ]]; then
-        params+=('Density')
-    fi
-    echo "DEBUG: Parameters to plot: ${params[*]}"
-    for param in "${params[@]}"; do
-        filename="${param,,}"
-        "${GMX_BIN}" -quiet -nocopyright energy \
-            -f "${concat_dir}/${sim_name}.edr" \
-            -o "${filename}.xvg" <<EOF
-${param}
-0
-EOF
-        # convert xvg to png
-        gracebat -nxy "${filename}.xvg" \
-            -hdevice "PNG" \
-            -autoscale "xy" \
-            -printfile "${filename}.png" \
-            -fixed "3840" "2160"
-    done
-
-    # copy all xvg files to xvg directory
-    mkdir -p "xvg"
-    cp -p ./*.xvg "xvg/" || exit 1
-    rm ./*.xvg || exit 1
-
-    # copy all png files to png directory
-    mkdir -p "png"
-    cp -p ./*.png "png/" || exit 1
-    rm ./*.png || exit 1
-} >>"${log_file}" 2>&1
-
-# #######################################################################################
-# Clean Up ##############################################################################
-# #######################################################################################
-echo "INFO: Cleaning up"
-log_file="${log_dir}/${time_init}-cleanup.log"
+} >>"${log_file_cleanup}" 2>&1
 
 {
     # iterate over directories and delete backup files
@@ -304,6 +316,6 @@ log_file="${log_dir}/${time_init}-cleanup.log"
 
     # move to initial working directory
     cd "${cwd_init}" || exit 1
-} >>"${log_file}" 2>&1
+} >>"${log_file_cleanup}" 2>&1
 
-echo "CRITICAL: Finished OPES Explore production"
+echo "CRITICAL: Finished OneOPES production"

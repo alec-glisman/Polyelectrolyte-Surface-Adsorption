@@ -43,8 +43,11 @@ if [[ ! -n "${SLURM_JOB_NUM_NODES+x}" ]]; then
     export SLURM_JOB_NUM_NODES='1'
 fi
 
-# Allow direct GPU communication
+# Allow direct GPU communication for Gromacs
 export GMX_ENABLE_DIRECT_GPU_COMM='1'
+
+# Set number of CPU threads for Plumed
+export PLUMED_NUM_THREADS="${CPU_THREADS}"
 
 # Hamiltonian replica exchange defaults
 n_threads_per_node="$(grep -c ^processor /proc/cpuinfo)"

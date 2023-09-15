@@ -11,6 +11,9 @@ gr_reference: GROUP ATOMS={ATOM_REFERENCE}
 # Unwrap molecules
 WHOLEMOLECULES ENTITY0=gr_chain
 
+# System energy
+ene: ENERGY
+
 # CV1: Distance between chain center of mass and crystal surface in z-direction
 com_chain: COM ATOMS=gr_chain
 com_ref: COM ATOMS=gr_reference
@@ -30,6 +33,10 @@ dist_ca: DISTANCE ATOMS=com_ref,com_ca COMPONENTS NOPBC
 upper_wall: UPPER_WALLS ARG=dist_chain.z AT={WALL_HEIGHT} KAPPA=1000.0 EXP=2 OFFSET={WALL_OFFSET}
 lower_wall: LOWER_WALLS ARG=dist_chain.z AT=0.2 KAPPA=1000.0 EXP=2 OFFSET={WALL_OFFSET}
 
+# OPES MultiThermal
+ecv: ECV_MULTITHERMAL ARG=ene TEMP_MAX=370
+opesX: OPES_EXPANDED ARG=ecv.* FILE=DeltaFs.data PACE=100 CALC_WORK
+
 # OPES Explore
 OPES_METAD_EXPLORE ...
 LABEL=opes
@@ -43,5 +50,41 @@ BARRIER=50
 CALC_WORK
 ... OPES_METAD_EXPLORE
 
+OPES_METAD_EXPLORE ...
+LABEL=opesE1
+ARG=rg_chain
+SIGMA=0.02
+FILE=Kernels1.data
+STATE_RFILE=compressed.Kernels1
+STATE_WFILE=compressed.Kernels1
+PACE=20000
+BARRIER=3
+CALC_WORK
+... OPES_METAD_EXPLORE
+
+OPES_METAD_EXPLORE ...
+LABEL=opesE2
+ARG=cn_ca_co
+SIGMA=0.2
+FILE=Kernels2.data
+STATE_RFILE=compressed.Kernels2
+STATE_WFILE=compressed.Kernels2
+PACE=20000
+BARRIER=3
+CALC_WORK
+... OPES_METAD_EXPLORE
+
+OPES_METAD_EXPLORE ...
+LABEL=opesE3
+ARG=dist_ca.z
+SIGMA=0.1
+FILE=Kernels3.data
+STATE_RFILE=compressed.Kernels3
+STATE_WFILE=compressed.Kernels3
+PACE=20000
+BARRIER=3
+CALC_WORK
+... OPES_METAD_EXPLORE
+
 # Output
-PRINT STRIDE=500 ARG=dist_chain.*,opes.*,rg_chain,cn_ca_co,dist_ca.,dist_ca.*,upper_wall.*,lower_wall.* FILE=COLVAR.data
+PRINT STRIDE=500 ARG=dist_chain.*,opes.*,rg_chain,opesE1.*,cn_ca_co,opesE2.*,dist_ca.*,opesE3.*,ene,opesX.*,upper_wall.*,lower_wall.* FILE=COLVAR.data
