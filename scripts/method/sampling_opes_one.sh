@@ -27,7 +27,7 @@ mdp_path="${project_path}/parameters/mdp/molecular-dynamics"
 mdp_file="${mdp_path}/${PRODUCTION_ENSEMBLE,,}_prod.mdp"
 
 # Plumed files
-dat_path="${project_path}/parameters/plumed/opes-multicv"
+dat_path="${project_path}/parameters/plumed/opes-one"
 
 # initial time with _ as separator
 time_init="$(date +%Y_%m_%d_%H_%M_%S)"
