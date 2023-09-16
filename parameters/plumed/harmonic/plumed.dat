@@ -27,8 +27,8 @@ com_ca: COM ATOMS=gr_soln_ca
 dist_ca: DISTANCE ATOMS=com_ref,com_ca COMPONENTS NOPBC
 
 # Harmonic wall for CV1
-upper_wall: UPPER_WALLS ARG=dist_chain.z AT={WALL_HEIGHT} KAPPA=1000.0 EXP=2 OFFSET={WALL_OFFSET}
-lower_wall: LOWER_WALLS ARG=dist_chain.z AT=0.2 KAPPA=1000.0 EXP=2 OFFSET={WALL_OFFSET}
+upper_wall: UPPER_WALLS ARG=dist_chain.z AT={UPPER_WALL_HEIGHT} KAPPA=1000.0 EXP=2 OFFSET={WALL_OFFSET}
+lower_wall: LOWER_WALLS ARG=dist_chain.z AT={LOWER_WALL_HEIGHT} KAPPA=1000.0 EXP=2 OFFSET={WALL_OFFSET}
 
 # Output
 PRINT STRIDE=500 ARG=dist_chain.*,rg_chain,cn_ca_co,dist_ca.*,upper_wall.*,lower_wall.* FILE=COLVAR.data
