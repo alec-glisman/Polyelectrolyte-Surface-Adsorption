@@ -46,7 +46,7 @@ export N_STEPS_HREX='1000' # number of steps between replica exchange attempts
 
 # harmonic restraints
 export PE_WALL_MIN='0.2'      # z-coordinate of lower wall in nm
-export PE_WALL_MAX='5'        # z-coordinate of upper wall in nm
+export PE_WALL_MAX='2.5'      # z-coordinate of upper wall in nm
 export PE_WALL_MAX_EQBM='2.5' # z-coordinate of upper wall in nm during equilibration
 export ATOM_REFERENCE='13251' # atom number of reference atom for harmonic restraints (1 = first atom)
 export ATOM_OFFSET='-0.275'   # z-coordinate offset of reference atom from crystal surface in nm

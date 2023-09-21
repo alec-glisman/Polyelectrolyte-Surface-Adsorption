@@ -18,7 +18,7 @@ if [[ "${hostname}" == "zeal" || "${hostname}" == "node"* ]]; then
     GMX_BIN="/home/aglisman/software/gromacs_mpi_2023-plumed_mpi_2.9.0-gcc_12.3.0-cuda_12.0.140/bin/gmx_mpi"
 elif [[ "${hostname}" == "desktop" ]]; then
     MPI_BIN="/usr/bin/mpiexec"
-    GMX_BIN="/nfs/zeal_nas/home_mount/modules/gromacs_mpi_2023-plumed_mpi_2.9.0-gcc_self_12.3.0-cuda_12.2.128/bin/gmx_mpi"
+    GMX_BIN="/home/aglisman/software/gromacs_mpi_2023-plumed_mpi_2.9.0-gcc_12.3.0-cuda_12.0.140/bin/gmx_mpi"
 else
     MPI_BIN="mpirun"
     GMX_BIN="gmx_mpi"
