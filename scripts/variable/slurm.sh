@@ -47,8 +47,8 @@ if [[ -n "${SLURM_JOB_ID+x}" ]]; then
         total_walltime_remaining_hours="$(echo "${walltime_remaining}" | awk -F: '{print $1}')"
     fi
 
-    # subtract 1 hour for safety
-    mdrun_runtime_hours="$(bc -l <<<"scale=2; ${total_walltime_remaining_hours}-1.5")"
+    # subtract 0.2 hours for safety
+    mdrun_runtime_hours="$(bc -l <<<"scale=2; ${total_walltime_remaining_hours}-0.2")"
 else
     # No walltime limit
     mdrun_runtime_hours='10000'
