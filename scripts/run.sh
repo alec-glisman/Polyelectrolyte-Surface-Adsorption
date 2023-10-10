@@ -36,6 +36,7 @@ flag_production=false
 flag_sampling_md=false
 flag_sampling_opes_explore=false
 flag_sampling_opes_one=false
+flag_sampling_hremd=false
 
 # action flags
 flag_archive=false
@@ -64,6 +65,10 @@ for arg in "$@"; do
         flag_sampling_md=true
         flag_production=true
         ;;
+    -x | --hremd)
+        flag_sampling_hremd=true
+        flag_production=true
+        ;;
     -o | --opes-explore)
         flag_sampling_opes_explore=true
         flag_production=true
@@ -86,6 +91,7 @@ for arg in "$@"; do
         echo ""
         echo "Production sampling methods:"
         echo "  -m, --md            Molecular dynamics (unbiased)."
+        echo "  -x, --hremd         Hamiltonian replica exchange MD (biased)."
         echo "  -o, --opes-explore  OPES Explore (biased)."
         echo "  -n, --opes-one      OneOPES (biased)."
         echo ""
@@ -112,7 +118,7 @@ if [[ "${flag_initialization}" = false ]] && [[ "${flag_equilibration}" = false 
 fi
 
 # check that if production was selected, at least one sampling method was selected
-if [[ "${flag_production}" = true ]] && [[ "${flag_sampling_md}" = false ]] && [[ "${flag_sampling_opes_explore}" = false ]] && [[ "${flag_sampling_opes_one}" = false ]]; then
+if [[ "${flag_production}" = true ]] && [[ "${flag_sampling_md}" = false ]] && [[ "${flag_sampling_opes_explore}" = false ]] && [[ "${flag_sampling_opes_one}" = false ]] && [[ "${flag_sampling_hremd}" = false ]]; then
     echo "ERROR: No production sampling methods selected."
     echo "Usage: ${package} [global_preferences] [simulation_preferences]"
     echo "Use '${package} --help' for more information."
@@ -121,19 +127,22 @@ fi
 
 # check that only one production sampling method was selected
 if [[ "${flag_sampling_md}" = true ]] && [[ "${flag_sampling_opes_explore}" = true ]]; then
-    echo "ERROR: Multiple production sampling methods selected."
+    echo "ERROR: Cannot select both MD and OPES Explore sampling methods."
     echo "Usage: ${package} [global_preferences] [simulation_preferences]"
     echo "Use '${package} --help' for more information."
     exit 1
-fi
-if [[ "${flag_sampling_md}" = true ]] && [[ "${flag_sampling_opes_one}" = true ]]; then
-    echo "ERROR: Multiple production sampling methods selected."
+elif [[ "${flag_sampling_md}" = true ]] && [[ "${flag_sampling_opes_one}" = true ]]; then
+    echo "ERROR: Cannot select both MD and OneOPES sampling methods."
     echo "Usage: ${package} [global_preferences] [simulation_preferences]"
     echo "Use '${package} --help' for more information."
     exit 1
-fi
-if [[ "${flag_sampling_opes_explore}" = true ]] && [[ "${flag_sampling_opes_one}" = true ]]; then
-    echo "ERROR: Multiple production sampling methods selected."
+elif [[ "${flag_sampling_opes_explore}" = true ]] && [[ "${flag_sampling_opes_one}" = true ]]; then
+    echo "ERROR: Cannot select both OPES Explore and OneOPES sampling methods."
+    echo "Usage: ${package} [global_preferences] [simulation_preferences]"
+    echo "Use '${package} --help' for more information."
+    exit 1
+elif [[ "${flag_sampling_opes_one}" = true ]] && [[ "${flag_sampling_hremd}" = true ]]; then
+    echo "ERROR: Cannot select both OneOPES and HREMD sampling methods."
     echo "Usage: ${package} [global_preferences] [simulation_preferences]"
     echo "Use '${package} --help' for more information."
     exit 1
@@ -177,7 +186,7 @@ fi
 
 # run production simulation
 if [[ "${flag_production}" = true ]]; then
-    echo "INFO: Archiving simulation: ${flag_archive}"
+    echo "INFO: Archiving simulation boolean: ${flag_archive}"
     export FLAG_ARCHIVE="${flag_archive}"
 
     # find walltime remaining
@@ -185,23 +194,31 @@ if [[ "${flag_production}" = true ]]; then
     source "${project_path}/scripts/variable/slurm.sh"
     echo "INFO: WALLTIME_HOURS: ${WALLTIME_HOURS}"
 
-    # molecular dynamics
-    if [[ "${flag_sampling_md}" = true ]]; then
-        echo "Sampling molecular dynamics..."
-        "${project_path}/scripts/method/sampling_md.sh"
-    fi
+    if [[ "${flag_sampling_hremd}" = true ]]; then
+        echo "Equilibrating HREMD..."
+        "${project_path}/scripts/method/equilibration_hremd.sh"
 
-    # OPES explore
-    if [[ "${flag_sampling_opes_explore}" = true ]]; then
+        # recalculate walltime remaining
+        # shellcheck source=variable/slurm.sh
+        source "${project_path}/scripts/variable/slurm.sh"
+        echo "INFO: WALLTIME_HOURS for HREMD production: ${WALLTIME_HOURS}"
+
+        echo "Sampling HREMD..."
+        "${project_path}/scripts/method/sampling_hremd.sh"
+
+    elif [[ "${flag_sampling_md}" = true ]]; then
+        echo "Sampling MD..."
+        "${project_path}/scripts/method/sampling_md.sh"
+
+    elif [[ "${flag_sampling_opes_explore}" = true ]]; then
         echo "Sampling OPES Explore..."
         "${project_path}/scripts/method/sampling_opes_explore.sh"
-    fi
 
-    # OneOPES
-    if [[ "${flag_sampling_opes_one}" = true ]]; then
+    elif [[ "${flag_sampling_opes_one}" = true ]]; then
         echo "Sampling OneOPES..."
         "${project_path}/scripts/method/sampling_opes_one.sh"
     fi
+
 fi
 
 # ##############################################################################

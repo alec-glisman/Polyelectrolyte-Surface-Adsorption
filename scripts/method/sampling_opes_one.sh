@@ -168,17 +168,17 @@ echo "DEBUG: Using $((N_SIM_PER_NODE * N_THREAD_PER_SIM)) threads per node"
 
     else
         # call mdrun
-        "${MPI_BIN}" -np "${N_REPLICA}" \
+        "${MPI_BIN}" -np "${ONEOPES_N_REPLICA}" \
             --use-hwthread-cpus --bind-to 'hwthread' --report-bindings \
-            --map-by "ppr:${N_SIM_PER_NODE}:node:PE=${N_THREAD_PER_SIM}" \
-            "${GMX_BIN}" -quiet -nocopyright mdrun -v \
+            --map-by "ppr:${ONEOPES_N_SIM_PER_NODE}:node:PE=${ONEOPES_N_THREAD_PER_SIM}" \
+            "${GMX_BIN}" -nocopyright mdrun -v \
             -maxh "${WALLTIME_HOURS}" \
             -multidir 'replica_'* \
             -deffnm "${sim_name}" -cpi "${sim_name}.cpt" \
             -pin on -pinoffset "${PIN_OFFSET}" -pinstride 1 -ntomp "${CPU_THREADS}" \
             -gpu_id "${GPU_IDS}" \
             -plumed "plumed.dat" \
-            -hrex -replex "${N_STEPS_HREX}" \
+            -hrex -replex "${ONEOPES_N_STEPS}" \
             -noappend
 
         # make completed simulation text file

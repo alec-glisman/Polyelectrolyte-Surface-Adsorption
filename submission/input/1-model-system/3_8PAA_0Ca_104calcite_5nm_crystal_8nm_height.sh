@@ -40,9 +40,13 @@ export PRODUCTION_ENSEMBLE='NVT' # {NVT, NPT}
 export TEMPERATURE_K='300'       # temperature in Kelvin
 export PRESSURE_BAR='1'          # pressure in bar
 
-# replica exchange
-export N_REPLICA='8'       # number of replicas in replica exchange simulations
-export N_STEPS_HREX='1000' # number of steps between replica exchange attempts
+# hamiltonian replica exchange
+export HREMD_N_REPLICA='8'  # number of replicas in HREMD simulations
+export HREMD_N_STEPS='1000' # number of steps between replica exchange attempts
+
+# OneOPES replica exchange
+export ONEOPES_N_REPLICA='8'  # number of replicas in OneOPES simulations
+export ONEOPES_N_STEPS='1000' # number of steps between replica exchange attempts
 
 # harmonic restraints
 export PE_WALL_MIN='0.3'      # z-coordinate of lower wall in nm
