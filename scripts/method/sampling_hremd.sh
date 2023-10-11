@@ -64,7 +64,7 @@ cd "${cwd}" || exit 1
 # Prepare TPR files #####################################################################
 # #######################################################################################
 echo "INFO: Preparing TPR files"
-log_file="${log_dir}/${time_init}-tpr-preparation.log"
+log_file="${log_dir}/${time_init}-1-preparation.log"
 previous_sim_name="eqbm_hremd_scaled"
 previous_archive_dir="${cwd_init}/3-equilibration-hremd"
 sim_name="prod_hremd_scaled"
@@ -151,7 +151,7 @@ fi
 # Run simulation ########################################################################
 # #######################################################################################
 echo "INFO: Running production HREMD simulation"
-log_file="${log_dir}/${time_init}-mdrun.log"
+log_file="${log_dir}/${time_init}-2-mdrun.log"
 
 if [[ -f "completed.txt" ]]; then
     echo "WARNING: completed.txt already exists"
@@ -221,7 +221,7 @@ fi
 # Clean Up ##############################################################################
 # #######################################################################################
 echo "INFO: Cleaning up"
-log_file="${log_dir}/${time_init}-cleanup.log"
+log_file="${log_dir}/${time_init}-3-cleanup.log"
 archive_sdir="2-output"
 
 if [[ -f "completed.txt" ]]; then
@@ -274,7 +274,7 @@ fi
 # Concatenate trajectories for replica_00 ###############################################
 # #######################################################################################
 echo "INFO: Archiving simulation for replica_00"
-log_file="${log_dir}/${time_init}-concatenation.log"
+log_file="${log_dir}/${time_init}-4-concatenation.log"
 cd "${cwd}/replica_00" || exit 1
 
 # write header to log file

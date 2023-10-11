@@ -86,7 +86,7 @@ fi
 # Prepare TPR files #####################################################################
 # #######################################################################################
 echo "INFO: Preparing TPR files"
-log_file="${log_dir}/${time_init}-tpr-preparation.log"
+log_file="${log_dir}/${time_init}-1-preparation.log"
 previous_sim_name="prod_eqbm"
 previous_archive_dir="${cwd_init}/2-equilibration/4-output"
 sim_name="eqbm_hremd_scaled"
@@ -183,7 +183,7 @@ fi
 # Run simulation ########################################################################
 # #######################################################################################
 echo "INFO: Running equilibration HREMD simulation"
-log_file="${log_dir}/${time_init}-mdrun.log"
+log_file="${log_dir}/${time_init}-2-mdrun.log"
 
 if [[ -f "completed.txt" ]]; then
     echo "WARNING: completed.txt already exists"
@@ -236,7 +236,7 @@ fi
 # Clean Up ##############################################################################
 # #######################################################################################
 echo "INFO: Cleaning up"
-log_file="${log_dir}/${time_init}-cleanup.log"
+log_file="${log_dir}/${time_init}-3-cleanup.log"
 archive_sdir="2-output"
 
 {
