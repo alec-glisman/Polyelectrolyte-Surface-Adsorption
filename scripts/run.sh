@@ -34,7 +34,7 @@ flag_initialization=false
 flag_equilibration=false
 flag_production=false
 flag_sampling_md=false
-flag_sampling_opes_explore=false
+FLAG_SAMPLING_OPES_EXPLORE=false
 flag_sampling_opes_one=false
 flag_sampling_hremd=false
 
@@ -70,7 +70,7 @@ for arg in "$@"; do
         flag_production=true
         ;;
     -o | --opes-explore)
-        flag_sampling_opes_explore=true
+        FLAG_SAMPLING_OPES_EXPLORE=true
         flag_production=true
         ;;
     -n | --opes-one)
@@ -118,7 +118,7 @@ if [[ "${flag_initialization}" = false ]] && [[ "${flag_equilibration}" = false 
 fi
 
 # check that if production was selected, at least one sampling method was selected
-if [[ "${flag_production}" = true ]] && [[ "${flag_sampling_md}" = false ]] && [[ "${flag_sampling_opes_explore}" = false ]] && [[ "${flag_sampling_opes_one}" = false ]] && [[ "${flag_sampling_hremd}" = false ]]; then
+if [[ "${flag_production}" = true ]] && [[ "${flag_sampling_md}" = false ]] && [[ "${FLAG_SAMPLING_OPES_EXPLORE}" = false ]] && [[ "${flag_sampling_opes_one}" = false ]] && [[ "${flag_sampling_hremd}" = false ]]; then
     echo "ERROR: No production sampling methods selected."
     echo "Usage: ${package} [global_preferences] [simulation_preferences]"
     echo "Use '${package} --help' for more information."
@@ -126,7 +126,7 @@ if [[ "${flag_production}" = true ]] && [[ "${flag_sampling_md}" = false ]] && [
 fi
 
 # check that only one production sampling method was selected
-if [[ "${flag_sampling_md}" = true ]] && [[ "${flag_sampling_opes_explore}" = true ]]; then
+if [[ "${flag_sampling_md}" = true ]] && [[ "${FLAG_SAMPLING_OPES_EXPLORE}" = true ]]; then
     echo "ERROR: Cannot select both MD and OPES Explore sampling methods."
     echo "Usage: ${package} [global_preferences] [simulation_preferences]"
     echo "Use '${package} --help' for more information."
@@ -136,7 +136,7 @@ elif [[ "${flag_sampling_md}" = true ]] && [[ "${flag_sampling_opes_one}" = true
     echo "Usage: ${package} [global_preferences] [simulation_preferences]"
     echo "Use '${package} --help' for more information."
     exit 1
-elif [[ "${flag_sampling_opes_explore}" = true ]] && [[ "${flag_sampling_opes_one}" = true ]]; then
+elif [[ "${FLAG_SAMPLING_OPES_EXPLORE}" = true ]] && [[ "${flag_sampling_opes_one}" = true ]]; then
     echo "ERROR: Cannot select both OPES Explore and OneOPES sampling methods."
     echo "Usage: ${package} [global_preferences] [simulation_preferences]"
     echo "Use '${package} --help' for more information."
@@ -163,6 +163,9 @@ source "${global_preferences}"
 source "${project_path}/scripts/variable/system.sh"
 # shellcheck source=variable/node.sh
 source "${project_path}/scripts/variable/node.sh"
+
+# export simulation methods
+export FLAG_SAMPLING_OPES_EXPLORE
 
 # create simulation directory and move into it
 mkdir -p "${project_path}/data/${TAG}"
@@ -210,7 +213,7 @@ if [[ "${flag_production}" = true ]]; then
         echo "Sampling MD..."
         "${project_path}/scripts/method/sampling_md.sh"
 
-    elif [[ "${flag_sampling_opes_explore}" = true ]]; then
+    elif [[ "${FLAG_SAMPLING_OPES_EXPLORE}" = true ]]; then
         echo "Sampling OPES Explore..."
         "${project_path}/scripts/method/sampling_opes_explore.sh"
 

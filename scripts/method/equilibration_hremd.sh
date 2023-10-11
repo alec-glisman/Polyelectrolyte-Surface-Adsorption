@@ -182,15 +182,11 @@ fi
 # #######################################################################################
 # Run simulation ########################################################################
 # #######################################################################################
-echo "INFO: Running production MD simulation"
+echo "INFO: Running equilibration HREMD simulation"
 log_file="${log_dir}/${time_init}-mdrun.log"
 
 if [[ -f "completed.txt" ]]; then
     echo "WARNING: completed.txt already exists"
-    echo "INFO: Skipping equilibration HREMD simulation"
-
-elif [[ "${FLAG_ARCHIVE}" = true ]]; then
-    echo "WARNING: Archive flag is set, mdrun will not be called"
     echo "INFO: Skipping equilibration HREMD simulation"
 
 else
@@ -220,7 +216,7 @@ else
         sleep '10s' # wait for file system to catch up
 
         # make completed simulation text file if "${sim_name}.gro" exists
-        if [[ -f "replica_00/2-output/${sim_name}.gro" ]]; then
+        if [[ -f "replica_00/${sim_name}.gro" ]]; then
             echo "INFO: Simulation completed successfully"
             touch "completed.txt"
             echo "completed: $(date)" >"completed.txt"
@@ -269,9 +265,10 @@ archive_sdir="2-output"
             echo "DEBUG: Archiving simulation for replica_${replica}"
             mkdir -p "${archive_sdir}"
             cp -np "./${sim_name}."* -t "${archive_sdir}" || exit 1
-            cp -np 'mdout.mdp' 'index.ndx' ./*.dat -t "${archive_sdir}" || exit 1
+            cp -np 'index.ndx' ./*.dat ./*.data -t "${archive_sdir}" || exit 1
+            mv 'scaled.top' "${archive_sdir}/topol.top" || exit 1
             rm "./${sim_name}."* || exit 1
-            rm 'mdout.mdp' 'index.ndx' ./*.dat || exit 1
+            rm 'index.ndx' ./*.dat ./*.data ./*.cpt || exit 1
         else
             echo "WARNING: ${archive_sdir} already exists"
             echo "INFO: Skipping archiving simulation for replica_${replica}"
@@ -288,5 +285,4 @@ archive_sdir="2-output"
 
 # move to initial working directory
 cd "${cwd_init}" || exit 1
-
 echo "CRITICAL: Finished HREMD equilibration"
