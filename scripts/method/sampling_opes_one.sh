@@ -145,17 +145,17 @@ cd "${cwd}" || exit
     echo "################################################################################"
     echo ""
     echo "DEBUG: Requested walltime [hours]: ${WALLTIME_HOURS}"
-    echo "DEBUG: Number of MPI processes: ${N_REPLICA}"
-    echo "DEBUG: Number of MPI processes per node: ${N_SIM_PER_NODE}"
-    echo "DEBUG: Number of threads per MPI process: ${N_THREAD_PER_SIM}"
-    echo "DEBUG: Using $((N_SIM_PER_NODE * N_THREAD_PER_SIM)) threads per node"
+    echo "DEBUG: Number of MPI processes: ${ONEOPES_N_REPLICA}"
+    echo "DEBUG: Number of MPI processes per node: ${ONEOPES_N_SIM_PER_NODE}"
+    echo "DEBUG: Number of threads per MPI process: ${ONEOPES_N_THREAD_PER_SIM}"
+    echo "DEBUG: Using $((ONEOPES_N_SIM_PER_NODE * ONEOPES_N_THREAD_PER_SIM)) threads per node"
 } >>"${log_file_md}" 2>&1
 
 echo "DEBUG: Requested walltime [hours]: ${WALLTIME_HOURS}"
-echo "DEBUG: Number of MPI processes: ${N_REPLICA}"
-echo "DEBUG: Number of MPI processes per node: ${N_SIM_PER_NODE}"
-echo "DEBUG: Number of threads per MPI process: ${N_THREAD_PER_SIM}"
-echo "DEBUG: Using $((N_SIM_PER_NODE * N_THREAD_PER_SIM)) threads per node"
+echo "DEBUG: Number of MPI processes: ${ONEOPES_N_REPLICA}"
+echo "DEBUG: Number of MPI processes per node: ${ONEOPES_N_SIM_PER_NODE}"
+echo "DEBUG: Number of threads per MPI process: ${ONEOPES_N_THREAD_PER_SIM}"
+echo "DEBUG: Using $((ONEOPES_N_SIM_PER_NODE * ONEOPES_N_THREAD_PER_SIM)) threads per node"
 
 {
     if [[ -f "${cwd}/completed.txt" ]]; then
