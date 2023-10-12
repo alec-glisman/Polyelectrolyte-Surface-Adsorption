@@ -73,6 +73,13 @@ if [[ -f "replica_00/${sim_name}.tpr" ]] && [[ "${FLAG_ARCHIVE}" = false ]]; the
     echo "WARNING: replica_00/${sim_name}.tpr already exists"
     echo "INFO: Skipping TPR preparation"
 
+    # iterate over replicas and allow restarting for plumed files
+    echo "INFO: Allowing restarts for plumed files"
+    for replica in "${arr_replica[@]}"; do
+        cd "${cwd}/replica_${replica}" || exit 1
+        sed -i 's/#RESTART/RESTART/g' "plumed.dat" || exit 1
+    done
+
 elif [[ -f "completed.txt" ]]; then
     echo "WARNING: completed.txt already exists"
     echo "INFO: Skipping TPR preparation"
@@ -188,9 +195,7 @@ else
         sleep '10s' # wait for file system to catch up
     } >>"${log_file}" 2>&1
 
-    # FIXME: check if gromacs simulation completed or was terminated
-    # if simulation completed "Writing final coordinates." will be in log file
-    # copilot: please check this
+    # check if gromacs simulation completed or was terminated
     echo "INFO: Checking if simulation completed successfully"
     bool_completed=false
     while IFS= read -r line; do

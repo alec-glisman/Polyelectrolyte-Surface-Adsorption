@@ -66,7 +66,7 @@ sim_name="prod_opes_one_multicv"
     echo "################################################################################"
     echo ""
 
-    mapfile -t arr_replica_num < <(seq -f "%02g" 0 "$((N_REPLICA - 1))")
+    mapfile -t arr_replica_num < <(seq -f "%02g" 0 "$((ONEOPES_N_REPLICA - 1))")
     echo "Replica index array: ${arr_replica_num[*]}"
 
     for replica_num in "${arr_replica_num[@]}"; do
