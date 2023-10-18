@@ -33,6 +33,10 @@ if [[ "${FLAG_SAMPLING_OPES_EXPLORE}" = true ]]; then
     echo "CRITICAL: OPES explore + HREMD sampling"
     sample_tag="hremd-opes-explore"
     dat_file="${dat_path}/opes-explore/plumed.dat"
+elif [[ "${FLAG_SAMPLING_METAD}" = true ]]; then
+    echo "CRITICAL: Metadynamics + HREMD sampling"
+    sample_tag="hremd-metadynamics"
+    dat_file="${dat_path}/metadynamics/plumed.dat"
 else
     echo "CRITICAL: HREMD sampling"
     sample_tag="hremd"
@@ -120,13 +124,21 @@ else
 
             # copy plumed file
             cp "${dat_file}" "plumed.dat" || exit 1
+            if [[ "${N_CALCIUM}" -eq '0' ]]; then
+                sed -i 's/NDX_GROUP=Aqueous_Calcium/NDX_GROUP=Aqueous_Sodium/g' "plumed.dat" || exit 1
+            fi
             sed -i 's/{LOWER_WALL_HEIGHT}/'"${PE_WALL_MIN}"'/g' "plumed.dat" || exit 1
             sed -i 's/{UPPER_WALL_HEIGHT}/'"${PE_WALL_MAX_EQBM}"'/g' "plumed.dat" || exit 1
             sed -i 's/{WALL_OFFSET}/'"${ATOM_OFFSET}"'/g' "plumed.dat" || exit 1
             sed -i 's/{ATOM_REFERENCE}/'"${ATOM_REFERENCE}"'/g' "plumed.dat" || exit 1
-            if [[ "${N_CALCIUM}" -eq '0' ]]; then
-                sed -i 's/NDX_GROUP=Aqueous_Calcium/NDX_GROUP=Aqueous_Sodium/g' "plumed.dat" || exit 1
-            fi
+            sed -i "s/{METAD_PACE}/${METAD_PACE}/g" 'plumed.dat' || exit 1
+            sed -i "s/{METAD_HEIGHT}/${METAD_HEIGHT}/g" 'plumed.dat' || exit 1
+            sed -i "s/{METAD_SIGMA}/${METAD_SIGMA}/g" 'plumed.dat' || exit 1
+            sed -i "s/{METAD_BIASFACTOR}/${METAD_BIASFACTOR}/g" 'plumed.dat' || exit 1
+            sed -i "s/{TEMPERATURE_K}/${TEMPERATURE_K}/g" 'plumed.dat' || exit 1
+            sed -i "s/{METAD_GRID_MIN}/${METAD_GRID_MIN}/g" 'plumed.dat' || exit 1
+            sed -i "s/{METAD_GRID_MAX}/${METAD_GRID_MAX}/g" 'plumed.dat' || exit 1
+            sed -i "s/{METAD_GRID_SPACING}/${METAD_GRID_SPACING}/g" 'plumed.dat' || exit 1
 
             # create tpr file
             echo "DEBUG: Creating TPR file for replica_${replica}"

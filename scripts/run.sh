@@ -34,6 +34,7 @@ flag_initialization=false
 flag_equilibration=false
 flag_production=false
 flag_sampling_md=false
+FLAG_SAMPLING_METAD=false
 FLAG_SAMPLING_OPES_EXPLORE=false
 flag_sampling_opes_one=false
 flag_sampling_hremd=false
@@ -69,6 +70,10 @@ for arg in "$@"; do
         flag_sampling_hremd=true
         flag_production=true
         ;;
+    -w | --metad)
+        FLAG_SAMPLING_METAD=true
+        flag_production=true
+        ;;
     -o | --opes-explore)
         FLAG_SAMPLING_OPES_EXPLORE=true
         flag_production=true
@@ -92,6 +97,7 @@ for arg in "$@"; do
         echo "Production sampling methods:"
         echo "  -m, --md            Molecular dynamics (unbiased)."
         echo "  -x, --hremd         Hamiltonian replica exchange MD (biased)."
+        echo "  -w, --metad         Metadynamics (biased)."
         echo "  -o, --opes-explore  OPES Explore (biased)."
         echo "  -n, --opes-one      OneOPES (biased)."
         echo ""
@@ -118,7 +124,7 @@ if [[ "${flag_initialization}" = false ]] && [[ "${flag_equilibration}" = false 
 fi
 
 # check that if production was selected, at least one sampling method was selected
-if [[ "${flag_production}" = true ]] && [[ "${flag_sampling_md}" = false ]] && [[ "${FLAG_SAMPLING_OPES_EXPLORE}" = false ]] && [[ "${flag_sampling_opes_one}" = false ]] && [[ "${flag_sampling_hremd}" = false ]]; then
+if [[ "${flag_production}" = true ]] && [[ "${flag_sampling_md}" = false ]] && [[ "${FLAG_SAMPLING_OPES_EXPLORE}" = false ]] && [[ "${flag_sampling_opes_one}" = false ]] && [[ "${flag_sampling_hremd}" = false ]] && [[ "${FLAG_SAMPLING_METAD}" = false ]]; then
     echo "ERROR: No production sampling methods selected."
     echo "Usage: ${package} [global_preferences] [simulation_preferences]"
     echo "Use '${package} --help' for more information."
@@ -131,13 +137,28 @@ if [[ "${flag_sampling_md}" = true ]] && [[ "${FLAG_SAMPLING_OPES_EXPLORE}" = tr
     echo "Usage: ${package} [global_preferences] [simulation_preferences]"
     echo "Use '${package} --help' for more information."
     exit 1
+elif [[ "${flag_sampling_md}" = true ]] && [[ "${FLAG_SAMPLING_METAD}" = true ]]; then
+    echo "ERROR: Cannot select both MD and Metadynamics sampling methods."
+    echo "Usage: ${package} [global_preferences] [simulation_preferences]"
+    echo "Use '${package} --help' for more information."
+    exit 1
 elif [[ "${flag_sampling_md}" = true ]] && [[ "${flag_sampling_opes_one}" = true ]]; then
     echo "ERROR: Cannot select both MD and OneOPES sampling methods."
     echo "Usage: ${package} [global_preferences] [simulation_preferences]"
     echo "Use '${package} --help' for more information."
     exit 1
+elif [[ "${FLAG_SAMPLING_METAD}" = true ]] && [[ "${FLAG_SAMPLING_OPES_EXPLORE}" = true ]]; then
+    echo "ERROR: Cannot select both Metadynamics and OPES Explore sampling methods."
+    echo "Usage: ${package} [global_preferences] [simulation_preferences]"
+    echo "Use '${package} --help' for more information."
+    exit 1
 elif [[ "${FLAG_SAMPLING_OPES_EXPLORE}" = true ]] && [[ "${flag_sampling_opes_one}" = true ]]; then
     echo "ERROR: Cannot select both OPES Explore and OneOPES sampling methods."
+    echo "Usage: ${package} [global_preferences] [simulation_preferences]"
+    echo "Use '${package} --help' for more information."
+    exit 1
+elif [[ "${FLAG_SAMPLING_METAD}" = true ]] && [[ "${flag_sampling_opes_one}" = true ]]; then
+    echo "ERROR: Cannot select both Metadynamics and OneOPES sampling methods."
     echo "Usage: ${package} [global_preferences] [simulation_preferences]"
     echo "Use '${package} --help' for more information."
     exit 1
@@ -165,6 +186,7 @@ source "${project_path}/scripts/variable/system.sh"
 source "${project_path}/scripts/variable/node.sh"
 
 # export simulation methods
+export FLAG_SAMPLING_METAD
 export FLAG_SAMPLING_OPES_EXPLORE
 
 # create simulation directory and move into it
@@ -212,6 +234,10 @@ if [[ "${flag_production}" = true ]]; then
     elif [[ "${flag_sampling_md}" = true ]]; then
         echo "Sampling MD..."
         "${project_path}/scripts/method/sampling_md.sh"
+
+    elif [[ "${FLAG_SAMPLING_METAD}" = true ]]; then
+        echo "Sampling Metadynamics..."
+        "${project_path}/scripts/method/sampling_metadynamics.sh"
 
     elif [[ "${FLAG_SAMPLING_OPES_EXPLORE}" = true ]]; then
         echo "Sampling OPES Explore..."

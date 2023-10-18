@@ -48,6 +48,15 @@ export HREMD_N_STEPS='1000' # number of steps between replica exchange attempts
 export ONEOPES_N_REPLICA='8'  # number of replicas in OneOPES simulations
 export ONEOPES_N_STEPS='1000' # number of steps between replica exchange attempts
 
+# well-tempered metadynamics
+export METAD_BIASFACTOR='8'      # bias factor for C.V. effective temperature
+export METAD_HEIGHT='1.0'         # [kJ/mol] initial height of Gaussians (kT = 2.48 kJ/mol at 298 K)
+export METAD_SIGMA='0.025'        # width of Gaussians, set to 0.33–0.5 of estimated fluctuation
+export METAD_GRID_SPACING='0.005' # width of bins in the meta-dynamics grid
+export METAD_GRID_MIN='0'         # minimum grid point for Gaussian deposition
+export METAD_GRID_MAX='10'        # maximum grid point for Gaussian deposition
+export METAD_PACE='500'           # [steps] between deposition of Gaussians
+
 # harmonic restraints
 export PE_WALL_MIN='0.5'      # z-coordinate of lower wall in nm
 export PE_WALL_MAX='2.5'      # z-coordinate of upper wall in nm
