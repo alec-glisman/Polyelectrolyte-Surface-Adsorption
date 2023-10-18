@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 #
 # Author     : Alec Glisman (GitHub: @alec-glisman)
-# Date       : 2023-09-12
-# Usage      : ./sampling_opes_explore.sh
+# Date       : 2023-10-18
+# Usage      : ./sampling_metadynamics.sh
 # Notes      : Script assumes that global variables have been set in a
 #             submission/input/*.sh script. Script should only be called from
 #             the main run.sh script after initialization is complete.
