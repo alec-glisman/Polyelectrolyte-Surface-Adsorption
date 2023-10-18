@@ -18,14 +18,6 @@ package="run.sh" # name of this script
 # Input parsing ################################################################
 # ##############################################################################
 
-# input checking
-if [[ $# -lt 2 ]]; then
-    echo "ERROR: Too few arguments."
-    echo "Usage: ${package} [global_preferences] [simulation_preferences]"
-    echo "Use '${package} --help' for more information."
-    exit 1
-fi
-
 # global preferences file
 global_preferences="${1}"
 
@@ -42,8 +34,10 @@ flag_sampling_hremd=false
 # action flags
 flag_archive=false
 
-# remove global preferences from command line arguments
-shift
+# remove global preferences from command line arguments (check that first argument is not a flag)
+if [[ "${global_preferences}" != -* ]]; then
+    shift
+fi
 
 # parse command line arguments
 for arg in "$@"; do
@@ -97,8 +91,8 @@ for arg in "$@"; do
         echo "Production sampling methods:"
         echo "  -m, --md            Molecular dynamics (unbiased)."
         echo "  -x, --hremd         Hamiltonian replica exchange MD (biased)."
-        echo "  -w, --metad         Metadynamics (biased)."
-        echo "  -o, --opes-explore  OPES Explore (biased)."
+        echo "  -w, --metad         Metadynamics (biased, can be combined with HREMD)."
+        echo "  -o, --opes-explore  OPES Explore (biased, can be combined with HREMD)."
         echo "  -n, --opes-one      OneOPES (biased)."
         echo ""
         echo "Other:"
@@ -114,6 +108,14 @@ for arg in "$@"; do
         ;;
     esac
 done
+
+# input checking
+if [[ $# -lt 2 ]]; then
+    echo "ERROR: Too few arguments."
+    echo "Usage: ${package} [global_preferences] [simulation_preferences]"
+    echo "Use '${package} --help' for more information."
+    exit 1
+fi
 
 # check that at least one simulation method was selected
 if [[ "${flag_initialization}" = false ]] && [[ "${flag_equilibration}" = false ]] && [[ "${flag_production}" = false ]]; then
