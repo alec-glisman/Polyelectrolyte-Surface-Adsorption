@@ -115,8 +115,9 @@ for arg in "$@"; do
 done
 
 # input checking
-if [[ $# -lt 2 ]]; then
+if [[ $# -lt 1 ]]; then
     echo "ERROR: Too few arguments."
+    echo "Arguments: ${*}"
     echo "Usage: ${package} [global_preferences] [simulation_preferences]"
     echo "Use '${package} --help' for more information."
     exit 1
