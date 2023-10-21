@@ -14,9 +14,9 @@
 # set paths to executables
 hostname="$(hostname -s)"
 if [[ "${hostname}" == "zeal" || "${hostname}" == "node"* ]]; then
-    MPI_BIN="/home/aglisman/software/openmpi_4.1.5-gcc_12.3.0-cuda_12.0.140/bin/mpiexec"
-    GMX_BIN="/home/aglisman/software/gromacs_mpi_2023-plumed_mpi_2.9.0-gcc_12.3.0-cuda_12.0.140/bin/gmx_mpi"
-    PLUMED_BIN="/home/aglisman/software/plumed_mpi_2.9.0-gcc_12.3.0-cuda_12.0.140/bin/plumed"
+    MPI_BIN="/nfs/zeal_nas/home_mount/modules/openmpi_4.1.5-gcc_12.3.0-cuda_12.2.128/bin/mpiexec"
+    GMX_BIN="/nfs/zeal_nas/home_mount/modules/gromacs_mpi_2023-plumed_mpi_2.9.0-gcc_12.3.0-cuda_12.2.128/bin/gmx_mpi"
+    PLUMED_BIN="/nfs/zeal_nas/home_mount/modules/plumed_mpi_2.9.0-gcc_12.3.0-cuda_12.2.128/bin/plumed"
 elif [[ "${hostname}" == "desktop" ]]; then
     MPI_BIN="/usr/bin/mpiexec"
     GMX_BIN="/home/aglisman/software/gromacs_mpi_2023-plumed_mpi_2.9.0-gcc_12.3.0-cuda_12.0.140/bin/gmx_mpi"
