@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Created by Alec Glisman (GitHub: @alec-glisman) on January 25th, 2023
 
-#SBATCH --job-name=4.0-OneOPES
+#SBATCH --job-name=7.0-OneOPES
 #SBATCH --time=2-00:00:00
 
 # Slurm: Node configuration
