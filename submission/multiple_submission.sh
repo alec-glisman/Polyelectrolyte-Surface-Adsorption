@@ -4,7 +4,7 @@
 n_jobs='3'
 first_dependency='1'
 dependency_code='afterany'
-batch_script='1eqbm_4.0_5.0.sh'
+batch_script='1eqbm_6.0_7.0.sh'
 
 # iterate over all jobs
 echo "Submitting ${n_jobs} jobs with script ${batch_script}"
