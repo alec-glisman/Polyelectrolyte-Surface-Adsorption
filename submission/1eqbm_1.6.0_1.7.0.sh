@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Created by Alec Glisman (GitHub: @alec-glisman) on January 25th, 2023
 
-#SBATCH --job-name=Eqbm-PVAc-PVOH
+#SBATCH --job-name=Eqbm-1.6.0-1.7.0
 #SBATCH --time=2-00:00:00
 
 # Slurm: Node configuration

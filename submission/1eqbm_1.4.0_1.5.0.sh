@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Created by Alec Glisman (GitHub: @alec-glisman) on January 25th, 2023
 
-#SBATCH --job-name=Eqbm-PAA-PAAn
+#SBATCH --job-name=Eqbm-1.4.0-1.5.0
 #SBATCH --time=2-00:00:00
 
 # Slurm: Node configuration
