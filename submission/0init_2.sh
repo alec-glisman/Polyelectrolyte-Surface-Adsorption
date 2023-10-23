@@ -26,7 +26,7 @@ input_globals=(
     '1.0_1PAA_0Ca_104calcite_5nm_crystal_8nm_height.sh'
     '2.0_1PAAn_0Ca_104calcite_5nm_crystal_8nm_height.sh'
     '3.0_1PVAc_0Ca_104calcite_5nm_crystal_8nm_height.sh'
-    '4.0_1PVAc_0Ca_104calcite_5nm_crystal_8nm_height.sh'
+    '4.0_1PVOH_0Ca_104calcite_5nm_crystal_8nm_height.sh'
 )
 
 # start script
