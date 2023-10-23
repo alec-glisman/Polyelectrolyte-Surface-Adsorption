@@ -15,18 +15,20 @@
 hostname="$(hostname -s)"
 if [[ "${hostname}" == "zeal" || "${hostname}" == "node"* ]]; then
     module_root="/nfs/zeal_nas/home_mount/modules"
-    plumed_root="${module_root}/plumed_mpi_2.9.0-gcc_12.3.0-cuda_12.2.128"
-    gmx_root="${module_root}/gromacs_mpi_2023-plumed_mpi_2.9.0-gcc_12.3.0-cuda_12.2.128"
+    compilers="gcc_12.3.0-cuda_12.2.128"
+    plumed_root="${module_root}/plumed_mpi_2.9.0-${compilers}"
+    gmx_root="${module_root}/gromacs_mpi_2023-plumed_mpi_2.9.0-${compilers}"
 
-    MPI_BIN="${module_root}/openmpi_4.1.5-gcc_12.3.0-cuda_12.2.128/bin/mpiexec"
+    MPI_BIN="${module_root}/openmpi_4.1.5-${compilers}/bin/mpiexec"
     PLUMED_BIN="${plumed_root}/bin/plumed"
     PLUMED_KERNEL="${plumed_root}/lib/libplumedKernel.so"
     GMX_BIN="${gmx_root}/bin/gmx_mpi"
 
 elif [[ "${hostname}" == "desktop" ]]; then
     module_root="/home/aglisman/software"
-    plumed_root="${module_root}/plumed_mpi_2.9.0-gcc_12.3.0-cuda_12.2.128"
-    gmx_root="${module_root}/gromacs_mpi_2023-plumed_mpi_2.9.0-gcc_12.3.0-cuda_12.2.128"
+    compilers="gcc_12.3.0-cuda_12.0.140"
+    plumed_root="${module_root}/plumed_mpi_2.9.0-${compilers}"
+    gmx_root="${module_root}/gromacs_mpi_2023-plumed_mpi_2.9.0-${compilers}"
 
     MPI_BIN="/usr/bin/mpiexec"
     PLUMED_BIN="${plumed_root}/bin/plumed"

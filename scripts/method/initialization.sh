@@ -364,17 +364,19 @@ EOF
         <<EOF
 "Crystal" resname CRB CA
 "Crystal_Bulk" same residue as (name CX1 CA and (z >= ${PDB_BULK_ZMIN} and z <= ${PDB_BULK_ZMAX}))
-"Crystal_Surface" same residue as (name CX1 CA and (z < ${PDB_BULK_ZMIN} or z > ${PDB_BULK_ZMAX}))
+"Top_Crystal_Surface" same residue as (name CX1 CA and (z > ${PDB_BULK_ZMAX}))
+"Bottom_Crystal_Surface" same residue as (name CX1 CA and (z < ${PDB_BULK_ZMIN}))
 EOF
     # save group numbers
     group_bulk="$((idx_group + 1))"
-    group_surface="$((idx_group + 2))"
+    group_top_surface="$((idx_group + 2))"
+    group_bottom_surface="$((idx_group + 3))"
 
     # remove "f0_t0.000" from index file groups
     sed -i 's/_f0_t0.000//g' "index_crystal.ndx"
     # append crystal groups to index file
     cat "index_crystal.ndx" >>"index.ndx"
-    idx_group=$((idx_group + 3))
+    idx_group=$((idx_group + 4))
 
     # add crystal sub-groups to index file
     "${GMX_BIN}" -quiet make_ndx \
@@ -390,18 +392,26 @@ ${group_bulk} & a OX*
 name $((idx_group + 2)) Crystal_Bulk_Carbonate_Oxygen
 ${group_bulk} & a O*
 name $((idx_group + 3)) Crystal_Bulk_Calcium
-${group_surface} & ! a CA*
-name $((idx_group + 4)) Crystal_Surface_Carbonate
-${group_surface} & a CX*
-name $((idx_group + 5)) Crystal_Surface_Carbonate_Carbon
-${group_surface} & a OX*
-name $((idx_group + 6)) Crystal_Surface_Carbonate_Oxygen
-${group_surface} & a O*
-name $((idx_group + 7)) Crystal_Surface_Calcium
+${group_top_surface} & ! a CA*
+name $((idx_group + 4)) Crystal_Top_Surface_Carbonate
+${group_top_surface} & a CX*
+name $((idx_group + 5)) Crystal_Top_Surface_Carbonate_Carbon
+${group_top_surface} & a OX*
+name $((idx_group + 6)) Crystal_Top_Surface_Carbonate_Oxygen
+${group_top_surface} & a O*
+name $((idx_group + 7)) Crystal_Top_Surface_Calcium
+${group_top_surface} & ! a CA*
+name $((idx_group + 8)) Crystal_Bottom_Surface_Carbonate
+${group_top_surface} & a CX*
+name $((idx_group + 9)) Crystal_Bottom_Surface_Carbonate_Carbon
+${group_top_surface} & a OX*
+name $((idx_group + 10)) Crystal_Bottom_Surface_Carbonate_Oxygen
+${group_top_surface} & a O*
+name $((idx_group + 11)) Crystal_Bottom_Surface_Calcium
 
 q
 EOF
-    idx_group=$((idx_group + 8))
+    idx_group=$((idx_group + 12))
 
     # add system section groups to index file
     "${GMX_BIN}" -quiet make_ndx \
@@ -413,7 +423,7 @@ ${group_bulk}
 name $((idx_group)) Frozen
 ! ${group_bulk}
 name $((idx_group + 1)) Mobile 
-! ${group_bulk} & ! ${group_surface}
+! ${group_bulk} & ! ${group_top_surface} & ! ${group_bottom_surface}
 name $((idx_group + 2)) Aqueous
 
 q
