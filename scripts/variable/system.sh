@@ -49,11 +49,6 @@ SIMULATION_TAG="${TEMPERATURE_K}K-${PRESSURE_BAR}bar-${PRODUCTION_ENSEMBLE}"
 # Combine tags
 export TAG="${TAG_JOBID}-${CRYSTAL_TAG}-${CHAIN_TAG}-${ION_TAG}-${SIMULATION_TAG}"
 
-# check if TAG_APPEND is set and not empty, if so append to TAG
-if [[ -n "${TAG_APPEND+x}" ]] && [[ -n "${TAG_APPEND}" ]]; then
-    export TAG="${TAG}-${TAG_APPEND}"
-fi
-
 # ##############################################################################
 # Set PDB files ################################################################
 # ##############################################################################
