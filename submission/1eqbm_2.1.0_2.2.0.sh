@@ -20,7 +20,7 @@ set -o nounset # exit when script tries to use undeclared variables
 # simulation path variables
 proj_base_dir="$(pwd)/.."
 scripts_dir="${proj_base_dir}/scripts"
-params_dir="${proj_base_dir}/submission/input/1-model-system"
+params_dir="${proj_base_dir}/submission/input/2-monomers"
 
 input_globals=(
     '1.0_1PAA_0Ca_104calcite_5nm_crystal_8nm_height.sh'
