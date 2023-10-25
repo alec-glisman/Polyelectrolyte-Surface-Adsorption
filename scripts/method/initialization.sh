@@ -433,13 +433,13 @@ EOF
     # add chain groups to index file
     if [[ "${N_CHAIN}" -gt 0 ]]; then
         "${GMX_BIN}" -quiet make_ndx \
-            -f "${sim_name}.pdb" \
+            -f "pdb2gmx_clean.pdb" \
             -n "index.ndx" \
             -o "index.ndx" \
             <<EOF
-a * & chain B
+a * & chain A
 name ${idx_group} Chain
-a O* & chain B
+a O* & chain A
 name $((idx_group + 1)) Chain_Oxygen
 
 q
