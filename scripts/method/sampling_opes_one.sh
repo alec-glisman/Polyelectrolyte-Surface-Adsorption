@@ -104,7 +104,7 @@ sim_name="prod_opes_one_multicv"
             sed -i 's/{WALL_OFFSET}/'"${ATOM_OFFSET}"'/g' "${replica_dir}/plumed.dat"
             sed -i 's/{ATOM_REFERENCE}/'"${ATOM_REFERENCE}"'/g' "${replica_dir}/plumed.dat"
             if [[ "${N_CALCIUM}" -eq '0' ]]; then
-                sed -i 's/NDX_GROUP=Aqueous_Calcium/NDX_GROUP=Aqueous_Sodium/g' "plumed.dat"
+                sed -i 's/NDX_GROUP=Aqueous_Calcium/NDX_GROUP=Crystal_Top_Surface_Calcium/g' "plumed.dat" || exit 1
             fi
 
             # create tpr file
@@ -169,17 +169,12 @@ echo "DEBUG: Using $((ONEOPES_N_SIM_PER_NODE * ONEOPES_N_THREAD_PER_SIM)) thread
     else
         # call mdrun
         "${MPI_BIN}" -np "${ONEOPES_N_REPLICA}" \
-            --use-hwthread-cpus --bind-to 'hwthread' --report-bindings \
             --map-by "ppr:${ONEOPES_N_SIM_PER_NODE}:node:PE=${ONEOPES_N_THREAD_PER_SIM}" \
+            --use-hwthread-cpus --bind-to 'hwthread' \
             "${GMX_BIN}" -nocopyright mdrun -v \
-            -maxh "${WALLTIME_HOURS}" \
-            -multidir 'replica_'* \
-            -deffnm "${sim_name}" -cpi "${sim_name}.cpt" \
-            -pin on -pinoffset "${PIN_OFFSET}" -pinstride 1 -ntomp "${CPU_THREADS}" \
-            -gpu_id "${GPU_IDS}" \
-            -plumed "plumed.dat" \
-            -hrex -replex "${ONEOPES_N_STEPS}" \
-            -noappend
+            -maxh "${WALLTIME_HOURS}" -pin 'on' -noappend \
+            -multidir 'replica_'* -deffnm "${sim_name}" -cpi "${sim_name}.cpt" -plumed 'plumed.dat' \
+            -hrex -replex "${ONEOPES_N_STEPS}"
 
         # make completed simulation text file
         if [[ -f "${sim_name}.gro" ]]; then
