@@ -67,5 +67,5 @@ export ATOM_OFFSET='-0.30'    # z-coordinate offset of reference atom from cryst
 # Hardware ####################################################################
 
 export CPU_THREADS='12' # number of CPU threads to use (-1 = all available)
-export PIN_OFFSET='12'   # offset for CPU thread pinning (-1 = no offset)
+export PIN_OFFSET='12'  # offset for CPU thread pinning (-1 = no offset)
 export GPU_IDS='1'      # GPU device(s) to use (0 = first GPU, 01 = first two GPUs)
