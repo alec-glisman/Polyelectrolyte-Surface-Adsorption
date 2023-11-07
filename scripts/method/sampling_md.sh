@@ -24,7 +24,7 @@ project_path="${script_path}/../.."
 
 # Gromacs files
 mdp_path="${project_path}/parameters/mdp/molecular-dynamics"
-mdp_file="${mdp_path}/${PRODUCTION_ENSEMBLE,,}_prod.mdp"
+mdp_file="${mdp_path}/${PRODUCTION_ENSEMBLE,,}_prod_${INTEGRATION_NS}ns.mdp"
 
 # initial time with _ as separator
 time_init="$(date +%Y_%m_%d_%H_%M_%S)"

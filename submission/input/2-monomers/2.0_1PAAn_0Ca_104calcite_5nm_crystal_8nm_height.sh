@@ -6,7 +6,21 @@
 # Description: Script to set global variables and preferences for the simulation.
 # Notes      : Script should only be called from the main run.sh script.
 
+# Hardware ####################################################################
+
+export CPU_THREADS='12' # number of CPU threads to use (-1 = all available)
+export PIN_OFFSET='12'  # offset for CPU thread pinning (-1 = no offset)
+export GPU_IDS='1'      # GPU device(s) to use (0 = first GPU, 01 = first two GPUs)
+
 # System components ###########################################################
+
+# statistical mechanics
+export PRODUCTION_ENSEMBLE='NVT' # {NVT, NPT}
+export TEMPERATURE_K='300'       # temperature in Kelvin
+export PRESSURE_BAR='1'          # pressure in bar
+
+# integration
+export INTEGRATION_NS='100' # [ns] final simulation time for production run {100, 500}
 
 # polyelectrolyte chemistry
 export MONOMER="Acn" # Dominant monomer: {Acr, Acn, Asp, Glu, Ace, Alc}
@@ -33,12 +47,7 @@ export N_CHLORINE='0'  # number of aqueous chlorine ions
 # tag for system
 export TAG_JOBID="2.2.0" # tag to append to system name
 
-# System sampling #############################################################
-
-# statistical mechanics
-export PRODUCTION_ENSEMBLE='NVT' # {NVT, NPT}
-export TEMPERATURE_K='300'       # temperature in Kelvin
-export PRESSURE_BAR='1'          # pressure in bar
+# Enhanced sampling ###########################################################
 
 # hamiltonian replica exchange
 export HREMD_N_REPLICA='8'  # number of replicas in HREMD simulations
@@ -63,9 +72,3 @@ export PE_WALL_MAX='2.5'      # z-coordinate of upper wall in nm
 export PE_WALL_MAX_EQBM='2.0' # z-coordinate of upper wall in nm during equilibration
 export ATOM_REFERENCE='2036'  # atom number of reference atom for harmonic restraints (1 = first atom)
 export ATOM_OFFSET='-0.30'    # z-coordinate offset of reference atom from crystal surface in nm
-
-# Hardware ####################################################################
-
-export CPU_THREADS='12' # number of CPU threads to use (-1 = all available)
-export PIN_OFFSET='12'  # offset for CPU thread pinning (-1 = no offset)
-export GPU_IDS='1'      # GPU device(s) to use (0 = first GPU, 01 = first two GPUs)
