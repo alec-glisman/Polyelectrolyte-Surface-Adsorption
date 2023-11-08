@@ -45,7 +45,7 @@ export N_CALCIUM='0'   # number of aqueous calcium ions
 export N_CHLORINE='0'  # number of aqueous chlorine ions
 
 # tag for system
-export TAG_JOBID="2.3.1" # tag to append to system name
+export TAG_JOBID="2.3.2" # tag to append to system name
 
 # Enhanced sampling ###########################################################
 
