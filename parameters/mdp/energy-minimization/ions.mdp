@@ -10,9 +10,9 @@ emtol                     = 10.0         ; [kJ mol^{-1} nm^{-1}] the minimizatio
 emstep                    = 0.10         ; [nm] initial step-size
 nsteps                    = 100000       ; [steps] Maximum number of (minimization) steps to perform
 ;;; Output control ;;;
-nstxout                   = 100          ; [steps] number of steps that elapse between writing coordinates to the output trajectory file (trr)
-nstvout                   = 100          ; [steps] number of steps that elapse between writing velocities to the output trajectory file (trr)
-nstfout                   = 100          ; [steps] number of steps that elapse between writing forces to the output trajectory file (trr)
+nstxout                   = 0            ; [steps] number of steps that elapse between writing coordinates to the output trajectory file (trr)
+nstvout                   = 0            ; [steps] number of steps that elapse between writing velocities to the output trajectory file (trr)
+nstfout                   = 0            ; [steps] number of steps that elapse between writing forces to the output trajectory file (trr)
 nstlog                    = 100          ; [steps] number of steps that elapse between writing energies to the log file
 nstcalcenergy             = 100          ; [steps] number of steps that elapse between calculating the energies, 0 is never
 nstenergy                 = 100          ; [steps] number of steps that elapse between writing energies to energy file

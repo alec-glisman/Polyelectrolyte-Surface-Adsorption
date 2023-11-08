@@ -10,12 +10,12 @@ comm-mode                 = Linear       ; "Linear" (remove center for mass tran
 nstcomm                   = 100          ; [steps] frequency for center of mass motion removal
 comm-grps                 = Aqueous Crystal   ; groups for which the center of mass motion is removed
 ;;; Output control ;;;
-nstxout                   = 10000        ; [steps] number of steps that elapse between writing coordinates to the output trajectory file (trr)
-nstvout                   = 10000        ; [steps] number of steps that elapse between writing velocities to the output trajectory file (trr)
-nstfout                   = 10000        ; [steps] number of steps that elapse between writing forces to the output trajectory file (trr)
-nstlog                    = 10000        ; [steps] number of steps that elapse between writing energies to the log file
+nstxout                   = 0            ; [steps] number of steps that elapse between writing coordinates to the output trajectory file (trr)
+nstvout                   = 0            ; [steps] number of steps that elapse between writing velocities to the output trajectory file (trr)
+nstfout                   = 0            ; [steps] number of steps that elapse between writing forces to the output trajectory file (trr)
 nstcalcenergy             = 100          ; [steps] number of steps that elapse between calculating the energies, 0 is never
 nstenergy                 = 1000         ; [steps] number of steps that elapse between writing energies to energy file
+nstlog                    = 5000         ; [steps] number of steps that elapse between writing energies to the log file
 nstxout-compressed        = 5000         ; [steps] number of steps that elapse between writing to .xtc file
 ;;; Neighbor searching ;;;
 cutoff-scheme             = Verlet       ; algorithm to generate neigbor list
