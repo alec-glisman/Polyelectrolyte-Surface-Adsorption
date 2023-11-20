@@ -95,6 +95,13 @@ if [[ -f "replica_00/${sim_name}.tpr" ]]; then
     echo "WARNING: replica_00/${sim_name}.tpr already exists"
     echo "INFO: Skipping TPR preparation"
 
+    # iterate over replicas and allow restarting for plumed files
+    echo "INFO: Allowing restarts for plumed files"
+    for replica in "${arr_replica[@]}"; do
+        cd "${cwd}/replica_${replica}" || exit 1
+        sed -i 's/#RESTART/RESTART/g' "plumed.dat" || exit 1
+    done
+
 else
     {
         # write header to log file
@@ -128,10 +135,10 @@ else
             sed -i 's/gen-temp.*/gen-temp                  = '"${TEMPERATURE_K}/g" "${sim_name}.mdp" || exit 1
             sed -i 's/ref-p.*/ref-p                     = '"${PRESSURE_BAR} ${PRESSURE_BAR}/g" "${sim_name}.mdp" || exit 1
 
-            # copy plumed file
+            # copy plumed file 
             cp "${dat_file}" "plumed.dat" || exit 1
             sed -i 's/{LOWER_WALL_HEIGHT}/'"${PE_WALL_MIN}"'/g' "plumed.dat" || exit 1
-            sed -i 's/{UPPER_WALL_HEIGHT}/'"${PE_WALL_MAX_EQBM}"'/g' "plumed.dat" || exit 1
+            sed -i 's/{UPPER_WALL_HEIGHT}/'"${PE_WALL_MAX}"'/g' "plumed.dat" || exit 1
             sed -i 's/{WALL_OFFSET}/'"${ATOM_OFFSET}"'/g' "plumed.dat" || exit 1
             sed -i 's/{ATOM_REFERENCE}/'"${ATOM_REFERENCE}"'/g' "plumed.dat" || exit 1
             if [[ "${N_CALCIUM}" -eq '0' ]]; then

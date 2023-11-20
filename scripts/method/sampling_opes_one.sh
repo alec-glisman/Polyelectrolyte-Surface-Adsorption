@@ -98,11 +98,11 @@ sim_name="prod_opes_one_multicv"
             # copy plumed file
             echo "DEBUG: Copying plumed file"
             dat_file="${dat_path}/plumed.${replica_num}.dat"
-            cp "${dat_file}" "${replica_dir}/plumed.dat"
+            cp "${dat_file}" "plumed.dat"
             sed -i 's/{LOWER_WALL_HEIGHT}/'"${PE_WALL_MIN}"'/g' "plumed.dat" || exit 1
             sed -i 's/{UPPER_WALL_HEIGHT}/'"${PE_WALL_MAX}"'/g' "plumed.dat" || exit 1
-            sed -i 's/{WALL_OFFSET}/'"${ATOM_OFFSET}"'/g' "${replica_dir}/plumed.dat"
-            sed -i 's/{ATOM_REFERENCE}/'"${ATOM_REFERENCE}"'/g' "${replica_dir}/plumed.dat"
+            sed -i 's/{WALL_OFFSET}/'"${ATOM_OFFSET}"'/g' "plumed.dat" || exit 1
+            sed -i 's/{ATOM_REFERENCE}/'"${ATOM_REFERENCE}"'/g' "plumed.dat" || exit 1
             if [[ "${N_CALCIUM}" -eq '0' ]]; then
                 sed -i 's/NDX_GROUP=Aqueous_Calcium/NDX_GROUP=Crystal_Top_Surface_Calcium/g' "plumed.dat" || exit 1
             fi

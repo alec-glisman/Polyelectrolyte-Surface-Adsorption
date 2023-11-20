@@ -50,7 +50,7 @@ export TAG_JOBID="1.4.0" # tag to append to system name
 # Enhanced sampling ###########################################################
 
 # hamiltonian replica exchange
-export HREMD_N_REPLICA='24' # number of replicas in HREMD simulations
+export HREMD_N_REPLICA='32' # number of replicas in HREMD simulations
 export HREMD_N_STEPS='1000' # number of steps between replica exchange attempts
 
 # OneOPES replica exchange
