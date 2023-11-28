@@ -596,8 +596,7 @@ echo "INFO: Running energy minimization"
         --use-hwthread-cpus --bind-to 'hwthread' \
         "${GMX_BIN}" -quiet -nocopyright mdrun -v \
         -deffnm "${sim_name}" \
-        -pin on -pinoffset "${PIN_OFFSET}" -pinstride 1 -ntomp "${CPU_THREADS}" \
-        -gpu_id "${GPU_IDS}" || exit 1
+        -pin on -pinoffset "${PIN_OFFSET}" -pinstride 1 -ntomp "${CPU_THREADS}"|| exit 1
 
     # dump last frame of energy minimization as gro file
     "${GMX_BIN}" -quiet -nocopyright trjconv \
