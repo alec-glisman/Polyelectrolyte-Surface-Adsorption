@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 n_jobs='10'
-first_dependency='13503'
+first_dependency='1'
 dependency_code='afterany'
-batch_script='2prod_hremd_1.4.0.sh'
+batch_script='2oneopes_3.1.0.sh'
 
 # iterate over all jobs
 echo "Submitting ${n_jobs} jobs with script ${batch_script}"
