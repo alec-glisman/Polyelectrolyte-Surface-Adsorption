@@ -30,6 +30,10 @@ dist_ca: DISTANCE ATOMS=com_ref,com_ca COMPONENTS NOPBC
 upper_wall: UPPER_WALLS ARG=dist_chain.z AT={UPPER_WALL_HEIGHT} KAPPA=1000.0 EXP=2 OFFSET={WALL_OFFSET}
 lower_wall: LOWER_WALLS ARG=dist_chain.z AT={LOWER_WALL_HEIGHT} KAPPA=1000.0 EXP=2 OFFSET={WALL_OFFSET}
 
+# OPES MultiThermal
+ecv: ECV_MULTITHERMAL ARG=ene TEMP_MAX=310
+opesX: OPES_EXPANDED ARG=ecv.* FILE=DeltaFs.data PACE=100 CALC_WORK
+
 # OPES Explore
 OPES_METAD_EXPLORE ...
 LABEL=opes
@@ -51,7 +55,7 @@ FILE=Kernels1.data
 STATE_RFILE=compressed.Kernels1
 STATE_WFILE=compressed.Kernels1
 PACE=20000
-BARRIER=3
+BARRIER=5
 CALC_WORK
 ... OPES_METAD_EXPLORE
 
@@ -63,7 +67,7 @@ FILE=Kernels2.data
 STATE_RFILE=compressed.Kernels2
 STATE_WFILE=compressed.Kernels2
 PACE=20000
-BARRIER=3
+BARRIER=5
 CALC_WORK
 ... OPES_METAD_EXPLORE
 
@@ -75,9 +79,9 @@ FILE=Kernels3.data
 STATE_RFILE=compressed.Kernels3
 STATE_WFILE=compressed.Kernels3
 PACE=20000
-BARRIER=3
+BARRIER=5
 CALC_WORK
 ... OPES_METAD_EXPLORE
 
 # Output
-PRINT STRIDE=500 ARG=dist_chain.*,opes.*,rg_chain,opesE1.*,cn_ca_co,opesE2.*,dist_ca.*,opesE3.*,upper_wall.*,lower_wall.* FILE=COLVAR.data
+PRINT STRIDE=500 ARG=dist_chain.*,opes.*,rg_chain,opesE1.*,cn_ca_co,opesE2.*,dist_ca.*,opesE3.*,ene,opesX.*,upper_wall.*,lower_wall.* FILE=COLVAR.data
