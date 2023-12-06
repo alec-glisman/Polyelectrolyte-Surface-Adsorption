@@ -11,6 +11,9 @@ gr_reference: GROUP ATOMS={ATOM_REFERENCE}
 # Unwrap molecules
 WHOLEMOLECULES ENTITY0=gr_chain
 
+# System energy
+ene: ENERGY
+
 # CV1: Distance between chain center of mass and crystal surface in z-direction
 com_chain: COM ATOMS=gr_chain
 com_ref: COM ATOMS=gr_reference
@@ -68,4 +71,4 @@ CALC_WORK
 ... OPES_METAD_EXPLORE
 
 # Output
-PRINT STRIDE=500 ARG=dist_chain.*,opes.*,rg_chain,opesE1.*,cn_ca_co,opesE2.*,dist_ca.*,upper_wall.*,lower_wall.* FILE=COLVAR.data
+PRINT STRIDE=500 ARG=dist_chain.*,opes.*,rg_chain,opesE1.*,cn_ca_co,opesE2.*,dist_ca.*,ene,upper_wall.*,lower_wall.* FILE=COLVAR.data
