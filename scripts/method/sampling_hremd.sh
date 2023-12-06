@@ -145,6 +145,7 @@ else
             "${GMX_BIN}" -nocopyright grompp \
                 -f "${sim_name}.mdp" \
                 -c "${previous_sim_name}.gro" \
+                -r "${previous_sim_name}.gro" \
                 -n "index.ndx" \
                 -p "topol.top" \
                 -o "${sim_name}.tpr"
@@ -315,7 +316,7 @@ concat_dir="3-concatenated"
 
     # concatenate xtc files if output file does not exist
     if [[ ! -f "${concat_dir}/${sim_name}.xtc" ]]; then
-        "${GMX_BIN}" -quiet trjcat \
+        "${GMX_BIN}" trjcat \
             -f "${archive_dir}/${sim_name}."*.xtc \
             -o "${concat_dir}/${sim_name}.xtc"
     else
@@ -325,7 +326,7 @@ concat_dir="3-concatenated"
 
     # concatenate edr files if output file does not exist
     if [[ ! -f "${concat_dir}/${sim_name}.edr" ]]; then
-        "${GMX_BIN}" -quiet eneconv \
+        "${GMX_BIN}" eneconv \
             -f "${archive_dir}/${sim_name}."*.edr \
             -o "${concat_dir}/${sim_name}.edr"
     else
@@ -338,7 +339,7 @@ concat_dir="3-concatenated"
 
     # pdb structure if output file does not exist
     if [[ ! -f "${concat_dir}/${sim_name}.pdb" ]]; then
-        "${GMX_BIN}" -quiet trjconv \
+        "${GMX_BIN}" trjconv \
             -f "${concat_dir}/${sim_name}.xtc" \
             -s "${concat_dir}/${sim_name}.tpr" \
             -o "${concat_dir}/${sim_name}.pdb" \
@@ -353,7 +354,7 @@ EOF
 
     # gro structure if output file does not exist
     if [[ ! -f "${concat_dir}/${sim_name}.gro" ]]; then
-        "${GMX_BIN}" -quiet trjconv \
+        "${GMX_BIN}" trjconv \
             -f "${concat_dir}/${sim_name}.xtc" \
             -s "${concat_dir}/${sim_name}.tpr" \
             -o "${concat_dir}/${sim_name}.gro" \
@@ -378,7 +379,7 @@ nosol_dir="4-no-solvent"
 
     # pdb structure if output file does not exist
     if [[ ! -f "${nosol_dir}/${sim_name}_no_sol.pdb" ]]; then
-        "${GMX_BIN}" -quiet trjconv \
+        "${GMX_BIN}" trjconv \
             -f "${concat_dir}/${sim_name}.xtc" \
             -s "${concat_dir}/${sim_name}.tpr" \
             -o "${nosol_dir}/${sim_name}_no_sol.pdb" \
@@ -393,7 +394,7 @@ EOF
 
     # xtc trajectory if output file does not exist
     if [[ ! -f "${nosol_dir}/${sim_name}_no_sol.xtc" ]]; then
-        "${GMX_BIN}" -quiet trjconv \
+        "${GMX_BIN}" trjconv \
             -f "${concat_dir}/${sim_name}.xtc" \
             -s "${concat_dir}/${sim_name}.tpr" \
             -o "${nosol_dir}/${sim_name}_no_sol.xtc" \

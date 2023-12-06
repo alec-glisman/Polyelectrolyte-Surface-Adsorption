@@ -135,7 +135,7 @@ else
             sed -i 's/gen-temp.*/gen-temp                  = '"${TEMPERATURE_K}/g" "${sim_name}.mdp" || exit 1
             sed -i 's/ref-p.*/ref-p                     = '"${PRESSURE_BAR} ${PRESSURE_BAR}/g" "${sim_name}.mdp" || exit 1
 
-            # copy plumed file 
+            # copy plumed file
             cp "${dat_file}" "plumed.dat" || exit 1
             sed -i 's/{LOWER_WALL_HEIGHT}/'"${PE_WALL_MIN}"'/g' "plumed.dat" || exit 1
             sed -i 's/{UPPER_WALL_HEIGHT}/'"${PE_WALL_MAX}"'/g' "plumed.dat" || exit 1
@@ -166,6 +166,7 @@ else
             "${GMX_BIN}" -nocopyright grompp \
                 -f "${sim_name}.mdp" \
                 -c "${previous_sim_name}.gro" \
+                -r "${previous_sim_name}.gro" \
                 -n "index.ndx" \
                 -p "scaled.top" \
                 -o "${sim_name}.tpr"

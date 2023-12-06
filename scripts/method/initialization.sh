@@ -14,7 +14,9 @@ set -o errexit  # exit when a command fails. Add || true to commands allowed to 
 set -o nounset  # exit when script tries to use undeclared variables
 set -o pipefail # exit when a command in a pipe fails
 
-# Default Preferences ###################################################################
+# ##############################################################################
+# Default Preferences ##########################################################
+# ##############################################################################
 echo "INFO: Setting default preferences"
 
 # find path to this script
@@ -36,7 +38,9 @@ cwd="$(pwd)/1-energy-minimization"
 sim_name="energy_minimization"
 log_file="system_initialization.log"
 
-# Check for existing files #############################################################
+# ##############################################################################
+# Check for existing files #####################################################
+# ##############################################################################
 echo "CRITICAL: Starting system initialization"
 
 # move to working directory
@@ -75,7 +79,9 @@ if [[ -f "2-output/system.gro" ]]; then
     exit 0
 fi
 
-# Copy input files to working directory ################################################
+# ##############################################################################
+# Copy input files to working directory ########################################
+# ##############################################################################
 echo "INFO: Copying input files to working directory"
 
 {
@@ -91,13 +97,15 @@ echo "INFO: Copying input files to working directory"
 
 } >>"${log_file}" 2>&1
 
-# Import Structure to Gromacs ##########################################################
+# ##############################################################################
+# Import Structure to Gromacs ##################################################
+# ##############################################################################
 echo "INFO: Importing structure to Gromacs"
 
 {
     # insert-molecules to create simulation box of crystal and chains
     if [[ "${N_CHAIN}" -gt 0 ]]; then
-        "${GMX_BIN}" -nocopyright -quiet insert-molecules \
+        "${GMX_BIN}" -nocopyright insert-molecules \
             -f "crystal.pdb" \
             -ci "chain.pdb" \
             -o "${sim_name}.pdb" \
@@ -111,7 +119,7 @@ echo "INFO: Importing structure to Gromacs"
     # insert-molecules to add carbonate ions
     # shellcheck disable=SC2153
     if [[ "${N_CARBONATE}" -gt 0 ]]; then
-        "${GMX_BIN}" -quiet insert-molecules \
+        "${GMX_BIN}" insert-molecules \
             -f "${sim_name}.pdb" \
             -ci "${pdb_carbonate}" \
             -o "${sim_name}.pdb" \
@@ -121,7 +129,7 @@ echo "INFO: Importing structure to Gromacs"
     fi
 
     # convert pdb to gro
-    "${GMX_BIN}" -nocopyright -quiet pdb2gmx -v \
+    "${GMX_BIN}" -nocopyright pdb2gmx -v \
         -f "${sim_name}.pdb" \
         -o "${sim_name}.gro" \
         -n "index.ndx" \
@@ -149,13 +157,13 @@ echo "INFO: Importing structure to Gromacs"
     z_min="$(bc <<<"scale=5; ${z_min} - ${offset}")"
 
     # shift z-coordinates of all atoms by z_min
-    "${GMX_BIN}" -quiet -nocopyright editconf \
+    "${GMX_BIN}" -nocopyright editconf \
         -f "${sim_name}.gro" \
         -o "${sim_name}.gro" \
         -translate '0' '0' "-${z_min}"
 
     # wrap all atoms into box
-    "${GMX_BIN}" -quiet -nocopyright trjconv \
+    "${GMX_BIN}" -nocopyright trjconv \
         -f "${sim_name}.gro" \
         -s "${sim_name}.gro" \
         -o "${sim_name}.gro" \
@@ -168,11 +176,13 @@ echo "DEBUG: Initial box height [A]: ${z}"
 echo "DEBUG: Final box height [A]: ${new_z}"
 echo "DEBUG: Minimum z-coordinate of crystal initially [nm]: ${z_min}"
 
-# Add Solvent #########################################################################
+# ##############################################################################
+# Add Solvent ##################################################################
+# ##############################################################################
 echo "INFO: Adding solvent"
 {
     # add solvent
-    "${GMX_BIN}" -nocopyright -quiet solvate \
+    "${GMX_BIN}" -nocopyright solvate \
         -cp "${sim_name}.gro" \
         -cs "${gro_water}" \
         -o "${sim_name}.gro" \
@@ -184,7 +194,7 @@ echo "INFO: Adding solvent"
     gro_zmax="$(bc <<<"scale=5; ${PDB_BULK_ZMAX} - ${z_min} + ${buffer}")"
 
     # find "bad" water molecules that are inside the crystal
-    "${GMX_BIN}" -quiet -nocopyright select \
+    "${GMX_BIN}" -nocopyright select \
         -f "${sim_name}.gro" \
         -s "${sim_name}.gro" \
         -on "bad_waters.ndx" <<EOF
@@ -193,7 +203,7 @@ EOF
     # remove "f0_t0.000" from index file groups
     sed -i 's/_f0_t0.000//g' "bad_waters.ndx"
     # make complement index file
-    "${GMX_BIN}" -quiet make_ndx \
+    "${GMX_BIN}" make_ndx \
         -f "${sim_name}.gro" \
         -n "bad_waters.ndx" \
         -o "bad_waters.ndx" \
@@ -204,7 +214,7 @@ q
 EOF
 
     # remove "bad" water molecules from gro file
-    "${GMX_BIN}" -quiet -nocopyright trjconv \
+    "${GMX_BIN}" -nocopyright trjconv \
         -f "${sim_name}.gro" \
         -s "${sim_name}.gro" \
         -o "${sim_name}.gro" \
@@ -232,7 +242,7 @@ echo "DEBUG: Number of water molecules inside crystal (removed): ${n_bad_waters}
     cp -np "${sim_name}.gro" "solvated.gro" || exit 1
 
     # create index file
-    "${GMX_BIN}" -quiet make_ndx \
+    "${GMX_BIN}" make_ndx \
         -f "${sim_name}.gro" \
         -o "index.ndx" \
         <<EOF
@@ -240,20 +250,22 @@ q
 EOF
 } >>"${log_file}" 2>&1
 
-# Add Ions ############################################################################
+# ##############################################################################
+# Add Ions #####################################################################
+# ##############################################################################
 echo "INFO: Adding calcium ions"
 {
     # add Ca2+ ions
     if [[ "${N_CALCIUM}" -gt 0 ]]; then
         # tpr update
-        "${GMX_BIN}" -nocopyright -quiet grompp \
+        "${GMX_BIN}" -nocopyright grompp \
             -f "${ion_mdp_file}" \
             -c "${sim_name}.gro" \
             -p "topol.top" \
             -o "${sim_name}.tpr" \
             -maxwarn '1'
         # add ions
-        "${GMX_BIN}" --nocopyright -quiet genion \
+        "${GMX_BIN}" --nocopyright genion \
             -s "${sim_name}.tpr" \
             -p "topol.top" \
             -o "${sim_name}.gro" \
@@ -271,14 +283,14 @@ echo "INFO: Adding sodium ions"
     # add Na+ ions
     if [[ "${N_SODIUM}" -gt 0 ]]; then
         # tpr update
-        "${GMX_BIN}" -nocopyright -quiet grompp \
+        "${GMX_BIN}" -nocopyright grompp \
             -f "${ion_mdp_file}" \
             -c "${sim_name}.gro" \
             -p "topol.top" \
             -o "${sim_name}.tpr" \
             -maxwarn '1'
         # add ions
-        "${GMX_BIN}" --nocopyright -quiet genion \
+        "${GMX_BIN}" --nocopyright genion \
             -s "${sim_name}.tpr" \
             -p "topol.top" \
             -o "${sim_name}.gro" \
@@ -296,14 +308,14 @@ echo "INFO: Adding chlorine ions"
     # add Cl- ions
     if [[ "${N_CHLORINE}" -gt 0 ]]; then
         # tpr update
-        "${GMX_BIN}" -nocopyright -quiet grompp \
+        "${GMX_BIN}" -nocopyright grompp \
             -f "${ion_mdp_file}" \
             -c "${sim_name}.gro" \
             -p "topol.top" \
             -o "${sim_name}.tpr" \
             -maxwarn '1'
         # add ions
-        "${GMX_BIN}" --nocopyright -quiet genion \
+        "${GMX_BIN}" --nocopyright genion \
             -s "${sim_name}.tpr" \
             -p "topol.top" \
             -o "${sim_name}.gro" \
@@ -319,14 +331,14 @@ EOF
 echo "INFO: Create topology file with all solutes"
 {
     # tpr file
-    "${GMX_BIN}" -nocopyright -quiet grompp \
+    "${GMX_BIN}" -nocopyright grompp \
         -f "${ion_mdp_file}" \
         -c "${sim_name}.gro" \
         -p "topol.top" \
         -o "${sim_name}.tpr"
 
     # pdb file
-    "${GMX_BIN}" -nocopyright -quiet trjconv \
+    "${GMX_BIN}" -nocopyright trjconv \
         -f "${sim_name}.gro" \
         -s "${sim_name}.tpr" \
         -o "${sim_name}.pdb" \
@@ -344,7 +356,7 @@ echo "INFO: Making index file"
 {
     # create blank index file
     idx_group='17'
-    "${GMX_BIN}" -quiet make_ndx \
+    "${GMX_BIN}" make_ndx \
         -f "${sim_name}.gro" \
         -o "index.ndx" \
         <<EOF
@@ -356,7 +368,7 @@ EOF
     >"index_crystal.ndx" || true
 
     # add crystal groups to index file
-    "${GMX_BIN}" -quiet select \
+    "${GMX_BIN}" select \
         -f "crystal.pdb" \
         -s "crystal.pdb" \
         -n "index.ndx" \
@@ -379,7 +391,7 @@ EOF
     idx_group=$((idx_group + 4))
 
     # add crystal sub-groups to index file
-    "${GMX_BIN}" -quiet make_ndx \
+    "${GMX_BIN}" make_ndx \
         -f "crystal.pdb" \
         -n "index.ndx" \
         -o "index.ndx" \
@@ -414,7 +426,7 @@ EOF
     idx_group=$((idx_group + 12))
 
     # add system section groups to index file
-    "${GMX_BIN}" -quiet make_ndx \
+    "${GMX_BIN}" make_ndx \
         -f "${sim_name}.pdb" \
         -n "index.ndx" \
         -o "index.ndx" \
@@ -432,7 +444,7 @@ EOF
 
     # add chain groups to index file
     if [[ "${N_CHAIN}" -gt 0 ]]; then
-        "${GMX_BIN}" -quiet make_ndx \
+        "${GMX_BIN}" make_ndx \
             -f "pdb2gmx_clean.pdb" \
             -n "index.ndx" \
             -o "index.ndx" \
@@ -449,7 +461,7 @@ EOF
 
     # add aqueous sodium ions to index file
     if [[ "${N_SODIUM}" -gt 0 ]]; then
-        "${GMX_BIN}" -quiet make_ndx \
+        "${GMX_BIN}" make_ndx \
             -f "${sim_name}.pdb" \
             -n "index.ndx" \
             -o "index.ndx" \
@@ -464,7 +476,7 @@ EOF
 
     # add aqueous calcium ions to index file
     if [[ "${N_CALCIUM}" -gt 0 ]]; then
-        "${GMX_BIN}" -quiet make_ndx \
+        "${GMX_BIN}" make_ndx \
             -f "${sim_name}.pdb" \
             -n "index.ndx" \
             -o "index.ndx" \
@@ -479,7 +491,7 @@ EOF
 
     # add aqueous chloride ions to index file
     if [[ "${N_CHLORINE}" -gt 0 ]]; then
-        "${GMX_BIN}" -quiet make_ndx \
+        "${GMX_BIN}" make_ndx \
             -f "${sim_name}.pdb" \
             -n "index.ndx" \
             -o "index.ndx" \
@@ -493,7 +505,7 @@ EOF
 
     # add aqueous carbonate ions to index file
     if [[ "${N_CARBONATE}" -gt 0 ]]; then
-        "${GMX_BIN}" -quiet make_ndx \
+        "${GMX_BIN}" make_ndx \
             -f "${sim_name}.pdb" \
             -n "index.ndx" \
             -o "index.ndx" \
@@ -513,12 +525,23 @@ EOF
 } >>"${log_file}" 2>&1
 
 # ##############################################################################
+# Add positional restraints ####################################################
+# ##############################################################################
+echo "INFO: Adding positional restraints"
+
+{
+    # change POSRES default to component specific POSRES
+    sed -i 's/POSRES/POSRES_CRYSTAL/g' topol_Ion_chain_*.itp
+    sed -i 's/POSRES/POSRES_CHAIN/g' topol_Protein_chain_*.itp
+}
+
+# ##############################################################################
 # Create Topology ##############################################################
 # ##############################################################################
 echo "INFO: Creating topology file with all parameters merged"
 {
     # print index file to log
-    "${GMX_BIN}" -quiet make_ndx \
+    "${GMX_BIN}" make_ndx \
         -f "${sim_name}.pdb" \
         -n "index.ndx" \
         -o "index.ndx" \
@@ -528,9 +551,10 @@ q
 EOF
 
     # remake tpr file and topology file with no imports
-    "${GMX_BIN}" -quiet grompp \
+    "${GMX_BIN}" grompp \
         -f "mdin.mdp" \
         -c "${sim_name}.gro" \
+        -r "${sim_name}.gro" \
         -n "index.ndx" \
         -p "topol.top" \
         -pp "topol_full.top" \
@@ -594,12 +618,12 @@ echo "INFO: Running energy minimization"
     "${MPI_BIN}" -np '1' \
         --map-by "ppr:1:node:PE=${CPU_THREADS}" \
         --use-hwthread-cpus --bind-to 'hwthread' \
-        "${GMX_BIN}" -quiet -nocopyright mdrun -v \
+        "${GMX_BIN}" -nocopyright mdrun -v \
         -deffnm "${sim_name}" \
-        -pin on -pinoffset "${PIN_OFFSET}" -pinstride 1 -ntomp "${CPU_THREADS}"|| exit 1
+        -pin on -pinoffset "${PIN_OFFSET}" -pinstride 1 -ntomp "${CPU_THREADS}" || exit 1
 
     # dump last frame of energy minimization as gro file
-    "${GMX_BIN}" -quiet -nocopyright trjconv \
+    "${GMX_BIN}" -nocopyright trjconv \
         -f "${sim_name}.trr" \
         -s "${sim_name}.tpr" \
         -o "${sim_name}.gro" \
@@ -608,7 +632,7 @@ System
 EOF
 
     # dump last frame of energy minimization as pdb file
-    "${GMX_BIN}" -quiet -nocopyright trjconv \
+    "${GMX_BIN}" -nocopyright trjconv \
         -f "${sim_name}.trr" \
         -s "${sim_name}.tpr" \
         -o "${sim_name}_final.pdb" \

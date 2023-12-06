@@ -82,6 +82,7 @@
         "pinstride",
         "PLUMEDROOT",
         "pname",
+        "POSRES",
         "PREC",
         "printfile",
         "PVOH",
@@ -124,5 +125,6 @@
     "shellcheck.customArgs": [
         "-x"
     ],
-    "python.analysis.typeCheckingMode": "off"
+    "python.analysis.typeCheckingMode": "off",
+    "GitHooks.hooksDirectory": "/media/aglisman/Linux_Overflow/home/aglisman/VSCodeProjects/Polyelectrolyte-Surface-Adsorption/.git/hooks"
 }

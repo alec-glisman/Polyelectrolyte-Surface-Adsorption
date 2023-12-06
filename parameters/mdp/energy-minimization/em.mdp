@@ -1,6 +1,7 @@
 ; Created by Alec Glisman (GitHub: @alec-glisman) on March 7th, 2022
 ;;; GROMACS Documentation: https://manual.gromacs.org/documentation/current/user-guide/mdp-options.html ;;;
 ;;; Defines ;;;
+define                   = -DPOSRES_CRYSTAL ; defines a macro that can be used in the topology file
 ;;; Run control ;;;
 integrator                = steep             ; "steep" for energy minimization and "md" for a leap frog algorithm for integrating Newton's eq of motion
 comm-mode                 = Linear            ; "Linear" (remove center for mass translation) "Angular" ( >> >> and rotation around the center of mass) "None" (no restric) 

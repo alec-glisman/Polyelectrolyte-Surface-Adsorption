@@ -83,9 +83,10 @@ else
         sed -i 's/gen-temp.*/gen-temp                  = '"${TEMPERATURE_K}/g" "${sim_name}.mdp" || exit 1
 
         # make tpr file for NVT equilibration
-        "${GMX_BIN}" -quiet -nocopyright grompp \
+        "${GMX_BIN}" -nocopyright grompp \
             -f "${sim_name}.mdp" \
             -c "${previous_sim_name}.gro" \
+            -r "${previous_sim_name}.gro" \
             -n "index.ndx" \
             -p "topol.top" \
             -o "${sim_name}.tpr"
@@ -96,13 +97,13 @@ else
         "${MPI_BIN}" -np '1' \
             --map-by "ppr:1:node:PE=${CPU_THREADS}" \
             --use-hwthread-cpus --bind-to 'hwthread' \
-            "${GMX_BIN}" -quiet -nocopyright mdrun -v \
+            "${GMX_BIN}" -nocopyright mdrun -v \
             -deffnm "${sim_name}" -cpi "${sim_name}.cpt" \
             -pin on -pinoffset "${PIN_OFFSET}" -pinstride 1 -ntomp "${CPU_THREADS}" \
             -gpu_id "${GPU_IDS}" || exit 1
 
         # convert final xtc frame to pdb file
-        "${GMX_BIN}" -quiet -nocopyright trjconv \
+        "${GMX_BIN}" -nocopyright trjconv \
             -f "${sim_name}.xtc" \
             -s "${sim_name}.tpr" \
             -o "${sim_name}.pdb" \
@@ -115,7 +116,7 @@ EOF
         params=('Potential' 'Kinetic-En.' 'Total-Energy' 'Temperature' 'Pressure')
         for param in "${params[@]}"; do
             filename="${param,,}"
-            "${GMX_BIN}" -quiet -nocopyright energy \
+            "${GMX_BIN}" -nocopyright energy \
                 -f "${sim_name}.edr" \
                 -o "${filename}.xvg" <<EOF
 ${param}
@@ -170,9 +171,10 @@ else
         sed -i 's/ref-p.*/ref-p                     = '"${PRESSURE_BAR} ${PRESSURE_BAR}/g" "${sim_name}.mdp" || exit 1
 
         # make tpr file
-        "${GMX_BIN}" -quiet -nocopyright grompp \
+        "${GMX_BIN}" -nocopyright grompp \
             -f "${sim_name}.mdp" \
             -c "${previous_sim_name}.gro" \
+            -r "${previous_sim_name}.gro" \
             -n "index.ndx" \
             -p "topol.top" \
             -o "${sim_name}.tpr"
@@ -185,7 +187,7 @@ else
         "${MPI_BIN}" -np '1' \
             --map-by "ppr:1:node:PE=${CPU_THREADS}" \
             --use-hwthread-cpus --bind-to 'hwthread' \
-            "${GMX_BIN}" -quiet -nocopyright mdrun -v \
+            "${GMX_BIN}" -nocopyright mdrun -v \
             -deffnm "${sim_name}" -cpi "${sim_name}.cpt" \
             -pin on -pinoffset "${PIN_OFFSET}" -pinstride 1 -ntomp "${CPU_THREADS}" \
             -gpu_id "${GPU_IDS}" || exit 1
@@ -194,7 +196,7 @@ else
         params=('Potential' 'Kinetic-En.' 'Total-Energy' 'Temperature' 'Pressure' 'Density')
         for param in "${params[@]}"; do
             filename="${param,,}"
-            "${GMX_BIN}" -quiet -nocopyright energy \
+            "${GMX_BIN}" -nocopyright energy \
                 -f "${sim_name}.edr" \
                 -o "${filename}.xvg" <<EOF
 ${param}
@@ -216,7 +218,7 @@ EOF
             --percentile '0.4'
 
         # convert final gro file to pdb file
-        "${GMX_BIN}" -quiet -nocopyright trjconv \
+        "${GMX_BIN}" -nocopyright trjconv \
             -f "${sim_name}.gro" \
             -s "${sim_name}.tpr" \
             -o "${sim_name}.pdb" \
@@ -299,9 +301,10 @@ else
             fi
 
             # make tpr file
-            "${GMX_BIN}" -quiet -nocopyright grompp \
+            "${GMX_BIN}" -nocopyright grompp \
                 -f "${sim_name}.mdp" \
                 -c "${previous_sim_name}.gro" \
+                -r "${previous_sim_name}.gro" \
                 -n "index.ndx" \
                 -p "topol.top" \
                 -o "${sim_name}.tpr"
@@ -317,14 +320,14 @@ else
         "${MPI_BIN}" -np '1' \
             --map-by "ppr:1:node:PE=${CPU_THREADS}" \
             --use-hwthread-cpus --bind-to 'hwthread' \
-            "${GMX_BIN}" -quiet -nocopyright mdrun -v \
+            "${GMX_BIN}" -nocopyright mdrun -v \
             -deffnm "${sim_name}" -cpi "${sim_name}.cpt" \
             -plumed "plumed.dat" \
             -pin on -pinoffset "${PIN_OFFSET}" -pinstride 1 -ntomp "${CPU_THREADS}" \
             -gpu_id "${GPU_IDS}" || exit 1
 
         # convert final xtc frame to pdb file
-        "${GMX_BIN}" -quiet -nocopyright trjconv \
+        "${GMX_BIN}" -nocopyright trjconv \
             -f "${sim_name}.xtc" \
             -s "${sim_name}.tpr" \
             -o "${sim_name}.pdb" \
@@ -340,7 +343,7 @@ EOF
         fi
         for param in "${params[@]}"; do
             filename="${param,,}"
-            "${GMX_BIN}" -quiet -nocopyright energy \
+            "${GMX_BIN}" -nocopyright energy \
                 -f "${sim_name}.edr" \
                 -o "${filename}.xvg" <<EOF
 ${param}
