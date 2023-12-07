@@ -26,6 +26,7 @@ plt.rcParams["font.serif"] = "cmr10"
 
 # global variables
 VERBOSE: bool = True
+MOVING_AVERAGE_WINDOW: int = 1000  # each exchange attempt every 4 ps
 
 
 class ParseGmxLog:
@@ -54,7 +55,7 @@ class ParseGmxLog:
             TypeError: If f_log is not a .log file.
         """
         if not isinstance(f_log, Path):
-            raise TypeError(f"Expected Path object, got {type(f_log).__name__}")
+            raise TypeError(f"Expected Path, got {type(f_log).__name__}")
         if not f_log.exists() or not f_log.is_file():
             raise FileNotFoundError(f"File not found: {f_log}")
         if not f_log.is_file():
@@ -124,16 +125,18 @@ class ParseGmxLog:
 
     def _parse_repl_pr(self, line: str) -> list[float]:
         """
-        Parse exchange probabilities from a single line of text. Exchanges are only
-        attempted between neighboring replicas, so the exchange probabilities are
-        only given for the even or odd replicas. This function places np.nan values
-        between the exchange probabilities to account for this.
+        Parse exchange probabilities from a single line of text. Exchanges are
+        only attempted between neighboring replicas, so the exchange
+        probabilities are only given for the even or odd replicas. This
+        function places np.nan values between the exchange probabilities
+        to account for this.
 
         Output is a list of exchange probabilities in the form
             P(0<->1), P(1<->2), ..., P(n-2<->n-1), P(n-1<->n)
 
         Args:
-            line (str): Line of text containing exchange probabilities in the form
+            line (str): Line of text containing exchange probabilities in the
+            form
                 Repl pr        .52       .00       1.0
             or
                 Repl pr   .00       .00       .00       .00
@@ -157,7 +160,7 @@ class ParseGmxLog:
 
         # place np.nan elements between list elements
         lst_pad = [np.nan] * len(lst_float)
-        lst_complete = [x for pair in list(zip(lst_float, lst_pad)) for x in pair][:-1]
+        lst_complete = [x for pr in list(zip(lst_float, lst_pad)) for x in pr][:-1]
 
         # prepend and append to list if in example 1 of Args
         if len(lst_complete) != self.n_replica - 1:
@@ -239,6 +242,62 @@ class ParseGmxLog:
             f.write("\nStatistics:\n")
             f.write(self.df_repl_pr_summary.round(3).to_string())
 
+    def plt_repl_pr_moving_average(self, window: int = 25, dir_out: Path = None):
+        """
+        Plot exchange probabilities with moving average.
+
+        Args:
+            window (int, optional): Window size for moving average.
+            Defaults to 25.
+            dir_out (Path, optional): Path to output directory.
+            Defaults to None.
+        """
+        if dir_out is None:
+            dir_out = self.f_log.parents[1] / "analysis" / self.name
+        dir_out.mkdir(parents=True, exist_ok=True)
+
+        data = (
+            self.df_repl_pr.reset_index(drop=True).rolling(window, min_periods=1).mean()
+        )
+        times = re.findall(r"(?<=time\s)\d+.\d+", self.text)
+        times = [float(x) / 1000.0 for x in times]
+
+        # plot horizontal line at 0.3
+        fig, ax = plt.subplots()
+        ax.axhline(0.3, color="k", linewidth=2.0, alpha=1.0)
+        ax.axhline(0.2, color="k", linewidth=2.0, alpha=1.0)
+
+        # set colorblind friendly colormap
+        cmap = plt.get_cmap("tab10")
+        ax.set_prop_cycle(color=[cmap(i) for i in range(self.n_replica - 1)])
+
+        for i in range(self.n_replica - 1):
+            curve = data.iloc[:, i]
+            ax.plot(
+                times,
+                curve,
+                linewidth=2.5,
+                alpha=1.0,
+                label=f"{i}-{i+1}",
+            )
+
+        # set axis labels
+        ax.set_xlabel("Time [ns]", fontsize=18, labelpad=10)
+        ax.set_ylabel("(Rolling) Exchange Probability", fontsize=18, labelpad=10)
+        ax.set_ylim(0, 1)
+        ax.tick_params(axis="both", which="major", labelsize=16)
+        ax.legend(loc="best", ncol=2, fontsize=14)
+        ax.set_title(
+            f"Window = {window}, Count = {len(data)}",
+            fontsize=18,
+            pad=10,
+        )
+
+        # save figure
+        fig.tight_layout()
+        fig.savefig(dir_out / "exchange_probability_dynamics.png", dpi=600)
+        plt.close(fig)
+
 
 def find_logs(dr: Path) -> list[Path]:
     """
@@ -279,6 +338,7 @@ def main(verbose: bool = False) -> None:
         print(f"Reading log file {idx+1}/{len(f_logs)}: {log_file}")
         log = ParseGmxLog(log_file)
         log.save()
+        log.plt_repl_pr_moving_average(window=MOVING_AVERAGE_WINDOW)
 
         # output probabilities to terminal
         if verbose:
