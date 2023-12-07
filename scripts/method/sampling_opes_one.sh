@@ -102,6 +102,13 @@ sim_name="prod_opes_one_multicv"
             sed -i 's/{LOWER_WALL_HEIGHT}/'"${PE_WALL_MIN}"'/g' "plumed.dat" || exit 1
             sed -i 's/{UPPER_WALL_HEIGHT}/'"${PE_WALL_MAX}"'/g' "plumed.dat" || exit 1
             sed -i 's/{WALL_OFFSET}/'"${ATOM_OFFSET}"'/g' "plumed.dat" || exit 1
+            sed -i 's/{ONEOPES_LARGE_BARRIER}/'"${ONEOPES_LARGE_BARRIER}"'/g' "plumed.dat" || exit 1
+            sed -i 's/{ONEOPES_SMALL_BARRIER}/'"${ONEOPES_SMALL_BARRIER}"'/g' "plumed.dat" || exit 1
+            sed -i 's/{ONEOPES_REPLICA_3_TEMP}/'"${ONEOPES_REPLICA_3_TEMP}"'/g' "plumed.dat" || exit 1
+            sed -i 's/{ONEOPES_REPLICA_4_TEMP}/'"${ONEOPES_REPLICA_4_TEMP}"'/g' "plumed.dat" || exit 1
+            sed -i 's/{ONEOPES_REPLICA_5_TEMP}/'"${ONEOPES_REPLICA_5_TEMP}"'/g' "plumed.dat" || exit 1
+            sed -i 's/{ONEOPES_REPLICA_6_TEMP}/'"${ONEOPES_REPLICA_6_TEMP}"'/g' "plumed.dat" || exit 1
+            sed -i 's/{ONEOPES_REPLICA_7_TEMP}/'"${ONEOPES_REPLICA_7_TEMP}"'/g' "plumed.dat" || exit 1
             sed -i 's/{ATOM_REFERENCE}/'"${ATOM_REFERENCE}"'/g' "plumed.dat" || exit 1
             if [[ "${N_CALCIUM}" -eq '0' ]]; then
                 sed -i 's/NDX_GROUP=Aqueous_Calcium/NDX_GROUP=Crystal_Top_Surface_Calcium/g' "plumed.dat" || exit 1
