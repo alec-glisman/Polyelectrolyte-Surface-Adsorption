@@ -30,6 +30,7 @@ done < <(find "${params_dir}" -type f -name "*.sh" -print0)
 echo "${input_globals[@]}"
 
 # sort input globals
+# shellcheck disable=SC2207
 IFS=$'\n' input_globals=($(sort <<<"${input_globals[*]}"))
 
 # start script
