@@ -93,14 +93,14 @@ else
         # remove old gro file
         rm "${previous_sim_name}.gro" || exit 1
 
-        # run NVT equilibration
+        # run NVT equilibration 
+        # shellcheck disable=SC2086
         "${MPI_BIN}" -np '1' \
             --map-by "ppr:1:node:PE=${CPU_THREADS}" \
             --use-hwthread-cpus --bind-to 'hwthread' \
             "${GMX_BIN}" -nocopyright mdrun -v \
             -deffnm "${sim_name}" -cpi "${sim_name}.cpt" \
-            -pin on -pinoffset "${PIN_OFFSET}" -pinstride 1 -ntomp "${CPU_THREADS}" \
-            -gpu_id "${GPU_IDS}" || exit 1
+            ${GMX_CPU_ARGS} ${GMX_GPU_ARGS} || exit 1
 
         # convert final xtc frame to pdb file
         "${GMX_BIN}" -nocopyright trjconv \
@@ -183,14 +183,14 @@ else
         # plumed performance
         export PLUMED_NUM_THREADS="${CPU_THREADS}"
 
-        # call mdrun
+        # run NPT equilibration
+        # shellcheck disable=SC2086
         "${MPI_BIN}" -np '1' \
             --map-by "ppr:1:node:PE=${CPU_THREADS}" \
             --use-hwthread-cpus --bind-to 'hwthread' \
             "${GMX_BIN}" -nocopyright mdrun -v \
             -deffnm "${sim_name}" -cpi "${sim_name}.cpt" \
-            -pin on -pinoffset "${PIN_OFFSET}" -pinstride 1 -ntomp "${CPU_THREADS}" \
-            -gpu_id "${GPU_IDS}" || exit 1
+            ${GMX_CPU_ARGS} ${GMX_GPU_ARGS} || exit 1
 
         # plot system parameters over time
         params=('Potential' 'Kinetic-En.' 'Total-Energy' 'Temperature' 'Pressure' 'Density')
@@ -316,15 +316,15 @@ else
             sed -i 's/#RESTART/RESTART/g' "plumed.dat" || exit 1
         fi
 
-        # call mdrun
+        # run production equilibration
+        # shellcheck disable=SC2086
         "${MPI_BIN}" -np '1' \
             --map-by "ppr:1:node:PE=${CPU_THREADS}" \
             --use-hwthread-cpus --bind-to 'hwthread' \
             "${GMX_BIN}" -nocopyright mdrun -v \
             -deffnm "${sim_name}" -cpi "${sim_name}.cpt" \
             -plumed "plumed.dat" \
-            -pin on -pinoffset "${PIN_OFFSET}" -pinstride 1 -ntomp "${CPU_THREADS}" \
-            -gpu_id "${GPU_IDS}" || exit 1
+            ${GMX_CPU_ARGS} ${GMX_GPU_ARGS} || exit 1
 
         # convert final xtc frame to pdb file
         "${GMX_BIN}" -nocopyright trjconv \

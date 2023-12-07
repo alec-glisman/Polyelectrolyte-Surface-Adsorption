@@ -51,7 +51,7 @@ if [[ -n "${SLURM_JOB_ID+x}" ]]; then
     mdrun_runtime_hours="$(bc -l <<<"scale=2; ${total_walltime_remaining_hours}-0.2")"
 else
     # No walltime limit
-    mdrun_runtime_hours='10000'
+    mdrun_runtime_hours='16'
 fi
 
 # export mdrun runtime in hours

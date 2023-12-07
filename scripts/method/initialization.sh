@@ -615,12 +615,13 @@ echo "INFO: Running energy minimization"
 
 {
     # run energy minimization
+    # shellcheck disable=SC2086
     "${MPI_BIN}" -np '1' \
         --map-by "ppr:1:node:PE=${CPU_THREADS}" \
         --use-hwthread-cpus --bind-to 'hwthread' \
         "${GMX_BIN}" -nocopyright mdrun -v \
         -deffnm "${sim_name}" \
-        -pin on -pinoffset "${PIN_OFFSET}" -pinstride 1 -ntomp "${CPU_THREADS}" || exit 1
+        ${GMX_CPU_ARGS} ${GMX_GPU_ARGS} || exit 1
 
     # dump last frame of energy minimization as gro file
     "${GMX_BIN}" -nocopyright trjconv \

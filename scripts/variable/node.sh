@@ -60,14 +60,33 @@ export PLUMED_KERNEL
 export GMX_BIN
 export PATH
 
-# slurm defaults supersedes hardware input parameters
-if [[ -n "${SLURM_NTASKS+x}" ]]; then
-    export CPU_THREADS="${SLURM_NTASKS}"
-fi
 
-if [[ -n ${SLURM_GPUS+x} ]]; then
+# Use SLURM environment variables if available
+if [[ -n "${SLURM_NTASKS+x}" ]] && [[ "${CPU_THREADS}" != "-1" ]]; then
+    export CPU_THREADS="${SLURM_NTASKS}"
+    export PLUMED_NUM_THREADS="${CPU_THREADS}"
+fi
+if [[ -n ${SLURM_GPUS+x} ]] && [[ "${GPU_IDS}" != "-1" ]]; then
     export GPU_IDS="${SLURM_GPUS}"
 fi
+
+# choose CPU thread options
+if [[ "${CPU_THREADS}" == "-1" ]]; then
+    GMX_CPU_ARGS='-pin on -pinstride 1'
+elif [[ "${PIN_OFFSET}" == "-1" ]]; then
+    GMX_CPU_ARGS="-nt ${CPU_THREADS} -pin on -pinstride 1"
+else
+    GMX_CPU_ARGS="-nt ${CPU_THREADS} -pin on -pinoffset ${PIN_OFFSET} -pinstride 1"
+fi
+export GMX_CPU_ARGS
+
+# choose GPU options
+if [[ "${GPU_IDS}" = "-1" ]]; then
+    GMX_GPU_ARGS=''
+else
+    GMX_GPU_ARGS="-gpu_id ${GPU_IDS}"
+fi
+export GMX_GPU_ARGS
 
 # define number of computational nodes
 # shellcheck disable=SC2236
@@ -75,11 +94,8 @@ if [[ ! -n "${SLURM_JOB_NUM_NODES+x}" ]]; then
     export SLURM_JOB_NUM_NODES='1'
 fi
 
-# Allow direct GPU communication for Gromacs
-export GMX_ENABLE_DIRECT_GPU_COMM='1'
-
-# Set number of CPU threads for Plumed
-export PLUMED_NUM_THREADS="${CPU_THREADS}"
+# REVIEW: Allow direct GPU communication for Gromacs
+# export GMX_ENABLE_DIRECT_GPU_COMM='1'
 
 # Hamiltonian replica exchange defaults
 n_threads_per_node="$(grep -c ^processor /proc/cpuinfo)"

@@ -108,16 +108,18 @@ else
             rm "${previous_sim_name}.gro" || exit 1
         fi
 
-        # call mdrun
+        # get copy of GMX_CPU_ARGS with -nt replaced by -ntomp
+        GMX_CPU_ARGS="${GMX_CPU_ARGS/-nt/-ntomp}"
+
+        # shellcheck disable=SC2153,SC2086
         "${MPI_BIN}" -np '1' \
             --map-by "ppr:1:node:PE=${CPU_THREADS}" \
             --use-hwthread-cpus --bind-to 'hwthread' \
             "${GMX_BIN}" -nocopyright mdrun -v \
             -maxh "${WALLTIME_HOURS}" \
             -deffnm "${sim_name}" -cpi "${sim_name}.cpt" \
-            -pin on -pinoffset "${PIN_OFFSET}" -pinstride 1 -ntomp "${CPU_THREADS}" \
-            -gpu_id "${GPU_IDS}" \
-            -noappend || exit 1
+            ${GMX_CPU_ARGS} ${GMX_GPU_ARGS} \
+            -noappend 
 
         # make completed simulation text file
         touch "completed.txt"
