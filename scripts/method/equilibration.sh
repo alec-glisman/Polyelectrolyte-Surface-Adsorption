@@ -93,7 +93,7 @@ else
         # remove old gro file
         rm "${previous_sim_name}.gro" || exit 1
 
-        # run NVT equilibration 
+        # run NVT equilibration
         # shellcheck disable=SC2086
         "${MPI_BIN}" -np '1' \
             --map-by "ppr:1:node:PE=${CPU_THREADS}" \
@@ -399,6 +399,9 @@ else
         cp -np "${previous_archive_dir}/${sim_name}.pdb" "${archive_dir}/${sim_name}.pdb" || exit 1
         cp -np "topol.top" "${archive_dir}/topol.top" || exit 1
         cp -np "index.ndx" "${archive_dir}/index.ndx" || exit 1
+
+        # delete all backup files
+        find . -type f -name '#*#' -delete || true
     } >>"${log_file}" 2>&1
 fi
 

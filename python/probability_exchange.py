@@ -230,7 +230,7 @@ class ParseGmxLog:
         avgs = self.df_repl_pr.mean().round(3)
         stds = self.df_repl_pr.std().round(3)
         with open(f_out, "w", encoding="utf-8") as f:
-            f.write(f"Datetime: {datetime.datetime.now()}")
+            f.write(f"Datetime: {datetime.datetime.now()}\n")
             f.write(f"Log file: {self.f_log}\n\n")
             f.write(f"Number of replicas: {self.n_replica}\n")
             f.write(f"Initial time: {self.t_initial:.1f} ns\n")

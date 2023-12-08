@@ -93,7 +93,9 @@ echo "INFO: Copying input files to working directory"
     # if any cp commands failed, exit script
     cp -np "${mdp_file}" "mdin.mdp" || exit 1
     cp -np "${PDB_CRYSTAL}" "crystal.pdb" || exit 1
-    cp -np "${PDB_CHAIN}" "chain.pdb" || exit 1
+    if [[ "${N_CHAIN}" -gt 0 ]]; then
+        cp -np "${PDB_CHAIN}" "chain.pdb" || exit 1
+    fi
 
 } >>"${log_file}" 2>&1
 
@@ -103,10 +105,24 @@ echo "INFO: Copying input files to working directory"
 echo "INFO: Importing structure to Gromacs"
 
 {
+    # make template pdb file
+    cp -np "crystal.pdb" "${sim_name}.pdb"
+
+    # convert template pdb to gro
+    "${GMX_BIN}" pdb2gmx \
+        -f "${sim_name}.pdb" \
+        -o "crystal.gro" \
+        -p "topol.top" \
+        -ff "forcefield" \
+        -water "spce" \
+        -noignh \
+        -renum \
+        -rtpres
+
     # insert-molecules to create simulation box of crystal and chains
     if [[ "${N_CHAIN}" -gt 0 ]]; then
         "${GMX_BIN}" -nocopyright insert-molecules \
-            -f "crystal.pdb" \
+            -f "${sim_name}.pdb" \
             -ci "chain.pdb" \
             -o "${sim_name}.pdb" \
             -nmol "${N_CHAIN}" \
@@ -149,12 +165,13 @@ echo "INFO: Importing structure to Gromacs"
     sed -i "s/${z}/${new_z}/g" "${sim_name}.gro"
 
     # find minimum z-coordinate of crystal by last 6 columns of each CRB containing line in gro file
-    carbonate_carbon_z="$(grep 'CRB' "${sim_name}.gro" | grep -o '.\{6\}$' | awk '{$1=$1};1')"
+    carbonate_carbon_z="$(grep 'CRB' "crystal.gro" | grep -o '.\{6\}$' | awk '{$1=$1};1')"
     minimum_z_coord="$(echo "${carbonate_carbon_z}" | sort -n)"
     z_min="$(echo "${minimum_z_coord}" | awk 'NR==1{print $1}')"
     # subtract 1.5 nm to z_min to ensure that all atoms are within the box and we can see water structure
     offset='1.5'
     z_min="$(bc <<<"scale=5; ${z_min} - ${offset}")"
+    echo "DEBUG: Minimum z-coordinate of crystal [nm]: ${z_min}"
 
     # shift z-coordinates of all atoms by z_min
     "${GMX_BIN}" -nocopyright editconf \
@@ -355,7 +372,13 @@ echo "INFO: Making index file"
 
 {
     # create blank index file
-    idx_group='17'
+    if [[ "${N_CHAIN}" -gt 0 ]]; then
+        idx_group='17'
+    else
+        idx_group='6'
+    fi
+    idx_crystal="${idx_group}"
+
     "${GMX_BIN}" make_ndx \
         -f "${sim_name}.gro" \
         -o "index.ndx" \
@@ -466,7 +489,7 @@ EOF
             -n "index.ndx" \
             -o "index.ndx" \
             <<EOF
-a NA & ! chain A & ! chain B
+a NA & ! chain A & ! chain B & ! r CRB
 name ${idx_group} Aqueous_Sodium
 
 q
@@ -481,7 +504,7 @@ EOF
             -n "index.ndx" \
             -o "index.ndx" \
             <<EOF
-a CA & ! chain A & ! chain B
+a CA & ! chain A & ! chain B & ! ${idx_crystal}
 name ${idx_group} Aqueous_Calcium
 
 q
@@ -531,8 +554,14 @@ echo "INFO: Adding positional restraints"
 
 {
     # change POSRES default to component specific POSRES
-    sed -i 's/POSRES/POSRES_CRYSTAL/g' topol_Ion_chain_*.itp
-    sed -i 's/POSRES/POSRES_CHAIN/g' topol_Protein_chain_*.itp
+    if [[ "${N_CHAIN}" -gt 0 ]]; then
+        sed -i 's/POSRES$/POSRES_CRYSTAL/g' topol_Ion_chain_*.itp
+        sed -i 's/POSRES$/POSRES_CHAIN/g' topol_Protein_chain_*.itp
+    elif [[ "${N_CARBONATE}" -gt 0 ]]; then
+        sed -i 's/POSRES$/POSRES_CRYSTAL/g' topol_Ion_chain_*.itp
+    else
+        sed -i 's/POSRES$/POSRES_CRYSTAL/g' topol.top
+    fi
 }
 
 # ##############################################################################
