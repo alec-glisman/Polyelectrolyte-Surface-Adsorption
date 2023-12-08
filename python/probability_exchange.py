@@ -286,7 +286,7 @@ class ParseGmxLog:
         ax.set_ylabel("(Rolling) Exchange Probability", fontsize=18, labelpad=10)
         ax.set_ylim(0, 1)
         ax.tick_params(axis="both", which="major", labelsize=16)
-        ax.legend(loc="best", ncol=2, fontsize=14)
+        ax.legend(loc="upper left", ncol=2, fontsize=14)
         ax.set_title(
             f"Window = {window}, Count = {len(data)}",
             fontsize=18,
