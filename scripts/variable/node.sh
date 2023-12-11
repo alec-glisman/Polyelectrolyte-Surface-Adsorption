@@ -60,7 +60,6 @@ export PLUMED_KERNEL
 export GMX_BIN
 export PATH
 
-
 # Use SLURM environment variables if available
 if [[ -n "${SLURM_NTASKS+x}" ]] && [[ "${CPU_THREADS}" != "-1" ]]; then
     export CPU_THREADS="${SLURM_NTASKS}"
@@ -72,7 +71,7 @@ fi
 
 # choose CPU thread options
 if [[ "${CPU_THREADS}" == "-1" ]]; then
-    GMX_CPU_ARGS='-pin on -pinstride 1'
+    GMX_CPU_ARGS=''
 elif [[ "${PIN_OFFSET}" == "-1" ]]; then
     GMX_CPU_ARGS="-nt ${CPU_THREADS} -pin on -pinstride 1"
 else

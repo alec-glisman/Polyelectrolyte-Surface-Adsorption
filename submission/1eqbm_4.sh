@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Created by Alec Glisman (GitHub: @alec-glisman) on January 25th, 2023
 
-#SBATCH --job-name=SysInit
+#SBATCH --job-name=4-Eqbm
 #SBATCH --time=2-00:00:00
 
 # Slurm: Node configuration
@@ -21,17 +21,35 @@ set -o nounset # exit when script tries to use undeclared variables
 proj_base_dir="$(pwd)/.."
 scripts_dir="${proj_base_dir}/scripts"
 params_dir="${proj_base_dir}/submission/input/4-test-systems"
+input_globals=(
+    '1.0_104calcite_9nm_crystal_10nm_height.sh'
+    '2.0_64CaCl2_104calcite_9nm_crystal_10nm_height.sh'
+    '3.0_64CaCO3_104calcite_9nm_crystal_10nm_height.sh'
+    '4.0_16AA_104calcite_9nm_crystal_10nm_height.sh'
+    '5.0_16An_104calcite_9nm_crystal_10nm_height.sh'
+    '6.0_16Al_104calcite_9nm_crystal_10nm_height.sh'
+    '7.0_16Ac_104calcite_9nm_crystal_10nm_height.sh'
+)
 
-# input globals is an array of all files in the params_dir stripped of the params_dir path
-input_globals=()
-while IFS= read -r -d '' file; do
-    input_globals+=("${file##*/}")
-done < <(find "${params_dir}" -type f -name "*.sh" -print0)
-echo "${input_globals[@]}"
+# argument parsing
+# 1st argument: input global indices to run
+idxs=()
+if [ $# -eq 0 ]; then
+    idxs=($(seq 0 $((${#input_globals[@]} - 1))))
+else
+    idxs=("$@")
+fi
 
-# sort input globals
-# shellcheck disable=SC2207
-IFS=$'\n' input_globals=($(sort <<<"${input_globals[*]}"))
+# check if input indices are valid
+for idx in "${idxs[@]}"; do
+    if [ $idx -lt 0 ] || [ $idx -ge ${#input_globals[@]} ]; then
+        echo "ERROR: invalid input index: ${idx}"
+        exit 1
+    fi
+done
+
+# filter input globals
+input_globals=("${input_globals[@]:${idxs[0]}:${#idxs[@]}}")
 
 # start script
 date_time=$(date +"%Y-%m-%d %T")
