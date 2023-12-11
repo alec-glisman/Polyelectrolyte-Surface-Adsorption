@@ -28,7 +28,11 @@ npt_script="${project_path}/python/mean_frame_xvg_2_col.py"
 
 # Plumed files
 dat_path="${project_path}/parameters/plumed/harmonic"
-dat_file="${dat_path}/plumed.dat"
+if [[ "${N_CHAIN}" -gt 0 ]]; then
+    dat_file="${dat_path}/plumed.dat"
+else
+    dat_file="${dat_path}/empty.dat"
+fi
 
 # Gromacs files
 mdp_path="${project_path}/parameters/mdp/molecular-dynamics"
