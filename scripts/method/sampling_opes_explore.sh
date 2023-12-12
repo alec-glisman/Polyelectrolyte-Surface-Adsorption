@@ -24,7 +24,7 @@ project_path="${script_path}/../.."
 
 # Gromacs files
 mdp_path="${project_path}/parameters/mdp/molecular-dynamics"
-mdp_file="${mdp_path}/${PRODUCTION_ENSEMBLE,,}_prod.mdp"
+mdp_file="${mdp_path}/${PRODUCTION_ENSEMBLE,,}_prod_${INTEGRATION_NS}ns.mdp"
 
 # Plumed files
 dat_path="${project_path}/parameters/plumed/opes-explore"
@@ -39,27 +39,16 @@ cwd="${cwd_init}/3-sampling-opes-explore"
 log_dir="${cwd}/logs"
 log_file="${log_dir}/${time_init}-md.log"
 
-# #######################################################################################
-# Check for existing files ##############################################################
-# #######################################################################################
-echo "CRITICAL: Starting OPES Explore production"
-
 # move to working directory
 mkdir -p "${cwd}"
-mkdir -p "${log_dir}"
 cd "${cwd}" || exit
-
-# check if output gro file already exists
-if [[ -f "output/system.gro" ]]; then
-    echo "WARNING: output/system.gro already exists"
-    echo "INFO: Exiting script"
-    exit 0
-fi
+mkdir -p "${log_dir}"
+echo "CRITICAL: Starting OPES Explore production"
 
 # #######################################################################################
 # Run simulation ########################################################################
 # #######################################################################################
-echo "INFO: Running production MD simulation"
+echo "INFO: Running production OPES Explore simulation"
 previous_sim_name="prod_eqbm"
 previous_archive_dir="${cwd_init}/2-equilibration/4-output"
 sim_name="prod_opes_explore"
@@ -70,7 +59,7 @@ sim_name="prod_opes_explore"
     echo "Script: ${BASH_SOURCE[0]}"
     echo "Date: $(date)"
     echo "Host: $(hostname)"
-    echo "System: ${MONOMER}-${BLOCK}-${CRYSTAL}-${SURFACE}-${SURFACE_SIZE}nm-${BOX_HEIGHT}nm-${N_MONOMER}mon-${N_CHAIN}chain-${N_CARBONATE}co3-${N_SODIUM}na-${N_CALCIUM}ca-${N_CHLORINE}cl-${TAG_APPEND}"
+    echo "System: ${MONOMER}-${BLOCK}-${CRYSTAL}-${SURFACE}-${SURFACE_SIZE}nm-${BOX_HEIGHT}nm-${N_MONOMER}mon-${N_CHAIN}chain-${N_CARBONATE}co3-${N_SODIUM}na-${N_CALCIUM}ca-${N_CHLORINE}cl"
     echo "Ensemble: ${PRODUCTION_ENSEMBLE} ${TEMPERATURE_K}K ${PRESSURE_BAR}bar"
     echo "################################################################################"
     echo ""
@@ -78,11 +67,11 @@ sim_name="prod_opes_explore"
 
 if [[ -f "completed.txt" ]]; then
     echo "WARNING: completed.txt already exists"
-    echo "INFO: Skipping production MD simulation"
+    echo "INFO: Skipping production OPES Explore simulation"
 
 elif [[ "${FLAG_ARCHIVE}" = true ]]; then
     echo "WARNING: Archive flag is set, mdrun will not be called"
-    echo "INFO: Skipping production MD simulation"
+    echo "INFO: Skipping production OPES Explore simulation"
 
 else
     {
@@ -103,17 +92,19 @@ else
 
             # copy plumed file
             cp "${dat_file}" "plumed.dat" || exit 1
-            sed -i 's/{WALL_HEIGHT}/'"${PE_WALL_MAX}"'/g' "plumed.dat" || exit 1
+            sed -i 's/{LOWER_WALL_HEIGHT}/'"${PE_WALL_MIN}"'/g' "plumed.dat" || exit 1
+            sed -i 's/{UPPER_WALL_HEIGHT}/'"${PE_WALL_MAX}"'/g' "plumed.dat" || exit 1
             sed -i 's/{WALL_OFFSET}/'"${ATOM_OFFSET}"'/g' "plumed.dat" || exit 1
             sed -i 's/{ATOM_REFERENCE}/'"${ATOM_REFERENCE}"'/g' "plumed.dat" || exit 1
             if [[ "${N_CALCIUM}" -eq '0' ]]; then
-                sed -i 's/NDX_GROUP=Aqueous_Calcium/NDX_GROUP=Aqueous_Sodium/g' "plumed.dat" || exit 1
+                sed -i 's/NDX_GROUP=Aqueous_Calcium/NDX_GROUP=Crystal_Top_Surface_Calcium/g' "plumed.dat" || exit 1
             fi
 
             # create tpr file
-            "${GMX_BIN}" -quiet -nocopyright grompp \
+            "${GMX_BIN}" -nocopyright grompp \
                 -f "${sim_name}.mdp" \
                 -c "${previous_sim_name}.gro" \
+                -r "${previous_sim_name}.gro" \
                 -n "index.ndx" \
                 -p "topol.top" \
                 -o "${sim_name}.tpr"
@@ -125,25 +116,23 @@ else
             sed -i 's/#RESTART/RESTART/g' "plumed.dat" || exit 1
         fi
 
-        # plumed performance
-        export PLUMED_NUM_THREADS="${CPU_THREADS}"
+        # get copy of GMX_CPU_ARGS with -nt replaced by -ntomp
+        GMX_CPU_ARGS="${GMX_CPU_ARGS/-nt/-ntomp}"
 
-        # call mdrun
-        "${MPI_BIN}" -np '1' \
-            --map-by "ppr:1:node:PE=${CPU_THREADS}" \
-            --use-hwthread-cpus --bind-to 'hwthread' \
-            "${GMX_BIN}" -quiet -nocopyright mdrun -v \
+        # shellcheck disable=SC2153,SC2086
+        "${GMX_BIN}" -nocopyright mdrun -v \
             -maxh "${WALLTIME_HOURS}" \
             -deffnm "${sim_name}" -cpi "${sim_name}.cpt" \
             -plumed "plumed.dat" \
-            -pin on -pinoffset "${PIN_OFFSET}" -pinstride 1 -ntomp "${CPU_THREADS}" \
-            -gpu_id "${GPU_IDS}" \
-            -noappend || exit 1
+            ${GMX_CPU_ARGS} ${GMX_GPU_ARGS} \
+            -noappend
 
         # make completed simulation text file
-        touch "completed.txt"
-        # write completed simulation text file
-        echo "completed: $(date)" >"completed.txt"
+        if [[ -f "${sim_name}.gro" ]]; then
+            echo "DEBUG: Simulation completed"
+            touch "${cwd}/completed.txt"
+            echo "completed: $(date)" >"${cwd}/completed.txt"
+        fi
 
     } >>"${log_file}" 2>&1
 fi
@@ -160,7 +149,7 @@ log_file="${log_dir}/${time_init}-concatenation.log"
     echo "Script: ${BASH_SOURCE[0]}"
     echo "Date: $(date)"
     echo "Host: $(hostname)"
-    echo "System: ${MONOMER}-${BLOCK}-${CRYSTAL}-${SURFACE}-${SURFACE_SIZE}nm-${BOX_HEIGHT}nm-${N_MONOMER}mon-${N_CHAIN}chain-${N_CARBONATE}co3-${N_SODIUM}na-${N_CALCIUM}ca-${N_CHLORINE}cl-${TAG_APPEND}"
+    echo "System: ${MONOMER}-${BLOCK}-${CRYSTAL}-${SURFACE}-${SURFACE_SIZE}nm-${BOX_HEIGHT}nm-${N_MONOMER}mon-${N_CHAIN}chain-${N_CARBONATE}co3-${N_SODIUM}na-${N_CALCIUM}ca-${N_CHLORINE}cl"
     echo "Ensemble: ${PRODUCTION_ENSEMBLE} ${TEMPERATURE_K}K ${PRESSURE_BAR}bar"
     echo "################################################################################"
     echo ""
@@ -174,6 +163,8 @@ archive_dir="1-runs"
     rsync --archive --verbose --progress --human-readable --itemize-changes \
         ./*.data "${archive_dir}/" || exit 1
     rsync --archive --verbose --progress --human-readable --itemize-changes \
+        ./*.dat "${archive_dir}/" || exit 1
+    rsync --archive --verbose --progress --human-readable --itemize-changes \
         ./*.Kernels* "${archive_dir}/" || exit 1
 } >>"${log_file}" 2>&1
 
@@ -184,12 +175,12 @@ concat_dir="2-concatenated"
     mkdir -p "${concat_dir}"
 
     # concatenate xtc files
-    "${GMX_BIN}" -quiet -nocopyright trjcat \
+    "${GMX_BIN}" -nocopyright trjcat \
         -f "${archive_dir}/${sim_name}."*.xtc \
         -o "${concat_dir}/${sim_name}.xtc" || exit 1
 
     # concatenate edr files
-    "${GMX_BIN}" -quiet -nocopyright eneconv \
+    "${GMX_BIN}" -nocopyright eneconv \
         -f "${archive_dir}/${sim_name}."*.edr \
         -o "${concat_dir}/${sim_name}.edr" || exit 1
 
@@ -197,7 +188,7 @@ concat_dir="2-concatenated"
     cp "${archive_dir}/${sim_name}.tpr" "${concat_dir}/${sim_name}.tpr" || exit 1
 
     # dump pdb file from last frame
-    "${GMX_BIN}" -quiet -nocopyright trjconv \
+    "${GMX_BIN}" -nocopyright trjconv \
         -f "${concat_dir}/${sim_name}.xtc" \
         -s "${concat_dir}/${sim_name}.tpr" \
         -o "${concat_dir}/${sim_name}.pdb" \
@@ -207,7 +198,7 @@ System
 EOF
 
     # dump gro file from last frame
-    "${GMX_BIN}" -quiet -nocopyright trjconv \
+    "${GMX_BIN}" -nocopyright trjconv \
         -f "${concat_dir}/${sim_name}.xtc" \
         -s "${concat_dir}/${sim_name}.tpr" \
         -o "${concat_dir}/${sim_name}.gro" \
@@ -215,7 +206,7 @@ EOF
 System
 EOF
 
-    # copy *.data files
+    # copy plumed files
     cp "${archive_dir}/"*.data "${concat_dir}/" || exit 1
 } >>"${log_file}" 2>&1
 
@@ -226,7 +217,7 @@ nosol_dir="3-no-solvent"
     mkdir -p "${nosol_dir}"
 
     # pdb structure
-    "${GMX_BIN}" -quiet trjconv \
+    "${GMX_BIN}" trjconv \
         -f "${concat_dir}/${sim_name}.xtc" \
         -s "${concat_dir}/${sim_name}.tpr" \
         -o "${nosol_dir}/${sim_name}.pdb" \
@@ -236,7 +227,7 @@ non-Water
 EOF
 
     # xtc trajectory
-    "${GMX_BIN}" -quiet trjconv \
+    "${GMX_BIN}" trjconv \
         -f "${concat_dir}/${sim_name}.xtc" \
         -s "${concat_dir}/${sim_name}.tpr" \
         -o "${nosol_dir}/${sim_name}.xtc" \
@@ -245,7 +236,7 @@ non-Water
 EOF
 
     # copy *.data files
-    cp "${concat_dir}/"*.data "${nosol_dir}/" || exit 1
+    cp "${concat_dir}/"*.data -t "${nosol_dir}/" || exit 1
 } >>"${log_file}" 2>&1
 
 # #######################################################################################
@@ -260,7 +251,7 @@ log_file="${log_dir}/${time_init}-analysis.log"
     echo "Script: ${BASH_SOURCE[0]}"
     echo "Date: $(date)"
     echo "Host: $(hostname)"
-    echo "System: ${MONOMER}-${BLOCK}-${CRYSTAL}-${SURFACE}-${SURFACE_SIZE}nm-${BOX_HEIGHT}nm-${N_MONOMER}mon-${N_CHAIN}chain-${N_CARBONATE}co3-${N_SODIUM}na-${N_CALCIUM}ca-${N_CHLORINE}cl-${TAG_APPEND}"
+    echo "System: ${MONOMER}-${BLOCK}-${CRYSTAL}-${SURFACE}-${SURFACE_SIZE}nm-${BOX_HEIGHT}nm-${N_MONOMER}mon-${N_CHAIN}chain-${N_CARBONATE}co3-${N_SODIUM}na-${N_CALCIUM}ca-${N_CHLORINE}cl"
     echo "Ensemble: ${PRODUCTION_ENSEMBLE} ${TEMPERATURE_K}K ${PRESSURE_BAR}bar"
     echo "################################################################################"
     echo ""
@@ -275,7 +266,7 @@ log_file="${log_dir}/${time_init}-analysis.log"
     echo "DEBUG: Parameters to plot: ${params[*]}"
     for param in "${params[@]}"; do
         filename="${param,,}"
-        "${GMX_BIN}" -quiet -nocopyright energy \
+        "${GMX_BIN}" -nocopyright energy \
             -f "${concat_dir}/${sim_name}.edr" \
             -o "${filename}.xvg" <<EOF
 ${param}
@@ -304,14 +295,16 @@ EOF
 # Clean Up ##############################################################################
 # #######################################################################################
 echo "INFO: Cleaning up"
-log_file="cleanup.log"
+log_file="${log_dir}/${time_init}-cleanup.log"
 
-# iterate over directories and delete backup files
-for dir in "${archive_dir}" "${concat_dir}" "${nosol_dir}" "."; do
-    find "${dir}" -type f -name '#*#' -delete || true
-done
+{
+    # iterate over directories and delete backup files
+    for dir in "${archive_dir}" "${concat_dir}" "${nosol_dir}" "."; do
+        find "${dir}" -type f -name '#*#' -delete || true
+    done
 
-# move to initial working directory
-cd "${cwd_init}" || exit 1
+    # move to initial working directory
+    cd "${cwd_init}" || exit 1
+} >>"${log_file}" 2>&1
 
 echo "CRITICAL: Finished OPES Explore production"

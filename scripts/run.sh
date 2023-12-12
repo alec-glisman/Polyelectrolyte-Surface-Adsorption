@@ -18,14 +18,6 @@ package="run.sh" # name of this script
 # Input parsing ################################################################
 # ##############################################################################
 
-# input checking
-if [[ $# -lt 2 ]]; then
-    echo "ERROR: Too few arguments."
-    echo "Usage: ${package} [global_preferences] [simulation_preferences]"
-    echo "Use '${package} --help' for more information."
-    exit 1
-fi
-
 # global preferences file
 global_preferences="${1}"
 
@@ -34,13 +26,18 @@ flag_initialization=false
 flag_equilibration=false
 flag_production=false
 flag_sampling_md=false
-flag_sampling_opes_explore=false
+FLAG_SAMPLING_METAD=false
+FLAG_SAMPLING_OPES_EXPLORE=false
+flag_sampling_opes_one=false
+flag_sampling_hremd=false
 
 # action flags
 flag_archive=false
 
-# remove global preferences from command line arguments
-shift
+# remove global preferences from command line arguments (check that first argument is not a flag)
+if [[ "${global_preferences}" != -* ]]; then
+    shift
+fi
 
 # parse command line arguments
 for arg in "$@"; do
@@ -61,9 +58,23 @@ for arg in "$@"; do
         ;;
     -m | --md)
         flag_sampling_md=true
+        flag_production=true
         ;;
-    -o | --opes)
-        flag_sampling_opes_explore=true
+    -x | --hremd)
+        flag_sampling_hremd=true
+        flag_production=true
+        ;;
+    -w | --metad)
+        FLAG_SAMPLING_METAD=true
+        flag_production=true
+        ;;
+    -o | --opes-explore)
+        FLAG_SAMPLING_OPES_EXPLORE=true
+        flag_production=true
+        ;;
+    -n | --opes-one)
+        flag_sampling_opes_one=true
+        flag_production=true
         ;;
     -r | --archive)
         flag_archive=true
@@ -71,15 +82,23 @@ for arg in "$@"; do
     -h | --help)
         echo "Usage: ${package} [global_preferences] [simulation_preferences]"
         echo ""
-        echo "Simulation preferences (methods):"
+        echo "[global_preferences] is an input shell script that sets global variables and parameters for the simulation."
+        echo ""
+        echo "[simulation_preferences] is a list of flags that specify which simulation methods to run."
+        echo "If a production method is selected, the sampling method must also be selected."
+        echo ""
+        echo "Simulation methods:"
         echo "  -i, --initialize    Initialize the simulation."
         echo "  -e, --equilibrate   Equilibrate the simulation."
         echo "  -p, --production    Run the production simulation."
-        echo "  -a, --all           Run all simulations."
+        echo "  -a, --all           Run all simulation methods."
         echo ""
         echo "Production sampling methods:"
         echo "  -m, --md            Molecular dynamics (unbiased)."
-        echo "  -o, --opes          OPES Explore (biased)."
+        echo "  -x, --hremd         Hamiltonian replica exchange MD (biased)."
+        echo "  -w, --metad         Metadynamics (biased, can be combined with HREMD)."
+        echo "  -o, --opes-explore  OPES Explore (biased, can be combined with HREMD)."
+        echo "  -n, --opes-one      OneOPES (biased)."
         echo ""
         echo "Other:"
         echo "  -r, --archive       Archive the simulation."
@@ -95,6 +114,15 @@ for arg in "$@"; do
     esac
 done
 
+# input checking
+if [[ $# -lt 1 ]]; then
+    echo "ERROR: Too few arguments."
+    echo "Arguments: ${*}"
+    echo "Usage: ${package} [global_preferences] [simulation_preferences]"
+    echo "Use '${package} --help' for more information."
+    exit 1
+fi
+
 # check that at least one simulation method was selected
 if [[ "${flag_initialization}" = false ]] && [[ "${flag_equilibration}" = false ]] && [[ "${flag_production}" = false ]]; then
     echo "ERROR: No simulation methods selected."
@@ -104,8 +132,46 @@ if [[ "${flag_initialization}" = false ]] && [[ "${flag_equilibration}" = false 
 fi
 
 # check that if production was selected, at least one sampling method was selected
-if [[ "${flag_production}" = true ]] && [[ "${flag_sampling_md}" = false ]]; then
+if [[ "${flag_production}" = true ]] && [[ "${flag_sampling_md}" = false ]] && [[ "${FLAG_SAMPLING_OPES_EXPLORE}" = false ]] && [[ "${flag_sampling_opes_one}" = false ]] && [[ "${flag_sampling_hremd}" = false ]] && [[ "${FLAG_SAMPLING_METAD}" = false ]]; then
     echo "ERROR: No production sampling methods selected."
+    echo "Usage: ${package} [global_preferences] [simulation_preferences]"
+    echo "Use '${package} --help' for more information."
+    exit 1
+fi
+
+# check that only one production sampling method was selected
+if [[ "${flag_sampling_md}" = true ]] && [[ "${FLAG_SAMPLING_OPES_EXPLORE}" = true ]]; then
+    echo "ERROR: Cannot select both MD and OPES Explore sampling methods."
+    echo "Usage: ${package} [global_preferences] [simulation_preferences]"
+    echo "Use '${package} --help' for more information."
+    exit 1
+elif [[ "${flag_sampling_md}" = true ]] && [[ "${FLAG_SAMPLING_METAD}" = true ]]; then
+    echo "ERROR: Cannot select both MD and Metadynamics sampling methods."
+    echo "Usage: ${package} [global_preferences] [simulation_preferences]"
+    echo "Use '${package} --help' for more information."
+    exit 1
+elif [[ "${flag_sampling_md}" = true ]] && [[ "${flag_sampling_opes_one}" = true ]]; then
+    echo "ERROR: Cannot select both MD and OneOPES sampling methods."
+    echo "Usage: ${package} [global_preferences] [simulation_preferences]"
+    echo "Use '${package} --help' for more information."
+    exit 1
+elif [[ "${FLAG_SAMPLING_METAD}" = true ]] && [[ "${FLAG_SAMPLING_OPES_EXPLORE}" = true ]]; then
+    echo "ERROR: Cannot select both Metadynamics and OPES Explore sampling methods."
+    echo "Usage: ${package} [global_preferences] [simulation_preferences]"
+    echo "Use '${package} --help' for more information."
+    exit 1
+elif [[ "${FLAG_SAMPLING_OPES_EXPLORE}" = true ]] && [[ "${flag_sampling_opes_one}" = true ]]; then
+    echo "ERROR: Cannot select both OPES Explore and OneOPES sampling methods."
+    echo "Usage: ${package} [global_preferences] [simulation_preferences]"
+    echo "Use '${package} --help' for more information."
+    exit 1
+elif [[ "${FLAG_SAMPLING_METAD}" = true ]] && [[ "${flag_sampling_opes_one}" = true ]]; then
+    echo "ERROR: Cannot select both Metadynamics and OneOPES sampling methods."
+    echo "Usage: ${package} [global_preferences] [simulation_preferences]"
+    echo "Use '${package} --help' for more information."
+    exit 1
+elif [[ "${flag_sampling_opes_one}" = true ]] && [[ "${flag_sampling_hremd}" = true ]]; then
+    echo "ERROR: Cannot select both OneOPES and HREMD sampling methods."
     echo "Usage: ${package} [global_preferences] [simulation_preferences]"
     echo "Use '${package} --help' for more information."
     exit 1
@@ -126,6 +192,10 @@ source "${global_preferences}"
 source "${project_path}/scripts/variable/system.sh"
 # shellcheck source=variable/node.sh
 source "${project_path}/scripts/variable/node.sh"
+
+# export simulation methods
+export FLAG_SAMPLING_METAD
+export FLAG_SAMPLING_OPES_EXPLORE
 
 # create simulation directory and move into it
 mkdir -p "${project_path}/data/${TAG}"
@@ -149,7 +219,7 @@ fi
 
 # run production simulation
 if [[ "${flag_production}" = true ]]; then
-    echo "INFO: Archiving simulation: ${flag_archive}"
+    echo "INFO: Archiving simulation boolean: ${flag_archive}"
     export FLAG_ARCHIVE="${flag_archive}"
 
     # find walltime remaining
@@ -157,17 +227,35 @@ if [[ "${flag_production}" = true ]]; then
     source "${project_path}/scripts/variable/slurm.sh"
     echo "INFO: WALLTIME_HOURS: ${WALLTIME_HOURS}"
 
-    # molecular dynamics
-    if [[ "${flag_sampling_md}" = true ]]; then
-        echo "Sampling molecular dynamics..."
+    if [[ "${flag_sampling_hremd}" = true ]]; then
+        echo "Equilibrating HREMD..."
+        "${project_path}/scripts/method/equilibration_hremd.sh"
+
+        # recalculate walltime remaining
+        # shellcheck source=variable/slurm.sh
+        source "${project_path}/scripts/variable/slurm.sh"
+        echo "INFO: WALLTIME_HOURS for HREMD production: ${WALLTIME_HOURS}"
+
+        echo "Sampling HREMD..."
+        "${project_path}/scripts/method/sampling_hremd.sh"
+
+    elif [[ "${flag_sampling_md}" = true ]]; then
+        echo "Sampling MD..."
         "${project_path}/scripts/method/sampling_md.sh"
+
+    elif [[ "${FLAG_SAMPLING_METAD}" = true ]]; then
+        echo "Sampling Metadynamics..."
+        "${project_path}/scripts/method/sampling_metadynamics.sh"
+
+    elif [[ "${FLAG_SAMPLING_OPES_EXPLORE}" = true ]]; then
+        echo "Sampling OPES Explore..."
+        "${project_path}/scripts/method/sampling_opes_explore.sh"
+
+    elif [[ "${flag_sampling_opes_one}" = true ]]; then
+        echo "Sampling OneOPES..."
+        "${project_path}/scripts/method/sampling_opes_one.sh"
     fi
 
-    # OPES explore
-    if [[ "${flag_sampling_opes_explore}" = true ]]; then
-        echo "Sampling OPES explore..."
-        "${project_path}/scripts/method/sampling_opes_explore.sh"
-    fi
 fi
 
 # ##############################################################################

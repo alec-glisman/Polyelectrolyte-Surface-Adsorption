@@ -28,7 +28,11 @@ npt_script="${project_path}/python/mean_frame_xvg_2_col.py"
 
 # Plumed files
 dat_path="${project_path}/parameters/plumed/harmonic"
-dat_file="${dat_path}/plumed.dat"
+if [[ "${N_CHAIN}" -gt 0 ]]; then
+    dat_file="${dat_path}/plumed.dat"
+else
+    dat_file="${dat_path}/empty.dat"
+fi
 
 # Gromacs files
 mdp_path="${project_path}/parameters/mdp/molecular-dynamics"
@@ -83,9 +87,10 @@ else
         sed -i 's/gen-temp.*/gen-temp                  = '"${TEMPERATURE_K}/g" "${sim_name}.mdp" || exit 1
 
         # make tpr file for NVT equilibration
-        "${GMX_BIN}" -quiet -nocopyright grompp \
+        "${GMX_BIN}" -nocopyright grompp \
             -f "${sim_name}.mdp" \
             -c "${previous_sim_name}.gro" \
+            -r "${previous_sim_name}.gro" \
             -n "index.ndx" \
             -p "topol.top" \
             -o "${sim_name}.tpr"
@@ -93,16 +98,13 @@ else
         rm "${previous_sim_name}.gro" || exit 1
 
         # run NVT equilibration
-        "${MPI_BIN}" -np '1' \
-            --map-by "ppr:1:node:PE=${CPU_THREADS}" \
-            --use-hwthread-cpus --bind-to 'hwthread' \
-            "${GMX_BIN}" -quiet -nocopyright mdrun -v \
+        # shellcheck disable=SC2086
+        "${GMX_BIN}" -nocopyright mdrun -v \
             -deffnm "${sim_name}" -cpi "${sim_name}.cpt" \
-            -pin on -pinoffset "${PIN_OFFSET}" -pinstride 1 -ntomp "${CPU_THREADS}" \
-            -gpu_id "${GPU_IDS}" || exit 1
+            ${GMX_CPU_ARGS} ${GMX_GPU_ARGS} || exit 1
 
         # convert final xtc frame to pdb file
-        "${GMX_BIN}" -quiet -nocopyright trjconv \
+        "${GMX_BIN}" -nocopyright trjconv \
             -f "${sim_name}.xtc" \
             -s "${sim_name}.tpr" \
             -o "${sim_name}.pdb" \
@@ -115,7 +117,7 @@ EOF
         params=('Potential' 'Kinetic-En.' 'Total-Energy' 'Temperature' 'Pressure')
         for param in "${params[@]}"; do
             filename="${param,,}"
-            "${GMX_BIN}" -quiet -nocopyright energy \
+            "${GMX_BIN}" -nocopyright energy \
                 -f "${sim_name}.edr" \
                 -o "${filename}.xvg" <<EOF
 ${param}
@@ -170,9 +172,10 @@ else
         sed -i 's/ref-p.*/ref-p                     = '"${PRESSURE_BAR} ${PRESSURE_BAR}/g" "${sim_name}.mdp" || exit 1
 
         # make tpr file
-        "${GMX_BIN}" -quiet -nocopyright grompp \
+        "${GMX_BIN}" -nocopyright grompp \
             -f "${sim_name}.mdp" \
             -c "${previous_sim_name}.gro" \
+            -r "${previous_sim_name}.gro" \
             -n "index.ndx" \
             -p "topol.top" \
             -o "${sim_name}.tpr"
@@ -181,20 +184,17 @@ else
         # plumed performance
         export PLUMED_NUM_THREADS="${CPU_THREADS}"
 
-        # call mdrun
-        "${MPI_BIN}" -np '1' \
-            --map-by "ppr:1:node:PE=${CPU_THREADS}" \
-            --use-hwthread-cpus --bind-to 'hwthread' \
-            "${GMX_BIN}" -quiet -nocopyright mdrun -v \
+        # run NPT equilibration
+        # shellcheck disable=SC2086
+        "${GMX_BIN}" -nocopyright mdrun -v \
             -deffnm "${sim_name}" -cpi "${sim_name}.cpt" \
-            -pin on -pinoffset "${PIN_OFFSET}" -pinstride 1 -ntomp "${CPU_THREADS}" \
-            -gpu_id "${GPU_IDS}" || exit 1
+            ${GMX_CPU_ARGS} ${GMX_GPU_ARGS} || exit 1
 
         # plot system parameters over time
         params=('Potential' 'Kinetic-En.' 'Total-Energy' 'Temperature' 'Pressure' 'Density')
         for param in "${params[@]}"; do
             filename="${param,,}"
-            "${GMX_BIN}" -quiet -nocopyright energy \
+            "${GMX_BIN}" -nocopyright energy \
                 -f "${sim_name}.edr" \
                 -o "${filename}.xvg" <<EOF
 ${param}
@@ -216,7 +216,7 @@ EOF
             --percentile '0.4'
 
         # convert final gro file to pdb file
-        "${GMX_BIN}" -quiet -nocopyright trjconv \
+        "${GMX_BIN}" -nocopyright trjconv \
             -f "${sim_name}.gro" \
             -s "${sim_name}.tpr" \
             -o "${sim_name}.pdb" \
@@ -290,17 +290,19 @@ else
 
             # copy plumed file
             cp "${dat_file}" "plumed.dat" || exit 1
-            sed -i 's/{WALL_HEIGHT}/'"${PE_WALL_MAX}"'/g' "plumed.dat" || exit 1
+            sed -i 's/{LOWER_WALL_HEIGHT}/'"${PE_WALL_MIN}"'/g' "plumed.dat" || exit 1
+            sed -i 's/{UPPER_WALL_HEIGHT}/'"${PE_WALL_MAX_EQBM}"'/g' "plumed.dat" || exit 1
             sed -i 's/{WALL_OFFSET}/'"${ATOM_OFFSET}"'/g' "plumed.dat" || exit 1
             sed -i 's/{ATOM_REFERENCE}/'"${ATOM_REFERENCE}"'/g' "plumed.dat" || exit 1
             if [[ "${N_CALCIUM}" -eq '0' ]]; then
-                sed -i 's/NDX_GROUP=Aqueous_Calcium/NDX_GROUP=Aqueous_Sodium/g' "plumed.dat" || exit 1
+                sed -i 's/NDX_GROUP=Aqueous_Calcium/NDX_GROUP=Crystal_Top_Surface_Calcium/g' "plumed.dat" || exit 1
             fi
 
             # make tpr file
-            "${GMX_BIN}" -quiet -nocopyright grompp \
+            "${GMX_BIN}" -nocopyright grompp \
                 -f "${sim_name}.mdp" \
                 -c "${previous_sim_name}.gro" \
+                -r "${previous_sim_name}.gro" \
                 -n "index.ndx" \
                 -p "topol.top" \
                 -o "${sim_name}.tpr"
@@ -312,18 +314,15 @@ else
             sed -i 's/#RESTART/RESTART/g' "plumed.dat" || exit 1
         fi
 
-        # call mdrun
-        "${MPI_BIN}" -np '1' \
-            --map-by "ppr:1:node:PE=${CPU_THREADS}" \
-            --use-hwthread-cpus --bind-to 'hwthread' \
-            "${GMX_BIN}" -quiet -nocopyright mdrun -v \
+        # run production equilibration
+        # shellcheck disable=SC2086
+        "${GMX_BIN}" -nocopyright mdrun -v \
             -deffnm "${sim_name}" -cpi "${sim_name}.cpt" \
             -plumed "plumed.dat" \
-            -pin on -pinoffset "${PIN_OFFSET}" -pinstride 1 -ntomp "${CPU_THREADS}" \
-            -gpu_id "${GPU_IDS}" || exit 1
+            ${GMX_CPU_ARGS} ${GMX_GPU_ARGS} || exit 1
 
         # convert final xtc frame to pdb file
-        "${GMX_BIN}" -quiet -nocopyright trjconv \
+        "${GMX_BIN}" -nocopyright trjconv \
             -f "${sim_name}.xtc" \
             -s "${sim_name}.tpr" \
             -o "${sim_name}.pdb" \
@@ -339,7 +338,7 @@ EOF
         fi
         for param in "${params[@]}"; do
             filename="${param,,}"
-            "${GMX_BIN}" -quiet -nocopyright energy \
+            "${GMX_BIN}" -nocopyright energy \
                 -f "${sim_name}.edr" \
                 -o "${filename}.xvg" <<EOF
 ${param}
@@ -362,8 +361,8 @@ EOF
         # move plumed files to archive directory
         cp -np "plumed.dat" -t "${archive_dir}/" || exit 1
         rm ./*.dat || exit 1
-        cp -np ./*.data -t "${archive_dir}/" || exit 1
-        rm ./*.data || exit 1
+        cp -np ./*.data -t "${archive_dir}/" || true
+        rm ./*.data || true
         # move xvg and png files to archive directory
         mkdir -p "${archive_dir}/figures"
         cp -np ./*.xvg -t "${archive_dir}/figures/" || exit 1
@@ -395,6 +394,9 @@ else
         cp -np "${previous_archive_dir}/${sim_name}.pdb" "${archive_dir}/${sim_name}.pdb" || exit 1
         cp -np "topol.top" "${archive_dir}/topol.top" || exit 1
         cp -np "index.ndx" "${archive_dir}/index.ndx" || exit 1
+
+        # delete all backup files
+        find . -type f -name '#*#' -delete || true
     } >>"${log_file}" 2>&1
 fi
 

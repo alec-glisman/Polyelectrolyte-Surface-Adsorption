@@ -24,7 +24,7 @@ project_path="${script_path}/../.."
 
 # Gromacs files
 mdp_path="${project_path}/parameters/mdp/molecular-dynamics"
-mdp_file="${mdp_path}/${PRODUCTION_ENSEMBLE,,}_prod.mdp"
+mdp_file="${mdp_path}/${PRODUCTION_ENSEMBLE,,}_prod_${INTEGRATION_NS}ns.mdp"
 
 # initial time with _ as separator
 time_init="$(date +%Y_%m_%d_%H_%M_%S)"
@@ -66,7 +66,7 @@ sim_name="prod_md"
     echo "Script: ${BASH_SOURCE[0]}"
     echo "Date: $(date)"
     echo "Host: $(hostname)"
-    echo "System: ${MONOMER}-${BLOCK}-${CRYSTAL}-${SURFACE}-${SURFACE_SIZE}nm-${BOX_HEIGHT}nm-${N_MONOMER}mon-${N_CHAIN}chain-${N_CARBONATE}co3-${N_SODIUM}na-${N_CALCIUM}ca-${N_CHLORINE}cl-${TAG_APPEND}"
+    echo "System: ${MONOMER}-${BLOCK}-${CRYSTAL}-${SURFACE}-${SURFACE_SIZE}nm-${BOX_HEIGHT}nm-${N_MONOMER}mon-${N_CHAIN}chain-${N_CARBONATE}co3-${N_SODIUM}na-${N_CALCIUM}ca-${N_CHLORINE}cl"
     echo "Ensemble: ${PRODUCTION_ENSEMBLE} ${TEMPERATURE_K}K ${PRESSURE_BAR}bar"
     echo "################################################################################"
     echo ""
@@ -98,25 +98,25 @@ else
             sed -i 's/ref-p.*/ref-p                     = '"${PRESSURE_BAR} ${PRESSURE_BAR}/g" "${sim_name}.mdp" || exit 1
 
             # create tpr file
-            "${GMX_BIN}" -quiet -nocopyright grompp \
+            "${GMX_BIN}" -nocopyright grompp \
                 -f "${sim_name}.mdp" \
                 -c "${previous_sim_name}.gro" \
+                -r "${previous_sim_name}.gro" \
                 -n "index.ndx" \
                 -p "topol.top" \
                 -o "${sim_name}.tpr"
             rm "${previous_sim_name}.gro" || exit 1
         fi
 
-        # call mdrun
-        "${MPI_BIN}" -np '1' \
-            --map-by "ppr:1:node:PE=${CPU_THREADS}" \
-            --use-hwthread-cpus --bind-to 'hwthread' \
-            "${GMX_BIN}" -quiet -nocopyright mdrun -v \
+        # get copy of GMX_CPU_ARGS with -nt replaced by -ntomp
+        GMX_CPU_ARGS="${GMX_CPU_ARGS/-nt/-ntomp}"
+
+        # shellcheck disable=SC2153,SC2086
+        "${GMX_BIN}" -nocopyright mdrun -v \
             -maxh "${WALLTIME_HOURS}" \
             -deffnm "${sim_name}" -cpi "${sim_name}.cpt" \
-            -pin on -pinoffset "${PIN_OFFSET}" -pinstride 1 -ntomp "${CPU_THREADS}" \
-            -gpu_id "${GPU_IDS}" \
-            -noappend || exit 1
+            ${GMX_CPU_ARGS} ${GMX_GPU_ARGS} \
+            -noappend
 
         # make completed simulation text file
         touch "completed.txt"
@@ -138,7 +138,7 @@ log_file="${log_dir}/${time_init}-concatenation.log"
     echo "Script: ${BASH_SOURCE[0]}"
     echo "Date: $(date)"
     echo "Host: $(hostname)"
-    echo "System: ${MONOMER}-${BLOCK}-${CRYSTAL}-${SURFACE}-${SURFACE_SIZE}nm-${BOX_HEIGHT}nm-${N_MONOMER}mon-${N_CHAIN}chain-${N_CARBONATE}co3-${N_SODIUM}na-${N_CALCIUM}ca-${N_CHLORINE}cl-${TAG_APPEND}"
+    echo "System: ${MONOMER}-${BLOCK}-${CRYSTAL}-${SURFACE}-${SURFACE_SIZE}nm-${BOX_HEIGHT}nm-${N_MONOMER}mon-${N_CHAIN}chain-${N_CARBONATE}co3-${N_SODIUM}na-${N_CALCIUM}ca-${N_CHLORINE}cl"
     echo "Ensemble: ${PRODUCTION_ENSEMBLE} ${TEMPERATURE_K}K ${PRESSURE_BAR}bar"
     echo "################################################################################"
     echo ""
@@ -158,12 +158,12 @@ concat_dir="2-concatenated"
     mkdir -p "${concat_dir}"
 
     # concatenate xtc files
-    "${GMX_BIN}" -quiet -nocopyright trjcat \
+    "${GMX_BIN}" -nocopyright trjcat \
         -f "${archive_dir}/${sim_name}."*.xtc \
         -o "${concat_dir}/${sim_name}.xtc" || exit 1
 
     # concatenate edr files
-    "${GMX_BIN}" -quiet -nocopyright eneconv \
+    "${GMX_BIN}" -nocopyright eneconv \
         -f "${archive_dir}/${sim_name}."*.edr \
         -o "${concat_dir}/${sim_name}.edr" || exit 1
 
@@ -171,7 +171,7 @@ concat_dir="2-concatenated"
     cp "${archive_dir}/${sim_name}.tpr" "${concat_dir}/${sim_name}.tpr" || exit 1
 
     # dump pdb file from last frame
-    "${GMX_BIN}" -quiet -nocopyright trjconv \
+    "${GMX_BIN}" -nocopyright trjconv \
         -f "${concat_dir}/${sim_name}.xtc" \
         -s "${concat_dir}/${sim_name}.tpr" \
         -o "${concat_dir}/${sim_name}.pdb" \
@@ -181,7 +181,7 @@ System
 EOF
 
     # dump gro file from last frame
-    "${GMX_BIN}" -quiet -nocopyright trjconv \
+    "${GMX_BIN}" -nocopyright trjconv \
         -f "${concat_dir}/${sim_name}.xtc" \
         -s "${concat_dir}/${sim_name}.tpr" \
         -o "${concat_dir}/${sim_name}.gro" \
@@ -197,7 +197,7 @@ nosol_dir="3-no-solvent"
     mkdir -p "${nosol_dir}"
 
     # pdb structure
-    "${GMX_BIN}" -quiet trjconv \
+    "${GMX_BIN}" trjconv \
         -f "${concat_dir}/${sim_name}.xtc" \
         -s "${concat_dir}/${sim_name}.tpr" \
         -o "${nosol_dir}/${sim_name}.pdb" \
@@ -207,7 +207,7 @@ non-Water
 EOF
 
     # xtc trajectory
-    "${GMX_BIN}" -quiet trjconv \
+    "${GMX_BIN}" trjconv \
         -f "${concat_dir}/${sim_name}.xtc" \
         -s "${concat_dir}/${sim_name}.tpr" \
         -o "${nosol_dir}/${sim_name}.xtc" \
@@ -229,7 +229,7 @@ log_file="${log_dir}/${time_init}-analysis.log"
     echo "Script: ${BASH_SOURCE[0]}"
     echo "Date: $(date)"
     echo "Host: $(hostname)"
-    echo "System: ${MONOMER}-${BLOCK}-${CRYSTAL}-${SURFACE}-${SURFACE_SIZE}nm-${BOX_HEIGHT}nm-${N_MONOMER}mon-${N_CHAIN}chain-${N_CARBONATE}co3-${N_SODIUM}na-${N_CALCIUM}ca-${N_CHLORINE}cl-${TAG_APPEND}"
+    echo "System: ${MONOMER}-${BLOCK}-${CRYSTAL}-${SURFACE}-${SURFACE_SIZE}nm-${BOX_HEIGHT}nm-${N_MONOMER}mon-${N_CHAIN}chain-${N_CARBONATE}co3-${N_SODIUM}na-${N_CALCIUM}ca-${N_CHLORINE}cl"
     echo "Ensemble: ${PRODUCTION_ENSEMBLE} ${TEMPERATURE_K}K ${PRESSURE_BAR}bar"
     echo "################################################################################"
     echo ""
@@ -244,7 +244,7 @@ log_file="${log_dir}/${time_init}-analysis.log"
     echo "DEBUG: Parameters to plot: ${params[*]}"
     for param in "${params[@]}"; do
         filename="${param,,}"
-        "${GMX_BIN}" -quiet -nocopyright energy \
+        "${GMX_BIN}" -nocopyright energy \
             -f "${concat_dir}/${sim_name}.edr" \
             -o "${filename}.xvg" <<EOF
 ${param}

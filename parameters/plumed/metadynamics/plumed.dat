@@ -1,0 +1,51 @@
+# Allow restarting (continuing) previous simulation
+#RESTART
+
+# Select groups from Gromacs index file
+gr_chain: GROUP NDX_FILE=index.ndx NDX_GROUP=Chain
+gr_chain_o: GROUP NDX_FILE=index.ndx NDX_GROUP=Chain_Oxygen
+gr_soln_ca: GROUP NDX_FILE=index.ndx NDX_GROUP=Aqueous_Calcium
+gr_frozen: GROUP NDX_FILE=index.ndx NDX_GROUP=Crystal_Bulk_Calcium
+gr_reference: GROUP ATOMS={ATOM_REFERENCE}
+
+# Unwrap molecules
+WHOLEMOLECULES ENTITY0=gr_chain
+
+# CV1: Distance between chain center of mass and crystal surface in z-direction
+com_chain: COM ATOMS=gr_chain
+com_ref: COM ATOMS=gr_reference
+dist_chain: DISTANCE ATOMS=com_ref,com_chain COMPONENTS NOPBC
+
+# CV2: Chain radius of gyration
+rg_chain: GYRATION TYPE=RADIUS ATOMS=gr_chain
+
+# CV3: Coordination number of aqueous calcium ions around chain oxygen atoms
+cn_ca_co: COORDINATION GROUPA=gr_soln_ca GROUPB=gr_chain_o SWITCH={RATIONAL R_0=0.35 NN=8 MM=16} NLIST NL_CUTOFF=2.0 NL_STRIDE=20
+
+# CV4: Average distance between aqueous calcium ions and crystal surface in z-direction
+com_ca: COM ATOMS=gr_soln_ca
+dist_ca: DISTANCE ATOMS=com_ref,com_ca COMPONENTS NOPBC
+
+# Harmonic wall for CV1
+upper_wall: UPPER_WALLS ARG=dist_chain.z AT={UPPER_WALL_HEIGHT} KAPPA=1000.0 EXP=2 OFFSET={WALL_OFFSET}
+lower_wall: LOWER_WALLS ARG=dist_chain.z AT={LOWER_WALL_HEIGHT} KAPPA=1000.0 EXP=2 OFFSET={WALL_OFFSET}
+
+# Well-tempered metadynamics
+METAD ...
+LABEL=metad
+ARG=dist_chain.z
+RESTART=AUTO
+FILE=HILLS.data
+PACE={METAD_PACE}
+HEIGHT={METAD_HEIGHT}
+SIGMA={METAD_SIGMA}
+BIASFACTOR={METAD_BIASFACTOR}
+TEMP={TEMPERATURE_K}
+GRID_MIN={METAD_GRID_MIN}
+GRID_MAX={METAD_GRID_MAX}
+GRID_SPACING={METAD_GRID_SPACING}
+CALC_RCT
+... METAD
+
+# Output
+PRINT STRIDE=500 ARG=dist_chain.*,metad.*,rg_chain,cn_ca_co,dist_ca.*,upper_wall.*,lower_wall.* FILE=COLVAR.data
