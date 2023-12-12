@@ -112,14 +112,11 @@ else
         GMX_CPU_ARGS="${GMX_CPU_ARGS/-nt/-ntomp}"
 
         # shellcheck disable=SC2153,SC2086
-        "${MPI_BIN}" -np '1' \
-            --map-by "ppr:1:node:PE=${CPU_THREADS}" \
-            --use-hwthread-cpus --bind-to 'hwthread' \
-            "${GMX_BIN}" -nocopyright mdrun -v \
+        "${GMX_BIN}" -nocopyright mdrun -v \
             -maxh "${WALLTIME_HOURS}" \
             -deffnm "${sim_name}" -cpi "${sim_name}.cpt" \
             ${GMX_CPU_ARGS} ${GMX_GPU_ARGS} \
-            -noappend 
+            -noappend
 
         # make completed simulation text file
         touch "completed.txt"

@@ -99,10 +99,7 @@ else
 
         # run NVT equilibration
         # shellcheck disable=SC2086
-        "${MPI_BIN}" -np '1' \
-            --map-by "ppr:1:node:PE=${CPU_THREADS}" \
-            --use-hwthread-cpus --bind-to 'hwthread' \
-            "${GMX_BIN}" -nocopyright mdrun -v \
+        "${GMX_BIN}" -nocopyright mdrun -v \
             -deffnm "${sim_name}" -cpi "${sim_name}.cpt" \
             ${GMX_CPU_ARGS} ${GMX_GPU_ARGS} || exit 1
 
@@ -189,10 +186,7 @@ else
 
         # run NPT equilibration
         # shellcheck disable=SC2086
-        "${MPI_BIN}" -np '1' \
-            --map-by "ppr:1:node:PE=${CPU_THREADS}" \
-            --use-hwthread-cpus --bind-to 'hwthread' \
-            "${GMX_BIN}" -nocopyright mdrun -v \
+        "${GMX_BIN}" -nocopyright mdrun -v \
             -deffnm "${sim_name}" -cpi "${sim_name}.cpt" \
             ${GMX_CPU_ARGS} ${GMX_GPU_ARGS} || exit 1
 
@@ -322,10 +316,7 @@ else
 
         # run production equilibration
         # shellcheck disable=SC2086
-        "${MPI_BIN}" -np '1' \
-            --map-by "ppr:1:node:PE=${CPU_THREADS}" \
-            --use-hwthread-cpus --bind-to 'hwthread' \
-            "${GMX_BIN}" -nocopyright mdrun -v \
+        "${GMX_BIN}" -nocopyright mdrun -v \
             -deffnm "${sim_name}" -cpi "${sim_name}.cpt" \
             -plumed "plumed.dat" \
             ${GMX_CPU_ARGS} ${GMX_GPU_ARGS} || exit 1
@@ -370,8 +361,8 @@ EOF
         # move plumed files to archive directory
         cp -np "plumed.dat" -t "${archive_dir}/" || exit 1
         rm ./*.dat || exit 1
-        cp -np ./*.data -t "${archive_dir}/" || exit 1
-        rm ./*.data || exit 1
+        cp -np ./*.data -t "${archive_dir}/" || true
+        rm ./*.data || true
         # move xvg and png files to archive directory
         mkdir -p "${archive_dir}/figures"
         cp -np ./*.xvg -t "${archive_dir}/figures/" || exit 1
