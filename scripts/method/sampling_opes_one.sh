@@ -104,6 +104,7 @@ sim_name="prod_opes_one_multicv"
             sed -i 's/{WALL_OFFSET}/'"${ATOM_OFFSET}"'/g' "plumed.dat" || exit 1
             sed -i 's/{ONEOPES_LARGE_BARRIER}/'"${ONEOPES_LARGE_BARRIER}"'/g' "plumed.dat" || exit 1
             sed -i 's/{ONEOPES_SMALL_BARRIER}/'"${ONEOPES_SMALL_BARRIER}"'/g' "plumed.dat" || exit 1
+            sed -i 's/{ONEOPES_REPLICA_2_TEMP}/'"${ONEOPES_REPLICA_2_TEMP}"'/g' "plumed.dat" || exit 1
             sed -i 's/{ONEOPES_REPLICA_3_TEMP}/'"${ONEOPES_REPLICA_3_TEMP}"'/g' "plumed.dat" || exit 1
             sed -i 's/{ONEOPES_REPLICA_4_TEMP}/'"${ONEOPES_REPLICA_4_TEMP}"'/g' "plumed.dat" || exit 1
             sed -i 's/{ONEOPES_REPLICA_5_TEMP}/'"${ONEOPES_REPLICA_5_TEMP}"'/g' "plumed.dat" || exit 1

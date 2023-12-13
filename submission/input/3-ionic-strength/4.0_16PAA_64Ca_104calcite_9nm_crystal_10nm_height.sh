@@ -37,10 +37,10 @@ export PDB_BULK_ZMIN='4.62' # z-coordinate of bottom of bulk part of crystal in 
 export PDB_BULK_ZMAX='5.09' # z-coordinate of top of bulk part of crystal in nm in PDB file
 
 # number of each component
-export N_MONOMER='16'  # number of monomers in chain {1, 2, 5, 8, 16, 32}
-export N_CHAIN='1'     # number of chains
-export N_CARBONATE='0' # number of aqueous carbonate ions
-export N_SODIUM='16'   # number of aqueous sodium ions
+export N_MONOMER='16'   # number of monomers in chain {1, 2, 5, 8, 16, 32}
+export N_CHAIN='1'      # number of chains
+export N_CARBONATE='0'  # number of aqueous carbonate ions
+export N_SODIUM='16'    # number of aqueous sodium ions
 export N_CALCIUM='64'   # number of aqueous calcium ions
 export N_CHLORINE='128' # number of aqueous chlorine ions
 
@@ -54,10 +54,11 @@ export HREMD_N_REPLICA='32' # number of replicas in HREMD simulations
 export HREMD_N_STEPS='1000' # number of steps between replica exchange attempts
 
 # OneOPES replica exchange
-export ONEOPES_N_REPLICA='8'  # number of replicas in OneOPES simulations
-export ONEOPES_N_STEPS='1000' # number of steps between replica exchange attempts
-export ONEOPES_LARGE_BARRIER='30' # [kJ/mol] large barrier height for OneOPES replica exchange
-export ONEOPES_SMALL_BARRIER='3' # [kJ/mol] small barrier height for OneOPES replica exchange
+export ONEOPES_N_REPLICA='8'        # number of replicas in OneOPES simulations
+export ONEOPES_N_STEPS='1000'       # number of steps between replica exchange attempts
+export ONEOPES_LARGE_BARRIER='30'   # [kJ/mol] large barrier height for OneOPES replica exchange
+export ONEOPES_SMALL_BARRIER='3'    # [kJ/mol] small barrier height for OneOPES replica exchange
+export ONEOPES_REPLICA_2_TEMP='300' # [K] max OPES MultiTherm temperature of replica 2
 export ONEOPES_REPLICA_3_TEMP='303' # [K] max OPES MultiTherm temperature of replica 3
 export ONEOPES_REPLICA_4_TEMP='310' # [K] max OPES MultiTherm temperature of replica 4
 export ONEOPES_REPLICA_5_TEMP='330' # [K] max OPES MultiTherm temperature of replica 5

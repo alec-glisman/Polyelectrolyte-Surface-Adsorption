@@ -54,10 +54,11 @@ export HREMD_N_REPLICA='32' # number of replicas in HREMD simulations
 export HREMD_N_STEPS='1000' # number of steps between replica exchange attempts
 
 # OneOPES replica exchange
-export ONEOPES_N_REPLICA='8'  # number of replicas in OneOPES simulations
-export ONEOPES_N_STEPS='1000' # number of steps between replica exchange attempts
-export ONEOPES_LARGE_BARRIER='30' # [kJ/mol] large barrier height for OneOPES replica exchange
-export ONEOPES_SMALL_BARRIER='3' # [kJ/mol] small barrier height for OneOPES replica exchange
+export ONEOPES_N_REPLICA='8'        # number of replicas in OneOPES simulations
+export ONEOPES_N_STEPS='1000'       # number of steps between replica exchange attempts
+export ONEOPES_LARGE_BARRIER='30'   # [kJ/mol] large barrier height for OneOPES replica exchange
+export ONEOPES_SMALL_BARRIER='3'    # [kJ/mol] small barrier height for OneOPES replica exchange
+export ONEOPES_REPLICA_2_TEMP='300' # [K] max OPES MultiTherm temperature of replica 2
 export ONEOPES_REPLICA_3_TEMP='303' # [K] max OPES MultiTherm temperature of replica 3
 export ONEOPES_REPLICA_4_TEMP='310' # [K] max OPES MultiTherm temperature of replica 4
 export ONEOPES_REPLICA_5_TEMP='330' # [K] max OPES MultiTherm temperature of replica 5
