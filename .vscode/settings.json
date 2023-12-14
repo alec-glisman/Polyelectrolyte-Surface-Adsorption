@@ -144,5 +144,8 @@
         "-x"
     ],
     "python.analysis.typeCheckingMode": "off",
-    "GitHooks.hooksDirectory": "/media/aglisman/Linux_Overflow/home/aglisman/VSCodeProjects/Polyelectrolyte-Surface-Adsorption/.git/hooks"
+    "GitHooks.hooksDirectory": "/media/aglisman/Linux_Overflow/home/aglisman/VSCodeProjects/Polyelectrolyte-Surface-Adsorption/.git/hooks",
+    "yaml.schemas": {
+        "https://json.schemastore.org/yamllint.json": "file:///media/aglisman/Linux_Overflow/home/aglisman/VSCodeProjects/Polyelectrolyte-Surface-Adsorption/initial-structure/calcium-carbonate-crystal/generation/python/requirements.yml"
+    }
 }

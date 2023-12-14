@@ -1,0 +1,149 @@
+HEADER    
+TITLE     MDANALYSIS FRAME 0: Created by PDBWriter
+COMPND    CaCO3
+CRYST1    9.976    8.094   24.282  90.73  90.00  90.00 P 1           1
+ATOM      1  CX1 CRB X   1       1.995   3.367  13.658  1.00  0.00      X    C4+
+ATOM      2  OX2 CRB X   1       3.275   3.367  13.658  1.00  0.00      X    O2-
+ATOM      3  OX3 CRB X   1       1.355   2.578  14.437  1.00  0.00      X    O2-
+ATOM      4  OX1 CRB X   1       1.355   4.156  12.879  1.00  0.00      X    O2-
+ATOM      5  OX3 CRB X   2       6.343   2.578  14.437  1.00  0.00      X    O2-
+ATOM      6  CX1 CRB X   2       6.983   3.367  13.658  1.00  0.00      X    C4+
+ATOM      7  OX2 CRB X   2       8.263   3.367  13.658  1.00  0.00      X    O2-
+ATOM      8  OX1 CRB X   2       6.343   4.156  12.879  1.00  0.00      X    O2-
+ATOM      9  OX1 CRB X   3       8.837   7.230   9.844  1.00  0.00      X    O2-
+ATOM     10  CX1 CRB X   3       9.477   6.441  10.623  1.00  0.00      X    C4+
+ATOM     11  OX2 CRB X   3      10.757   6.441  10.623  1.00  0.00      X    O2-
+ATOM     12  OX3 CRB X   3       8.837   5.652  11.402  1.00  0.00      X    O2-
+ATOM     13  OX3 CRB X   4       3.849   5.652  11.402  1.00  0.00      X    O2-
+ATOM     14  OX1 CRB X   4       3.849   7.230   9.844  1.00  0.00      X    O2-
+ATOM     15  OX2 CRB X   4       5.769   6.441  10.623  1.00  0.00      X    O2-
+ATOM     16  CX1 CRB X   4       4.489   6.441  10.623  1.00  0.00      X    C4+
+ATOM     17  OX1 CRB X   5       1.355   2.209   6.809  1.00  0.00      X    O2-
+ATOM     18  OX2 CRB X   5       3.275   1.420   7.588  1.00  0.00      X    O2-
+ATOM     19  CX1 CRB X   5       1.995   1.420   7.588  1.00  0.00      X    C4+
+ATOM     20  OX3 CRB X   5       1.355   0.631   8.367  1.00  0.00      X    O2-
+ATOM     21  OX3 CRB X   6       6.343   0.631   8.367  1.00  0.00      X    O2-
+ATOM     22  OX1 CRB X   6       6.343   2.209   6.809  1.00  0.00      X    O2-
+ATOM     23  CX1 CRB X   6       6.983   1.420   7.588  1.00  0.00      X    C4+
+ATOM     24  OX2 CRB X   6       8.263   1.420   7.588  1.00  0.00      X    O2-
+ATOM     25  OX2 CRB X   7       5.769   0.293  16.693  1.00  0.00      X    O2-
+ATOM     26  OX3 CRB X   7       3.849  -0.496  17.472  1.00  0.00      X    O2-
+ATOM     27  OX1 CRB X   7       3.849   1.082  15.914  1.00  0.00      X    O2-
+ATOM     28  CX1 CRB X   7       4.489   0.293  16.693  1.00  0.00      X    C4+
+ATOM     29  OX3 CRB X   8       8.837  -0.496  17.472  1.00  0.00      X    O2-
+ATOM     30  OX2 CRB X   8      10.757   0.293  16.693  1.00  0.00      X    O2-
+ATOM     31  OX1 CRB X   8       8.837   1.082  15.914  1.00  0.00      X    O2-
+ATOM     32  CX1 CRB X   8       9.477   0.293  16.693  1.00  0.00      X    C4+
+ATOM     33  CX1 CRB X   9       1.995   7.414  13.658  1.00  0.00      X    C4+
+ATOM     34  OX2 CRB X   9       2.635   6.625  14.437  1.00  0.00      X    O2-
+ATOM     35  OX1 CRB X   9       2.635   8.203  12.879  1.00  0.00      X    O2-
+ATOM     36  OX3 CRB X   9       0.715   7.414  13.658  1.00  0.00      X    O2-
+ATOM     37  CX1 CRB X  10       6.983   7.414  13.658  1.00  0.00      X    C4+
+ATOM     38  OX2 CRB X  10       7.623   6.625  14.437  1.00  0.00      X    O2-
+ATOM     39  OX1 CRB X  10       7.623   8.203  12.879  1.00  0.00      X    O2-
+ATOM     40  OX3 CRB X  10       5.703   7.414  13.658  1.00  0.00      X    O2-
+ATOM     41  OX3 CRB X  11       3.209   2.394  10.623  1.00  0.00      X    O2-
+ATOM     42  OX1 CRB X  11       5.129   3.183   9.844  1.00  0.00      X    O2-
+ATOM     43  OX2 CRB X  11       5.129   1.605  11.402  1.00  0.00      X    O2-
+ATOM     44  CX1 CRB X  11       4.489   2.394  10.623  1.00  0.00      X    C4+
+ATOM     45  OX2 CRB X  12      10.117   1.605  11.402  1.00  0.00      X    O2-
+ATOM     46  CX1 CRB X  12       9.477   2.394  10.623  1.00  0.00      X    C4+
+ATOM     47  OX1 CRB X  12      10.117   3.183   9.844  1.00  0.00      X    O2-
+ATOM     48  OX3 CRB X  12       8.197   2.394  10.623  1.00  0.00      X    O2-
+ATOM     49  OX1 CRB X  13       2.635   6.256   6.809  1.00  0.00      X    O2-
+ATOM     50  OX2 CRB X  13       2.635   4.678   8.367  1.00  0.00      X    O2-
+ATOM     51  OX3 CRB X  13       0.715   5.467   7.588  1.00  0.00      X    O2-
+ATOM     52  CX1 CRB X  13       1.995   5.467   7.588  1.00  0.00      X    C4+
+ATOM     53  OX2 CRB X  14       7.623   4.678   8.367  1.00  0.00      X    O2-
+ATOM     54  OX1 CRB X  14       7.623   6.256   6.809  1.00  0.00      X    O2-
+ATOM     55  OX3 CRB X  14       5.703   5.467   7.588  1.00  0.00      X    O2-
+ATOM     56  CX1 CRB X  14       6.983   5.467   7.588  1.00  0.00      X    C4+
+ATOM     57  CX1 CRB X  15       4.489   4.340  16.693  1.00  0.00      X    C4+
+ATOM     58  OX2 CRB X  15       5.129   3.551  17.472  1.00  0.00      X    O2-
+ATOM     59  OX1 CRB X  15       5.129   5.129  15.914  1.00  0.00      X    O2-
+ATOM     60  OX3 CRB X  15       3.209   4.340  16.693  1.00  0.00      X    O2-
+ATOM     61  OX2 CRB X  16      10.117   3.551  17.472  1.00  0.00      X    O2-
+ATOM     62  CX1 CRB X  16       9.477   4.340  16.693  1.00  0.00      X    C4+
+ATOM     63  OX3 CRB X  16       8.197   4.340  16.693  1.00  0.00      X    O2-
+ATOM     64  OX1 CRB X  16      10.117   5.129  15.914  1.00  0.00      X    O2-
+ATOM     65 CA   CA  X  17       1.995   6.364  16.693  1.00  0.00      X   CA2+
+ATOM     66 CA   CA  X  18       6.983   6.364  16.693  1.00  0.00      X   CA2+
+ATOM     67 CA   CA  X  19       9.477   1.343  13.658  1.00  0.00      X   CA2+
+ATOM     68 CA   CA  X  20       4.489   1.343  13.658  1.00  0.00      X   CA2+
+ATOM     69 CA   CA  X  21       1.995   4.417  10.623  1.00  0.00      X   CA2+
+ATOM     70 CA   CA  X  22       6.983   4.417  10.623  1.00  0.00      X   CA2+
+ATOM     71 CA   CA  X  23       4.489   7.491   7.588  1.00  0.00      X   CA2+
+ATOM     72 CA   CA  X  24       9.477   7.491   7.588  1.00  0.00      X   CA2+
+ATOM     73 CA   CA  X  25       4.489   5.390  13.658  1.00  0.00      X   CA2+
+ATOM     74 CA   CA  X  26       9.477   5.390  13.658  1.00  0.00      X   CA2+
+ATOM     75 CA   CA  X  27       1.995   0.370  10.623  1.00  0.00      X   CA2+
+ATOM     76 CA   CA  X  28       6.983   0.370  10.623  1.00  0.00      X   CA2+
+ATOM     77 CA   CA  X  29       9.477   3.444   7.588  1.00  0.00      X   CA2+
+ATOM     78 CA   CA  X  30       4.489   3.444   7.588  1.00  0.00      X   CA2+
+ATOM     79 CA   CA  X  31       1.995   2.317  16.693  1.00  0.00      X   CA2+
+ATOM     80 CA   CA  X  32       6.983   2.317  16.693  1.00  0.00      X   CA2+
+CONECT    1    2    3    4
+CONECT    2    1
+CONECT    3    1
+CONECT    4    1
+CONECT    5    6
+CONECT    6    5    7    8
+CONECT    7    6
+CONECT    8    6
+CONECT    9   10
+CONECT   10    9   11   12
+CONECT   11   10
+CONECT   12   10
+CONECT   13   16
+CONECT   14   16
+CONECT   15   16
+CONECT   16   13   14   15
+CONECT   17   19
+CONECT   18   19
+CONECT   19   17   18   20
+CONECT   20   19
+CONECT   21   23
+CONECT   22   23
+CONECT   23   21   22   24
+CONECT   24   23
+CONECT   25   28
+CONECT   26   28
+CONECT   27   28
+CONECT   28   25   26   27
+CONECT   29   32
+CONECT   30   32
+CONECT   31   32
+CONECT   32   29   30   31
+CONECT   33   34   35   36
+CONECT   34   33
+CONECT   35   33
+CONECT   36   33
+CONECT   37   38   39   40
+CONECT   38   37
+CONECT   39   37
+CONECT   40   37
+CONECT   41   44
+CONECT   42   44
+CONECT   43   44
+CONECT   44   41   42   43
+CONECT   45   46
+CONECT   46   45   47   48
+CONECT   47   46
+CONECT   48   46
+CONECT   49   52
+CONECT   50   52
+CONECT   51   52
+CONECT   52   49   50   51
+CONECT   53   56
+CONECT   54   56
+CONECT   55   56
+CONECT   56   53   54   55
+CONECT   57   58   59   60
+CONECT   58   57
+CONECT   59   57
+CONECT   60   57
+CONECT   61   62
+CONECT   62   61   63   64
+CONECT   63   62
+CONECT   64   62
+END
