@@ -2,6 +2,7 @@
 **/data/*
 **/data-clean/*
 **/data-archive/*
+**/data_archive/*
 **/logs
 
 # MacOSX
@@ -31,6 +32,9 @@ CMakeLists.txt.user
 Testing
 /.vs
 /CMakeSettings.json
+
+# NFS system
+**/.nfs*
 
 # Gromacs regression tests
 *.xvg
