@@ -42,7 +42,7 @@ export N_CHAIN='1'     # number of chains
 export N_CARBONATE='0' # number of aqueous carbonate ions
 export N_SODIUM='16'   # number of aqueous sodium ions
 export N_CALCIUM='8'   # number of aqueous calcium ions
-export N_CHLORINE='16'  # number of aqueous chlorine ions
+export N_CHLORINE='16' # number of aqueous chlorine ions
 
 # tag for system
 export TAG_JOBID="3.1.0" # tag to append to system name
@@ -54,10 +54,11 @@ export HREMD_N_REPLICA='32' # number of replicas in HREMD simulations
 export HREMD_N_STEPS='1000' # number of steps between replica exchange attempts
 
 # OneOPES replica exchange
-export ONEOPES_N_REPLICA='8'  # number of replicas in OneOPES simulations
-export ONEOPES_N_STEPS='1000' # number of steps between replica exchange attempts
-export ONEOPES_LARGE_BARRIER='30' # [kJ/mol] large barrier height for OneOPES replica exchange
-export ONEOPES_SMALL_BARRIER='3' # [kJ/mol] small barrier height for OneOPES replica exchange
+export ONEOPES_N_REPLICA='8'        # number of replicas in OneOPES simulations
+export ONEOPES_N_STEPS='1000'       # number of steps between replica exchange attempts
+export ONEOPES_LARGE_BARRIER='30'   # [kJ/mol] large barrier height for OneOPES replica exchange
+export ONEOPES_SMALL_BARRIER='3'    # [kJ/mol] small barrier height for OneOPES replica exchange
+export ONEOPES_REPLICA_2_TEMP='300' # [K] max OPES MultiTherm temperature of replica 2
 export ONEOPES_REPLICA_3_TEMP='303' # [K] max OPES MultiTherm temperature of replica 3
 export ONEOPES_REPLICA_4_TEMP='310' # [K] max OPES MultiTherm temperature of replica 4
 export ONEOPES_REPLICA_5_TEMP='330' # [K] max OPES MultiTherm temperature of replica 5

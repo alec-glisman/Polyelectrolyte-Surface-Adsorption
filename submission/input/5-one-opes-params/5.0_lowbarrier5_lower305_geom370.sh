@@ -8,9 +8,9 @@
 
 # Hardware ####################################################################
 
-export CPU_THREADS='16' # number of CPU threads to use (-1 = all available)
-export PIN_OFFSET='16'  # offset for CPU thread pinning (-1 = no offset)
-export GPU_IDS='1'      # GPU device(s) to use (0 = first GPU, 01 = first two GPUs)
+export CPU_THREADS='-1' # number of CPU threads to use (-1 = all available)
+export PIN_OFFSET='-1'  # offset for CPU thread pinning (-1 = no offset)
+export GPU_IDS='-1'     # GPU device(s) to use (0 = first GPU, 01 = first two GPUs)
 
 # System components ###########################################################
 
@@ -41,11 +41,11 @@ export N_MONOMER='16'  # number of monomers in chain {1, 2, 5, 8, 16, 32}
 export N_CHAIN='1'     # number of chains
 export N_CARBONATE='0' # number of aqueous carbonate ions
 export N_SODIUM='16'   # number of aqueous sodium ions
-export N_CALCIUM='0'   # number of aqueous calcium ions
-export N_CHLORINE='0'  # number of aqueous chlorine ions
+export N_CALCIUM='32'  # number of aqueous calcium ions
+export N_CHLORINE='64' # number of aqueous chlorine ions
 
 # tag for system
-export TAG_JOBID="1.4.2" # tag to append to system name
+export TAG_JOBID="5.5.0" # tag to append to system name
 
 # Enhanced sampling ###########################################################
 
@@ -57,12 +57,12 @@ export HREMD_N_STEPS='1000' # number of steps between replica exchange attempts
 export ONEOPES_N_REPLICA='8'        # number of replicas in OneOPES simulations
 export ONEOPES_N_STEPS='1000'       # number of steps between replica exchange attempts
 export ONEOPES_LARGE_BARRIER='30'   # [kJ/mol] large barrier height for OneOPES replica exchange
-export ONEOPES_SMALL_BARRIER='3'    # [kJ/mol] small barrier height for OneOPES replica exchange
-export ONEOPES_REPLICA_2_TEMP='300' # [K] max OPES MultiTherm temperature of replica 2
-export ONEOPES_REPLICA_3_TEMP='303' # [K] max OPES MultiTherm temperature of replica 3
-export ONEOPES_REPLICA_4_TEMP='310' # [K] max OPES MultiTherm temperature of replica 4
-export ONEOPES_REPLICA_5_TEMP='330' # [K] max OPES MultiTherm temperature of replica 5
-export ONEOPES_REPLICA_6_TEMP='350' # [K] max OPES MultiTherm temperature of replica 6
+export ONEOPES_SMALL_BARRIER='5'    # [kJ/mol] small barrier height for OneOPES replica exchange
+export ONEOPES_REPLICA_2_TEMP='305' # [K] max OPES MultiTherm temperature of replica 2
+export ONEOPES_REPLICA_3_TEMP='312' # [K] max OPES MultiTherm temperature of replica 3
+export ONEOPES_REPLICA_4_TEMP='326' # [K] max OPES MultiTherm temperature of replica 4
+export ONEOPES_REPLICA_5_TEMP='340' # [K] max OPES MultiTherm temperature of replica 5
+export ONEOPES_REPLICA_6_TEMP='354' # [K] max OPES MultiTherm temperature of replica 6
 export ONEOPES_REPLICA_7_TEMP='370' # [K] max OPES MultiTherm temperature of replica 7
 
 # well-tempered metadynamics
