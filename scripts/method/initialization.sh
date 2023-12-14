@@ -91,10 +91,17 @@ echo "INFO: Copying input files to working directory"
 
     # copy files
     # if any cp commands failed, exit script
-    cp -np "${mdp_file}" "mdin.mdp" || exit 1
+    cp -np "${mdp_file}" "mdin.mdp" || exit 15
     cp -np "${PDB_CRYSTAL}" "crystal.pdb" || exit 1
     if [[ "${N_CHAIN}" -gt 0 ]]; then
         cp -np "${PDB_CHAIN}" "chain.pdb" || exit 1
+    fi
+
+    # small surfaces have smaller cutoffs
+    if [[ "${SURFACE_SIZE}" -lt 4 ]]; then
+        sed -i 's/^rlist.*/rlist = 0.7/g' "mdin.mdp"
+        sed -i 's/^rcoulomb.*/rcoulomb = 0.7/g' "mdin.mdp"
+        sed -i 's/^rvdw.*/rvdw = 0.7/g' "mdin.mdp"
     fi
 
 } >>"${log_file}" 2>&1
@@ -169,7 +176,11 @@ echo "INFO: Importing structure to Gromacs"
     minimum_z_coord="$(echo "${carbonate_carbon_z}" | sort -n)"
     z_min="$(echo "${minimum_z_coord}" | awk 'NR==1{print $1}')"
     # subtract 1.5 nm to z_min to ensure that all atoms are within the box and we can see water structure
-    offset='1.5'
+    if [[ "${BOX_HEIGHT}" -gt 5 ]]; then
+        offset='1.5'
+    else
+        offset='0.5'
+    fi
     z_min="$(bc <<<"scale=5; ${z_min} - ${offset}")"
     echo "DEBUG: Minimum z-coordinate of crystal [nm]: ${z_min}"
 
@@ -270,7 +281,7 @@ EOF
 # ##############################################################################
 # Add Ions #####################################################################
 # ##############################################################################
-echo "INFO: Adding calcium ions"
+echo "INFO: Adding ${N_CALCIUM} calcium ions"
 {
     # add Ca2+ ions
     if [[ "${N_CALCIUM}" -gt 0 ]]; then
@@ -295,7 +306,7 @@ EOF
     fi
 } >>"${log_file}" 2>&1
 
-echo "INFO: Adding sodium ions"
+echo "INFO: Adding ${N_SODIUM} sodium ions"
 {
     # add Na+ ions
     if [[ "${N_SODIUM}" -gt 0 ]]; then
@@ -320,7 +331,7 @@ EOF
     fi
 } >>"${log_file}" 2>&1
 
-echo "INFO: Adding chlorine ions"
+echo "INFO: Adding ${N_CHLORINE} chloride ions"
 {
     # add Cl- ions
     if [[ "${N_CHLORINE}" -gt 0 ]]; then

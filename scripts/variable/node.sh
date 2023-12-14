@@ -73,9 +73,9 @@ fi
 if [[ "${CPU_THREADS}" == "-1" ]]; then
     GMX_CPU_ARGS=''
 elif [[ "${PIN_OFFSET}" == "-1" ]]; then
-    GMX_CPU_ARGS="-nt ${CPU_THREADS} -pin on -pinstride 1"
+    GMX_CPU_ARGS="-ntomp ${CPU_THREADS} -pin on -pinstride 1"
 else
-    GMX_CPU_ARGS="-nt ${CPU_THREADS} -pin on -pinoffset ${PIN_OFFSET} -pinstride 1"
+    GMX_CPU_ARGS="-ntomp ${CPU_THREADS} -pin on -pinoffset ${PIN_OFFSET} -pinstride 1"
 fi
 export GMX_CPU_ARGS
 

@@ -96,6 +96,12 @@ else
             sed -i 's/ref-t.*/ref-t                     = '"${TEMPERATURE_K}/g" "${sim_name}.mdp" || exit 1
             sed -i 's/gen-temp.*/gen-temp                  = '"${TEMPERATURE_K}/g" "${sim_name}.mdp" || exit 1
             sed -i 's/ref-p.*/ref-p                     = '"${PRESSURE_BAR} ${PRESSURE_BAR}/g" "${sim_name}.mdp" || exit 1
+            # small surfaces have smaller cutoffs
+            if [[ "${SURFACE_SIZE}" -lt 4 ]]; then
+                sed -i 's/^rlist.*/rlist = 0.7/g' "${sim_name}.mdp" || exit 1
+                sed -i 's/^rcoulomb.*/rcoulomb = 0.7/g' "${sim_name}.mdp" || exit 1
+                sed -i 's/^rvdw.*/rvdw = 0.7/g' "${sim_name}.mdp" || exit 1
+            fi
 
             # create tpr file
             "${GMX_BIN}" -nocopyright grompp \
