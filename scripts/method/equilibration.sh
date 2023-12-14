@@ -142,7 +142,8 @@ EOF
         cp -np "${sim_name}."* -t "${archive_dir}/" || exit 1
         rm "${sim_name}."* || exit 1
         cp -np "mdout.mdp" -t "${archive_dir}/" || exit 1
-        rm ./*.cpt mdout.mdp || exit 1
+        rm -f ./*.cpt || exit 1
+        rm mdout.mdp || exit 1
         # move xvg and png files to archive directory
         mkdir -p "${archive_dir}/figures"
         cp -np ./*.xvg -t "${archive_dir}/figures/" || exit 1
@@ -241,7 +242,8 @@ EOF
         cp -np "${sim_name}."* -t "${archive_dir}/" || exit 1
         rm "${sim_name}."* || exit 1
         cp -np "mdout.mdp" -t "${archive_dir}/" || exit 1
-        rm ./*.cpt mdout.mdp || exit 1
+        rm -f ./*.cpt || exit 1
+        rm mdout.mdp || exit 1
         # move xvg and png files to archive directory
         mkdir -p "${archive_dir}/figures"
         cp -np ./*.xvg -t "${archive_dir}/figures/" || exit 1
@@ -375,7 +377,8 @@ EOF
         cp -np "${sim_name}."* -t "${archive_dir}/" || exit 1
         rm "${sim_name}."* || exit 1
         cp -np "mdout.mdp" -t "${archive_dir}/" || exit 1
-        rm ./*.cpt mdout.mdp || exit 1
+        rm -f ./*.cpt || exit 1
+        rm mdout.mdp || exit 1
         # move plumed files to archive directory
         cp -np "plumed.dat" -t "${archive_dir}/" || exit 1
         rm ./*.dat || exit 1
