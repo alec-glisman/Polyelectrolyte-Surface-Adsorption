@@ -28,6 +28,7 @@ dependencies:
   - mdanalysistests
   - pymatgen
   - openbabel
+  - rdkit
   # plotting
   - matplotlib
   - seaborn
