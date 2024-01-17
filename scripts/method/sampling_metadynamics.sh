@@ -130,9 +130,6 @@ else
             sed -i 's/#RESTART/RESTART/g' "plumed.dat" || exit 1
         fi
 
-        # get copy of GMX_CPU_ARGS with -nt replaced by -ntomp
-        GMX_CPU_ARGS="${GMX_CPU_ARGS/-nt/-ntomp}"
-
         # shellcheck disable=SC2153,SC2086
         "${GMX_BIN}" -nocopyright mdrun -v \
             -maxh "${WALLTIME_HOURS}" \

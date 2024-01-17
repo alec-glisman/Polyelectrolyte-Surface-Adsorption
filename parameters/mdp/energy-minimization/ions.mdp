@@ -20,13 +20,13 @@ nstxout-compressed        = 100          ; [steps] number of steps that elapse b
 cutoff-scheme             = Verlet       ; algorithm to generate neigbor list
 nstlist                   = 20           ; [steps] frequency to update the neighbor list
 pbc                       = xyz          ; periodic boundary conditions
-rlist                     = 0.7000       ; [nm] cut-off distance for the short-range neighbor list
+rlist                     = 0.3000       ; [nm] cut-off distance for the short-range neighbor list
 ;;; Electrostatics ;;;
 coulombtype               = PME          ; algorithm to generate electrostatics
-rcoulomb                  = 0.7000       ; [nm] The distance for the Coulomb cut-off
+rcoulomb                  = 0.3000       ; [nm] The distance for the Coulomb cut-off
 ;;; Van der Waals ;;;
 vdw-type                  = cut-off      ; algorithm to generate Van der Waals
-rvdw                      = 0.7000       ; [nm] distance for the LJ or Buckingham cut-off
+rvdw                      = 0.3000       ; [nm] distance for the LJ or Buckingham cut-off
 DispCorr                  = AllEnerPres  ; corrections to apply for long-ranged energy and/or pressure
 ;;; Ewald ;;;
 fourierspacing            = 0.12         ; [nm] for ordinary Ewald, the ratio of the box dimensions and the spacing determines a lower bound for the number of wave vectors to use in each (signed) direction

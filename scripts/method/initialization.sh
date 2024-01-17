@@ -98,7 +98,11 @@ echo "INFO: Copying input files to working directory"
     fi
 
     # small surfaces have smaller cutoffs
-    if [[ "${SURFACE_SIZE}" -lt 4 ]]; then
+    if [[ "${SURFACE_SIZE}" -lt 2 ]]; then
+        sed -i 's/^rlist.*/rlist = 0.3/g' "mdin.mdp"
+        sed -i 's/^rcoulomb.*/rcoulomb = 0.3/g' "mdin.mdp"
+        sed -i 's/^rvdw.*/rvdw = 0.3/g' "mdin.mdp"
+    elif [[ "${SURFACE_SIZE}" -lt 4 ]]; then
         sed -i 's/^rlist.*/rlist = 0.7/g' "mdin.mdp"
         sed -i 's/^rcoulomb.*/rcoulomb = 0.7/g' "mdin.mdp"
         sed -i 's/^rvdw.*/rvdw = 0.7/g' "mdin.mdp"
@@ -179,7 +183,7 @@ echo "INFO: Importing structure to Gromacs"
     if [[ "${BOX_HEIGHT}" -gt 5 ]]; then
         offset='1.5'
     else
-        offset='0.5'
+        offset='0.0'
     fi
     z_min="$(bc <<<"scale=5; ${z_min} - ${offset}")"
     echo "DEBUG: Minimum z-coordinate of crystal [nm]: ${z_min}"
@@ -291,7 +295,7 @@ echo "INFO: Adding ${N_CALCIUM} calcium ions"
             -c "${sim_name}.gro" \
             -p "topol.top" \
             -o "${sim_name}.tpr" \
-            -maxwarn '1'
+            -maxwarn '2'
         # add ions
         "${GMX_BIN}" --nocopyright genion \
             -s "${sim_name}.tpr" \
@@ -316,7 +320,7 @@ echo "INFO: Adding ${N_SODIUM} sodium ions"
             -c "${sim_name}.gro" \
             -p "topol.top" \
             -o "${sim_name}.tpr" \
-            -maxwarn '1'
+            -maxwarn '2'
         # add ions
         "${GMX_BIN}" --nocopyright genion \
             -s "${sim_name}.tpr" \
@@ -324,7 +328,7 @@ echo "INFO: Adding ${N_SODIUM} sodium ions"
             -o "${sim_name}.gro" \
             -pname "NA" \
             -np "${N_SODIUM}" \
-            -rmin "0.6" \
+            -rmin "0.2" \
             <<EOF
 SOL
 EOF
@@ -341,7 +345,7 @@ echo "INFO: Adding ${N_CHLORINE} chloride ions"
             -c "${sim_name}.gro" \
             -p "topol.top" \
             -o "${sim_name}.tpr" \
-            -maxwarn '1'
+            -maxwarn '2'
         # add ions
         "${GMX_BIN}" --nocopyright genion \
             -s "${sim_name}.tpr" \
@@ -363,7 +367,8 @@ echo "INFO: Create topology file with all solutes"
         -f "${ion_mdp_file}" \
         -c "${sim_name}.gro" \
         -p "topol.top" \
-        -o "${sim_name}.tpr"
+        -o "${sim_name}.tpr" \
+        -maxwarn '2'
 
     # pdb file
     "${GMX_BIN}" -nocopyright trjconv \
@@ -598,7 +603,8 @@ EOF
         -n "index.ndx" \
         -p "topol.top" \
         -pp "topol_full.top" \
-        -o "${sim_name}.tpr"
+        -o "${sim_name}.tpr" \
+        -maxwarn '2'
 } >>"${log_file}" 2>&1
 
 n_system="$(grep " System " "${log_file}" | tail -n 1 | awk '{print $4}')"
