@@ -227,8 +227,13 @@ class ParseGmxLog:
         self.df_repl_pr_summary.to_csv(dir_out / "exchange_probability_summary.csv")
 
         f_out = dir_out / "exchange_probability_average.txt"
-        avgs = self.df_repl_pr.mean().round(3)
-        stds = self.df_repl_pr.std().round(3)
+        try:
+            avgs = self.df_repl_pr.mean().round(3)
+            stds = self.df_repl_pr.std().round(3)
+        except TypeError:
+            avgs = pd.Series([np.nan] * (self.n_replica - 1))
+            stds = pd.Series([np.nan] * (self.n_replica - 1))
+
         with open(f_out, "w", encoding="utf-8") as f:
             f.write(f"Datetime: {datetime.datetime.now()}\n")
             f.write(f"Log file: {self.f_log}\n\n")
@@ -238,7 +243,7 @@ class ParseGmxLog:
             f.write(f"Simulation time: {self.t_final - self.t_initial:.1f} ns\n\n")
             f.write("Average +- Std Dev Exchange Probabilities:\n")
             for i in range(self.n_replica - 1):
-                f.write(f"{i}-{i+1}: {avgs[i]:.2f} {stds[i]:.2f}\n")
+                f.write(f"{i}-{i+1}: {avgs.iloc[i]:.2f} {stds.iloc[i]:.2f}\n")
             f.write("\nStatistics:\n")
             f.write(self.df_repl_pr_summary.round(3).to_string())
 
