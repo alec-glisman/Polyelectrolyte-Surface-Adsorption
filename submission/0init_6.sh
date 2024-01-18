@@ -20,7 +20,7 @@ set -o nounset # exit when script tries to use undeclared variables
 # simulation path variables
 proj_base_dir="$(pwd)/.."
 scripts_dir="${proj_base_dir}/scripts"
-params_dir="${proj_base_dir}/submission/input/5-one-opes-params"
+params_dir="${proj_base_dir}/submission/input/6-diffusion-model-systems"
 
 # input globals is an array of all files in the params_dir stripped of the params_dir path
 input_globals=()
