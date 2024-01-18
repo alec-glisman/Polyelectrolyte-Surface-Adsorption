@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Created by Alec Glisman (GitHub: @alec-glisman) on January 25th, 2023
 
-#SBATCH --job-name=5.1.0-OneOPES
+#SBATCH --job-name=5.7.0-OneOPES
 #SBATCH --time=2-00:00:00
 
 # Slurm: Node configuration
@@ -22,10 +22,13 @@ proj_base_dir="$(pwd)/.."
 scripts_dir="${proj_base_dir}/scripts"
 params_dir="${proj_base_dir}/submission/input/5-one-opes-params"
 input_globals=(
-    '1.0_lowbarrier3.sh'
+    # '1.0_lowbarrier3.sh'
     # '2.0_lowbarrier5.sh'
     # '3.0_lowbarrier5_geom370.sh'
     # '4.0_lowbarrier5_geom350.sh'
+    # '5.0_lowbarrier5_lower305_geom370.sh'
+    # '6.0_lowbarrier5_lower304_upper374.sh'
+    '7.0_lowbarrier8_lower304_upper374.sh'
 )
 
 # start script

@@ -82,7 +82,7 @@ def main() -> None:
         "--n_replica",
         "-n",
         type=int,
-        default=32,
+        default=6,
         help="Number of replicas.",
     )
     parser.add_argument(
@@ -94,7 +94,7 @@ def main() -> None:
     parser.add_argument(
         "--tmax",
         type=float,
-        default=440,
+        default=370,
         help="Maximum temperature in Kelvin.",
     )
     parser.add_argument(

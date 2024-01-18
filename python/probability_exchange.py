@@ -18,6 +18,7 @@ import warnings
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from tqdm.auto import tqdm
 
 # matplotlib settings
 plt.rcParams["axes.formatter.use_mathtext"] = True
@@ -89,7 +90,10 @@ class ParseGmxLog:
 
         # check that only one match was found
         if len(n_replica) != 1:
-            raise ValueError(f"Expected 1 match, got {len(n_replica)}")
+            # if all replica numbers are the same, no error
+            n_replica_guesses = [int(x) for x in n_replica]
+            if len(set(n_replica_guesses)) != 1:
+                raise ValueError(f"Expected 1 match, got {len(set(n_replica))}")
 
         # convert to integer
         n_replica = int(n_replica[0])
@@ -237,10 +241,20 @@ class ParseGmxLog:
         with open(f_out, "w", encoding="utf-8") as f:
             f.write(f"Datetime: {datetime.datetime.now()}\n")
             f.write(f"Log file: {self.f_log}\n\n")
+
             f.write(f"Number of replicas: {self.n_replica}\n")
             f.write(f"Initial time: {self.t_initial:.1f} ns\n")
             f.write(f"Final time: {self.t_final:.1f} ns\n")
             f.write(f"Simulation time: {self.t_final - self.t_initial:.1f} ns\n\n")
+
+            f.write(f"Minimum exchange probability: {avgs.min():.2f}\n")
+            f.write(f"Average exchange probability: {avgs.mean():.2f}\n")
+            f.write(f"Std Dev exchange probability: {avgs.std():.2f}\n\n")
+
+            f.write(
+                f"Sorted Average Exchange Probabilities: \n{avgs.sort_values()}\n\n"
+            )
+
             f.write("Average +- Std Dev Exchange Probabilities:\n")
             for i in range(self.n_replica - 1):
                 f.write(f"{i}-{i+1}: {avgs.iloc[i]:.2f} {stds.iloc[i]:.2f}\n")
@@ -339,7 +353,12 @@ def main(verbose: bool = False) -> None:
         print(f"Found {len(f_logs)} log files in {d_data}")
 
     # Parse log files and extract exchange probabilities
-    for idx, log_file in enumerate(f_logs):
+    for idx, log_file in tqdm(
+        enumerate(f_logs),
+        desc="Parsing log files",
+        dynamic_ncols=True,
+        total=len(f_logs),
+    ):
         print(f"Reading log file {idx+1}/{len(f_logs)}: {log_file}")
         log = ParseGmxLog(log_file)
         log.save()
@@ -350,6 +369,30 @@ def main(verbose: bool = False) -> None:
             print("Average Exchange probabilities" + f" (tf = {log.t_final:.1f} ns):")
             print(log.df_repl_pr_summary.to_string())
             print()
+
+    # for f_logs with same Path.parents[1] (i.e. same simulation), combine into one file
+    d_logs_combined = []
+    for f_log in f_logs:
+        if f_log.parents[1] not in d_logs_combined:
+            d_logs_combined.append(f_log.parents[1])
+
+    for d_log in tqdm(d_logs_combined, desc="Combining log files", dynamic_ncols=True):
+        f_logs_combined = find_logs(d_log)
+
+        # make output file that is all log files combined
+        d_out = d_log / "analysis" / "combined"
+        f_out = d_out / "combined.log"
+        f_out.parent.mkdir(parents=True, exist_ok=True)
+
+        print(f"Writing combined log file: {f_out.relative_to(d_data)}")
+        with open(f_out, "w", encoding="utf-8") as f:
+            for f_log in f_logs_combined:
+                f.write(f_log.read_text())
+
+        # parse combined log file
+        log = ParseGmxLog(f_out)
+        log.save(dir_out=d_out)
+        log.plt_repl_pr_moving_average(window=MOVING_AVERAGE_WINDOW, dir_out=d_out)
 
 
 if __name__ == "__main__":

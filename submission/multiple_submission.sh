@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # -*- coding: utf-8 -*-
 
-n_jobs='7'
+n_jobs='6'
 first_dependency='1'
 dependency_code='afterany'
-batch_script='2oneopes_5.5.0.sh'
+batch_script='2oneopes_5.7.0.sh'
 # idx='6'
 # job_name='4.7-md'
 
