@@ -24,22 +24,22 @@ proj_base_dir="$(pwd)/.."
 scripts_dir="${proj_base_dir}/scripts"
 params_dir="${proj_base_dir}/submission/input/6-diffusion-model-systems"
 input_globals=(
-    '1.0_16paa_0Ca_9nmcrystal.sh'
+    '1.0_16paa_0Ca_9nmcrystal.sh' # 0
     '1.1_16paa_0Ca_9nmcrystal.sh'
     '1.2_16paa_0Ca_9nmcrystal.sh'
     '1.3_16paa_0Ca_9nmcrystal.sh'
     '1.4_16paa_0Ca_9nmcrystal.sh'
-    '2.0_16paan_0Ca_9nmcrystal.sh'
+    '2.0_16paan_0Ca_9nmcrystal.sh' # 5
     '2.1_16paan_0Ca_9nmcrystal.sh'
     '2.2_16paan_0Ca_9nmcrystal.sh'
     '2.3_16paan_0Ca_9nmcrystal.sh'
     '2.4_16paan_0Ca_9nmcrystal.sh'
-    '3.0_32paa_0Ca_12nmcrystal.sh'
+    '3.0_32paa_0Ca_12nmcrystal.sh' # 10
     '3.1_32paa_0Ca_12nmcrystal.sh'
     '3.2_32paa_0Ca_12nmcrystal.sh'
     '3.3_32paa_0Ca_12nmcrystal.sh'
     '3.4_32paa_0Ca_12nmcrystal.sh'
-    '4.0_32paan_0Ca_12nmcrystal.sh'
+    '4.0_32paan_0Ca_12nmcrystal.sh' # 15
     '4.1_32paan_0Ca_12nmcrystal.sh'
     '4.2_32paan_0Ca_12nmcrystal.sh'
     '4.3_32paan_0Ca_12nmcrystal.sh'
