@@ -279,7 +279,9 @@ class ParseGmxLog:
             self.df_repl_pr.reset_index(drop=True).rolling(window, min_periods=1).mean()
         )
         times = re.findall(r"(?<=time\s)\d+.\d+", self.text)
-        times = [float(x) / 1000.0 for x in times]
+        times = np.array([float(x) / 1000.0 for x in times])
+        # sort curve and times by time
+        idx_sort = np.argsort(times)
 
         # plot horizontal line at 0.3
         fig, ax = plt.subplots()
@@ -293,8 +295,8 @@ class ParseGmxLog:
         for i in range(self.n_replica - 1):
             curve = data.iloc[:, i]
             ax.plot(
-                times,
-                curve,
+                times[idx_sort],
+                curve[idx_sort],
                 linewidth=2.5,
                 alpha=1.0,
                 label=f"{i}-{i+1}",

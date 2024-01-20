@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # -*- coding: utf-8 -*-
 
-n_jobs='6'
+n_jobs='9'
 first_dependency='1'
 dependency_code='afterany'
 batch_script='2oneopes_5.7.0.sh'
