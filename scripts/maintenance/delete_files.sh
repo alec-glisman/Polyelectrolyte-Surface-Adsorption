@@ -11,19 +11,18 @@ set -o nounset # exit when script tries to use undeclared variables
 idx="${1}"
 
 input_dirs_relative=(
-    'data_archive/1_model_systems/1.4.0-calcite-104surface-9nm_surface-10nm_vertical-1chain-PAcr-16mer-0Crb-0Ca-16Na-0Cl-300K-1bar-NVT'
+    'data_archive'
 )
 input_dir_base='/nfs/zeal_nas/home_mount/aglisman/GitHub/Polyelectrolyte-Surface-Adsorption'
 input_dir="${input_dir_base}/${input_dirs_relative[${idx}]}"
 
-# find all .trr files in input directories and convert to array
-trr_files="$(find "${input_dir}" -type f -name '*.trr')"
+# find all files older than 48 hours in input directories and convert to array
+trr_files="$(find "${input_dir}" -type f -name '*.trr' -mtime +2)"
+xtc_files="$(find "${input_dir}" -type f -name '*.xtc' -mtime +2)"
 mapfile -t trr_files <<<"${trr_files}"
-# find all .xtc files in input directories and convert to array
-xtc_files="$(find "${input_dir}" -type f -name '*.xtc')"
 mapfile -t xtc_files <<<"${xtc_files}"
 
-# remove items in trr_files containing patterns
+# remove items containing patterns
 patterns=(
     '*/replica_00/*'
     '*/3-sampling-md/*'
