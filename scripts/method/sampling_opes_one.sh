@@ -100,6 +100,11 @@ sim_name="prod_opes_one_multicv"
                 sed -i 's/^rcoulomb.*/rcoulomb = 0.7/g' "${sim_name}.mdp" || exit 1
                 sed -i 's/^rvdw.*/rvdw = 0.7/g' "${sim_name}.mdp" || exit 1
             fi
+            # non-base replicas write data 10x less frequently
+            if [[ "${replica_num}" -ne '00' ]]; then
+                sed -i 's/nstxout-compressed.*/nstxout-compressed = 10000/g' "${sim_name}.mdp" || exit 1
+                sed -i 's/nstenergy.*/nstenergy = 10000/g' "${sim_name}.mdp" || exit 1
+            fi
 
             # copy plumed file
             echo "DEBUG: Copying plumed file"

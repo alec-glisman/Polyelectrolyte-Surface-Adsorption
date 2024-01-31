@@ -87,6 +87,8 @@
         "nocopyright",
         "noignh",
         "nosol",
+        "nstenergy",
+        "nstxout",
         "NTASKS",
         "ntomp",
         "ompi",

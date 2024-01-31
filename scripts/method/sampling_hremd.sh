@@ -121,6 +121,11 @@ else
             sed -i 's/ref-t.*/ref-t                     = '"${TEMPERATURE_K}/g" "${sim_name}.mdp" || exit 1
             sed -i 's/gen-temp.*/gen-temp                  = '"${TEMPERATURE_K}/g" "${sim_name}.mdp" || exit 1
             sed -i 's/ref-p.*/ref-p                     = '"${PRESSURE_BAR} ${PRESSURE_BAR}/g" "${sim_name}.mdp" || exit 1
+            # non-base replicas write data 10x less frequently
+            if [[ "${replica}" -ne '00' ]]; then
+                sed -i 's/nstxout-compressed.*/nstxout-compressed = 10000/g' "${sim_name}.mdp" || exit 1
+                sed -i 's/nstenergy.*/nstenergy = 10000/g' "${sim_name}.mdp" || exit 1
+            fi
 
             # copy plumed file
             cp "${dat_file}" "plumed.dat" || exit 1
