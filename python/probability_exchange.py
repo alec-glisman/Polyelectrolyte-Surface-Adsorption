@@ -362,7 +362,12 @@ def main(verbose: bool = False) -> None:
         total=len(f_logs),
     ):
         print(f"Reading log file {idx+1}/{len(f_logs)}: {log_file}")
-        log = ParseGmxLog(log_file)
+        try:
+            log = ParseGmxLog(log_file)
+        except ValueError as e:
+            warnings.warn(f"ValueError: {e}")
+            continue
+
         log.save()
         log.plt_repl_pr_moving_average(window=MOVING_AVERAGE_WINDOW)
 
