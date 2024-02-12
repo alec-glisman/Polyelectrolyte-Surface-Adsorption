@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # -*- coding: utf-8 -*-
 
-n_jobs='9'
+n_jobs='3'
 first_dependency='1'
 dependency_code='afterany'
-batch_script='2oneopes_5.7.0.sh'
+batch_script='1eqbm_6.sh'
 
 # iterate over all jobs
 echo "Submitting ${n_jobs} jobs with script ${batch_script}"

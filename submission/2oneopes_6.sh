@@ -5,7 +5,7 @@
 
 # Slurm: Node configuration
 #SBATCH --partition=all --qos=dow --account=dow
-#SBATCH --nodes=1 --ntasks-per-node=32 --mem=8G
+#SBATCH --nodes=2 --ntasks-per-node=32 --mem=8G
 #SBATCH --gres=gpu:2 --gpu-bind=closest
 
 # Slurm: Runtime I/O
@@ -44,6 +44,11 @@ input_globals=(
     '4.2_32paan_0Ca_12nmcrystal.sh'
     '4.3_32paan_0Ca_12nmcrystal.sh'
     '4.4_32paan_0Ca_12nmcrystal.sh'
+    '5.0_32paa_32CaCl2_12nmcrystal.sh' # 20
+    '5.1_32paa_32CaCl2_12nmcrystal.sh'
+    '5.2_32paa_32CaCl2_12nmcrystal.sh'
+    '5.3_32paa_32CaCl2_12nmcrystal.sh'
+    '5.4_32paa_32CaCl2_12nmcrystal.sh'
 )
 
 # argument parsing
