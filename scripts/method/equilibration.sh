@@ -16,6 +16,7 @@ set -o pipefail # exit when a command in a pipe fails
 
 # start time
 start_time="$(date +%s)"
+echo "INFO: Starting system equilibration at $(date)"
 
 # #######################################################################################
 # Default Preferences ###################################################################
@@ -425,6 +426,7 @@ else
 fi
 
 echo "CRITICAL: Finished system equilibration"
+echo "INFO: Finished system equilibration at $(date)"
 
 # end time
 end_time="$(date +%s)"
@@ -434,6 +436,7 @@ runtime_seconds="$((end_time - start_time))"
 runtime_hours="$((runtime_seconds / 3600))"
 runtime_minutes="$((runtime_seconds % 3600 / 60))"
 runtime_seconds="$((runtime_seconds % 60))"
+echo "INFO: Runtime: ${runtime_hours}:${runtime_minutes}:${runtime_seconds}"
 {
     echo "INFO: Runtime: ${runtime_hours}:${runtime_minutes}:${runtime_seconds}"
 } >>"${log_file}" 2>&1
