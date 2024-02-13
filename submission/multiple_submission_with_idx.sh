@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # -*- coding: utf-8 -*-
 
-n_jobs='3'
+n_jobs='12'
 first_dependency='1'
 dependency_code='afterany'
-batch_script='1eqbm_6.sh'
+batch_script='2oneopes_6.sh'
 
 # argument parsing
 # 1st argument: input global indices to run {0..19}
