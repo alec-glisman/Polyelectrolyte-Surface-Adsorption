@@ -22,7 +22,7 @@ find_and_delete_files() {
     # find files
     echo "INFO) Finding ${file_type} files"
     local files
-    files="$(find "${input_dir_base}" -type f -name "*${file_type}")"
+    files="$(find "${input_dir_base}" -type f -name "*${file_type}" -mtime +1)"
     mapfile -t files <<<"${files}"
 
     # exclude files containing excluded patterns
@@ -96,7 +96,7 @@ down_sample_files() {
     # find files
     echo "INFO) Finding ${file_type} files"
     local files
-    files="$(find "${input_dir_base}" -type f -name "*${file_type}")"
+    files="$(find "${input_dir_base}" -type f -name "*${file_type}" -mtime +1)"
     mapfile -t files <<<"${files}"
 
     # exclude files containing excluded patterns
