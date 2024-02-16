@@ -42,9 +42,14 @@ find_and_delete_files() {
         echo "WARNING) No ${file_type} files found"
         return
     fi
-    echo "INFO) Here are the ${file_type} files to be deleted:"
+    echo "INFO) Here are the ${file_type} files to be deleted (total: ${#files[@]}):"
     for file in "${files[@]}"; do
-        echo "${file}"
+        # only display file name and 3 parent directories
+        file_short="${file/${input_dir_base}/}"
+        for i in {1..2}; do
+            file_short="${file_short#*/}"
+        done
+        echo " - ${file_short}"
     done
 
     # prompt user to delete files
@@ -65,7 +70,76 @@ find_and_delete_files '#*#' '*log*'
 # TRR files
 find_and_delete_files '.trr' '*/replica_00/*' '*/3-sampling-md/*' '*/3-sampling-metad/*'
 # XTC files
-find_and_delete_files '.xtc' '*/3-sampling-*/*'
+find_and_delete_files '.xtc' '*/replica_00/*' '*/3-sampling-*/*'
+
+# ########################################################################## #
+# Down-sample trajectory files that are not in pattern                       #
+# ########################################################################## #
+down_sample_files() {
+    # args
+    local file_type=$1
+    local patterns=("${@:2}")
+
+    # find files
+    echo "INFO) Finding ${file_type} files"
+    local files
+    files="$(find "${input_dir_base}" -type f -name "*${file_type}")"
+    mapfile -t files <<<"${files}"
+
+    # exclude files containing excluded patterns
+    local len="${#files[@]}"
+    for pattern in "${patterns[@]}"; do
+        files=("${files[@]/${pattern}/}")
+    done
+    for i in "${!files[@]}"; do
+        if [[ -z "${files[i]}" ]]; then
+            unset 'files[i]'
+        fi
+    done
+    echo "DEBUG) Removed $((len - ${#files[@]})) ${file_type} files for containing excluded patterns"
+
+    # list files to be down-sampled
+    if [[ "${#files[@]}" -eq 0 ]]; then
+        echo "WARNING) No ${file_type} files found"
+        return
+    fi
+    echo "INFO) Here are the ${file_type} files to be down-sampled (total: ${#files[@]}):"
+    for file in "${files[@]}"; do
+        # only display file name and 3 parent directories
+        file_short="${file/${input_dir_base}/}"
+        for i in {1..2}; do
+            file_short="${file_short#*/}"
+        done
+        echo " - ${file_short}"
+    done
+
+    # prompt user to down-sample files
+    read -p "Do you want to down-sample these files? (y/n) " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        echo "INFO) Down-sampling ${file_type} files"
+        parallel --keep-order --ungroup --jobs '16' --eta --halt-on-error '2' \
+            gmx_mpi trjconv -f "{1}" -o "{1/.xtc/_downsampled.xtc}" -skip '10' \
+            ::: "${files[@]}"
+    else
+        echo "INFO) Not down-sampling ${file_type} files"
+    fi
+
+}
+
+# Down-sample TRR files
+down_sample_files '.trr' '*/replica_00/*' '*/3-sampling-md/*' '*/3-sampling-metad/*' '*_downsampled*'
+# Down-sample XTC files
+down_sample_files '.xtc' '*/replica_00/*' '*/3-sampling-md/*' '*/3-sampling-metad/*' '*_downsampled*'
+
+# ########################################################################## #
+# Output file information                                                    #
+# ########################################################################## #
+
+echo "INFO) Output file information"
+echo "INFO) Source directory: ${input_dir_base}"
+echo "INFO) Size of source directory: $(\du -sh "${input_dir_base}")"
+dust "${input_dir_base}"
 
 # ########################################################################## #
 # Move data to new directory with rsync                                      #
