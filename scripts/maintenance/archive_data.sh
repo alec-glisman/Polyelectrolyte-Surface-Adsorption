@@ -57,7 +57,7 @@ find_and_delete_files() {
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
         echo "INFO) Deleting ${file_type} files"
-        parallel --keep-order --ungroup --jobs '32' --eta --halt-on-error '2' \
+        parallel --keep-order --jobs '32' --eta --halt-on-error '2' --joblog "delete${file_type}.log" \
             rm --verbose "{1}" \
             ::: "${files[@]}"
     else
@@ -75,6 +75,19 @@ find_and_delete_files '.xtc' '*/replica_00/*' '*/3-sampling-*/*'
 # ########################################################################## #
 # Down-sample trajectory files that are not in pattern                       #
 # ########################################################################## #
+downsample() {
+    local input_file="${1}"
+    local extension="${input_file##*.}"
+    local output_file="${input_file%.*}_downsampled.${extension}"
+    # down-sample trajectory file
+    gmx_mpi trjconv -f "${input_file}" -o "${output_file}" -skip '10' <<EOF
+System
+EOF
+    # remove original file
+    rm --verbose "${input_file}"
+}
+export -f downsample
+
 down_sample_files() {
     # args
     local file_type=$1
@@ -118,8 +131,8 @@ down_sample_files() {
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
         echo "INFO) Down-sampling ${file_type} files"
-        parallel --keep-order --ungroup --jobs '16' --eta --halt-on-error '2' \
-            gmx_mpi trjconv -f "{1}" -o "{1/.xtc/_downsampled.xtc}" -skip '10' \
+        parallel --keep-order --jobs '16' --eta --halt-on-error '2' --joblog "downsample${file_type}.log" \
+            downsample "{1}" \
             ::: "${files[@]}"
     else
         echo "INFO) Not down-sampling ${file_type} files"
