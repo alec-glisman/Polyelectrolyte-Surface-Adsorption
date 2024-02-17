@@ -8,7 +8,7 @@ set -o errexit # exit when a command fails. Add || true to commands allowed to f
 set -o nounset # exit when script tries to use undeclared variables
 
 # data I/O directories
-input_dir_base='/nfs/zeal_nas/home_mount/aglisman/GitHub/Polyelectrolyte-Surface-Adsorption/data_archive'
+input_dir_base='/nfs/zeal_nas/home_mount/aglisman/GitHub/Polyelectrolyte-Surface-Adsorption/data'
 output_dir_base='/nfs/zeal_nas/data_mount/aglisman-data/1-electronic-continuum-correction/6-surface-study-test-calculations'
 
 # ########################################################################## #
@@ -120,7 +120,7 @@ down_sample_files() {
     for file in "${files[@]}"; do
         # only display file name and 3 parent directories
         file_short="${file/${input_dir_base}/}"
-        for i in {1..2}; do
+        for i in {1..1}; do
             file_short="${file_short#*/}"
         done
         echo " - ${file_short}"
@@ -131,7 +131,7 @@ down_sample_files() {
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
         echo "INFO) Down-sampling ${file_type} files"
-        parallel --keep-order --jobs '16' --eta --halt-on-error '2' --joblog "downsample${file_type}.log" \
+        parallel --keep-order --jobs '30' --eta --halt-on-error '2' --joblog "downsample${file_type}.log" \
             downsample "{1}" \
             ::: "${files[@]}"
     else
@@ -141,9 +141,9 @@ down_sample_files() {
 }
 
 # Down-sample TRR files
-down_sample_files '.trr' '*/replica_00/*' '*/3-sampling-md/*' '*/3-sampling-metad/*' '*_downsampled*'
+down_sample_files '.trr' '*/replica_00/*' '*/3-sampling-md/*' '*/3-sampling-metad/*' '*_downsampled*' '*6.2.4*' '*6.4.0*' '*6.4.2*' '*6.5.0*' '*6.5.1*' '*6.5.2*' '*6.5.3*' '*6.5.4*'
 # Down-sample XTC files
-down_sample_files '.xtc' '*/replica_00/*' '*/3-sampling-md/*' '*/3-sampling-metad/*' '*_downsampled*'
+down_sample_files '.xtc' '*/replica_00/*' '*/3-sampling-md/*' '*/3-sampling-metad/*' '*_downsampled*' '*6.2.4*' '*6.4.0*' '*6.4.2*' '*6.5.0*' '*6.5.1*' '*6.5.2*' '*6.5.3*' '*6.5.4*'
 
 # ########################################################################## #
 # Output file information                                                    #
