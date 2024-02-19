@@ -10,7 +10,7 @@ set -o nounset # exit when script tries to use undeclared variables
 # data I/O directories
 downsample='true'
 move='false'
-input_dir_base='/nfs/zeal_nas/data_mount/aglisman-data/1-electronic-continuum-correction/5-ECC-two-chain-PMF/polypeptide-homopolymer'
+input_dir_base='/nfs/zeal_nas/data_mount/aglisman-data/1-electronic-continuum-correction/5-ECC-two-chain-PMF/polyacrylate-copolymer'
 output_dir_base='/nfs/zeal_nas/data_mount/aglisman-data/1-electronic-continuum-correction/6-surface-study-test-calculations'
 
 # ########################################################################## #
@@ -177,25 +177,23 @@ dust "${input_dir_base}"
 # ########################################################################## #
 # Move data to new directory with rsync                                      #
 # ########################################################################## #
-# move files
-echo "INFO) Moving files to new directory"
 
-# prompt user to accept or reject moving files
-echo "DEBUG) Source directory: ${input_dir_base}"
-echo "DEBUG) Destination directory: ${output_dir_base}"
-read -p "Do you want to move files from the source to the destination directory? (y/n) " -n 1 -r
-echo
-if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-    echo "INFO) Not moving files"
-    exit 0
-fi
-
-# move files
 if [[ "${move}" != 'true' ]]; then
     echo "INFO) Not moving files"
+
 else
-    echo "INFO) Moving files"
-    rsync --archive --verbose --progress --human-readable --remove-source-files \
-        "${input_dir_base}/" "${output_dir_base}/"
+    # prompt user to accept or reject moving files
+    echo "INFO) Moving files to new directory"
+    echo "DEBUG) Source directory: ${input_dir_base}"
+    echo "DEBUG) Destination directory: ${output_dir_base}"
+    read -p "Do you want to move files from the source to the destination directory? (y/n) " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        echo "INFO) Not moving files"
+    else
+        echo "INFO) Moving files"
+        rsync --archive --verbose --progress --human-readable --remove-source-files \
+            "${input_dir_base}/" "${output_dir_base}/"
+    fi
 fi
 echo "INFO) Done"
