@@ -8,7 +8,9 @@ set -o errexit # exit when a command fails. Add || true to commands allowed to f
 set -o nounset # exit when script tries to use undeclared variables
 
 # data I/O directories
-input_dir_base='/nfs/zeal_nas/home_mount/aglisman/GitHub/Polyelectrolyte-Surface-Adsorption/data'
+downsample='true'
+move='false'
+input_dir_base='/nfs/zeal_nas/data_mount/aglisman-data/1-electronic-continuum-correction/5-ECC-two-chain-PMF/polypeptide-homopolymer'
 output_dir_base='/nfs/zeal_nas/data_mount/aglisman-data/1-electronic-continuum-correction/6-surface-study-test-calculations'
 
 # ########################################################################## #
@@ -43,14 +45,20 @@ find_and_delete_files() {
         return
     fi
     echo "INFO) Here are the ${file_type} files to be deleted (total: ${#files[@]}):"
+    total_size='0'
     for file in "${files[@]}"; do
         # only display file name and 3 parent directories
         file_short="${file/${input_dir_base}/}"
-        for i in {1..2}; do
+        for i in {1..1}; do
             file_short="${file_short#*/}"
         done
-        echo " - ${file_short}"
+        echo "DEBUG) - ${file_short}"
+        total_size=$((total_size + $(\du "${file}" | awk '{print $1}')))
     done
+
+    # calculate total size of files to be deleted (convert kb to Gb)
+    total_size_gb=$(echo "scale=2; ${total_size} / 1024 / 1024" | bc -l)
+    echo "INFO) Total size of ${file_type} files to be deleted: ${total_size_gb} GB"
 
     # prompt user to delete files
     read -p "Do you want to delete these files? (y/n) " -n 1 -r
@@ -68,9 +76,9 @@ find_and_delete_files() {
 # Backup files
 find_and_delete_files '#*#' '*log*'
 # TRR files
-find_and_delete_files '.trr' '*/replica_00/*' '*/3-sampling-md/*' '*/3-sampling-metad/*'
+find_and_delete_files '.trr' '*/replica_00/*' '*/3-sampling-md/*' '*/3-sampling-metad/*' '*/3-metad-*/*' '*/3-md-*/*'
 # XTC files
-find_and_delete_files '.xtc' '*/replica_00/*' '*/3-sampling-*/*'
+find_and_delete_files '.xtc' '*/replica_00/*' '*/3-sampling-*/*' '*/3-hremd-prod*/*' '*/3-metad-*/*' '*/3-md-*/*'
 
 # ########################################################################## #
 # Down-sample trajectory files that are not in pattern                       #
@@ -117,14 +125,22 @@ down_sample_files() {
         return
     fi
     echo "INFO) Here are the ${file_type} files to be down-sampled (total: ${#files[@]}):"
+    total_size='0'
     for file in "${files[@]}"; do
         # only display file name and 3 parent directories
         file_short="${file/${input_dir_base}/}"
         for i in {1..1}; do
             file_short="${file_short#*/}"
         done
-        echo " - ${file_short}"
+        echo "DEBUG) - ${file_short}"
+        total_size=$((total_size + $(\du "${file}" | awk '{print $1}')))
     done
+
+    # calculate total size of files to be down-sampled
+    total_size_gb=$(echo "scale=2; ${total_size} / 1024 / 1024" | bc -l)       # convert kb to Gb
+    total_size_gb_downsampled=$(echo "scale=2; ${total_size_gb} / 10" | bc -l) # down-sample by 10
+    echo "INFO) Total size of ${file_type} files to be down-sampled: ${total_size_gb} GB"
+    echo "INFO) Total size of down-sampled ${file_type} files: ${total_size_gb_downsampled} GB"
 
     # prompt user to down-sample files
     read -p "Do you want to down-sample these files? (y/n) " -n 1 -r
@@ -140,10 +156,14 @@ down_sample_files() {
 
 }
 
-# Down-sample TRR files
-down_sample_files '.trr' '*/replica_00/*' '*/3-sampling-md/*' '*/3-sampling-metad/*' '*_downsampled*' '*6.2.4*' '*6.4.0*' '*6.4.2*' '*6.5.0*' '*6.5.1*' '*6.5.2*' '*6.5.3*' '*6.5.4*'
-# Down-sample XTC files
-down_sample_files '.xtc' '*/replica_00/*' '*/3-sampling-md/*' '*/3-sampling-metad/*' '*_downsampled*' '*6.2.4*' '*6.4.0*' '*6.4.2*' '*6.5.0*' '*6.5.1*' '*6.5.2*' '*6.5.3*' '*6.5.4*'
+if [[ "${downsample}" != 'true' ]]; then
+    echo "INFO) Not down-sampling files"
+else
+    # Down-sample TRR files
+    down_sample_files '.trr' '*/replica_00/*' '*/3-sampling-md/*' '*/3-sampling-metad/*' '*/3-metad-*/*' '*/3-md-*/*' '*_downsampled*' '*6.2.4*' '*6.4.0*' '*6.4.2*' '*6.5.0*' '*6.5.1*' '*6.5.2*' '*6.5.3*' '*6.5.4*'
+    # Down-sample XTC files
+    down_sample_files '.xtc' '*/replica_00/*' '*/3-sampling-md/*' '*/3-sampling-metad/*' '*/3-metad-*/*' '*/3-md-*/*' '*_downsampled*' '*6.2.4*' '*6.4.0*' '*6.4.2*' '*6.5.0*' '*6.5.1*' '*6.5.2*' '*6.5.3*' '*6.5.4*'
+fi
 
 # ########################################################################## #
 # Output file information                                                    #
@@ -171,8 +191,11 @@ if [[ ! $REPLY =~ ^[Yy]$ ]]; then
 fi
 
 # move files
-echo "INFO) Moving files"
-rsync --archive --verbose --progress --human-readable --remove-source-files \
-    "${input_dir_base}/" "${output_dir_base}/"
-
+if [[ "${move}" != 'true' ]]; then
+    echo "INFO) Not moving files"
+else
+    echo "INFO) Moving files"
+    rsync --archive --verbose --progress --human-readable --remove-source-files \
+        "${input_dir_base}/" "${output_dir_base}/"
+fi
 echo "INFO) Done"
