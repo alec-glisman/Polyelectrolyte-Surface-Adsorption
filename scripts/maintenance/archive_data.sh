@@ -10,7 +10,7 @@ set -o nounset # exit when script tries to use undeclared variables
 # data I/O directories
 downsample='true'
 move='false'
-input_dir_base='/nfs/zeal_nas/data_mount/aglisman-data/1-electronic-continuum-correction/5-ECC-two-chain-PMF/polyacrylate-copolymer'
+input_dir_base='/nfs/zeal_nas/home_mount/aglisman/GitHub/Polyelectrolyte-Surface-Adsorption/data'
 output_dir_base='/nfs/zeal_nas/data_mount/aglisman-data/1-electronic-continuum-correction/6-surface-study-test-calculations'
 
 # ########################################################################## #
@@ -76,9 +76,9 @@ find_and_delete_files() {
 # Backup files
 find_and_delete_files '#*#' '*log*'
 # TRR files
-find_and_delete_files '.trr' '*/replica_00/*' '*/3-sampling-md/*' '*/3-sampling-metad/*' '*/3-metad-*/*' '*/3-md-*/*'
+find_and_delete_files '.trr' '*/replica_00/*' '*/3-sampling-md/*' '*/3-sampling-metad/*' '*/3-sampling-opes-explore/*' '*/3-metad-*/*' '*/3-md-*/*' '*/4-most-favorable-d12/*'
 # XTC files
-find_and_delete_files '.xtc' '*/replica_00/*' '*/3-sampling-*/*' '*/3-hremd-prod*/*' '*/3-metad-*/*' '*/3-md-*/*'
+find_and_delete_files '.xtc' '*/replica_00/*' '*/3-sampling-*/*' '*/3-hremd-prod*/*' '*/3-metad-*/*' '*/3-md-*/*' '*/4-most-favorable-d12/*'
 
 # ########################################################################## #
 # Down-sample trajectory files that are not in pattern                       #
@@ -160,9 +160,9 @@ if [[ "${downsample}" != 'true' ]]; then
     echo "INFO) Not down-sampling files"
 else
     # Down-sample TRR files
-    down_sample_files '.trr' '*/replica_00/*' '*/3-sampling-md/*' '*/3-sampling-metad/*' '*/3-metad-*/*' '*/3-md-*/*' '*_downsampled*' '*6.2.4*' '*6.4.0*' '*6.4.2*' '*6.5.0*' '*6.5.1*' '*6.5.2*' '*6.5.3*' '*6.5.4*'
+    down_sample_files '.trr' '*/replica_00/*' '*/3-sampling-md/*' '*/3-sampling-metad/*' '*/3-sampling-opes-explore/*' '*/3-metad-*/*' '*/3-md-*/*' '*/4-most-favorable-d12/*' '*_downsampled*' '*6.2.4*' '*6.4.0*' '*6.4.2*' '*6.5.0*' '*6.5.1*' '*6.5.2*' '*6.5.3*' '*6.5.4*'
     # Down-sample XTC files
-    down_sample_files '.xtc' '*/replica_00/*' '*/3-sampling-md/*' '*/3-sampling-metad/*' '*/3-metad-*/*' '*/3-md-*/*' '*_downsampled*' '*6.2.4*' '*6.4.0*' '*6.4.2*' '*6.5.0*' '*6.5.1*' '*6.5.2*' '*6.5.3*' '*6.5.4*'
+    down_sample_files '.xtc' '*/replica_00/*' '*/3-sampling-md/*' '*/3-sampling-metad/*' '*/3-sampling-opes-explore/*' '*/3-metad-*/*' '*/3-md-*/*' '*/4-most-favorable-d12/*' '*_downsampled*' '*6.2.4*' '*6.4.0*' '*6.4.2*' '*6.5.0*' '*6.5.1*' '*6.5.2*' '*6.5.3*' '*6.5.4*'
 fi
 
 # ########################################################################## #
