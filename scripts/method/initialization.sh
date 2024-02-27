@@ -109,9 +109,9 @@ echo "INFO: Copying input files to working directory"
 
     # add vacuum parameters to mdp file
     if [[ "${VACUUM_HEIGHT}" -gt 0 ]]; then
-        sed -i 's/^ewald-geometry .*/ewald-geometry            = 3dc/g' "${sim_name}.mdp" || exit 1
-        sed -i 's/^pbc .*/pbc                       = xy/g' "${sim_name}.mdp" || exit 1
-        sed -i 's/^nwall .*/nwall                     = 2/g' "${sim_name}.mdp" || exit 1
+        sed -i 's/^ewald-geometry .*/ewald-geometry            = 3dc/g' "mdin.mdp"
+        sed -i 's/^pbc .*/pbc                       = xy/g' "mdin.mdp"
+        sed -i 's/^nwall .*/nwall                     = 2/g' "mdin.mdp"
     fi
 
 } >>"${log_file}" 2>&1
