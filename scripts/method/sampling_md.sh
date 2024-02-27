@@ -102,6 +102,12 @@ else
                 sed -i 's/^rcoulomb.*/rcoulomb = 0.7/g' "${sim_name}.mdp" || exit 1
                 sed -i 's/^rvdw.*/rvdw = 0.7/g' "${sim_name}.mdp" || exit 1
             fi
+            # add vacuum parameters to mdp file
+            if [[ "${VACUUM_HEIGHT}" -gt 0 ]]; then
+                sed -i 's/^ewald-geometry .*/ewald-geometry            = 3dc/g' "${sim_name}.mdp" || exit 1
+                sed -i 's/^pbc .*/pbc                       = xy/g' "${sim_name}.mdp" || exit 1
+                sed -i 's/^nwall .*/nwall                     = 2/g' "${sim_name}.mdp" || exit 1
+            fi
 
             # create tpr file
             "${GMX_BIN}" -nocopyright grompp \

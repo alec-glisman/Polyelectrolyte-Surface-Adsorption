@@ -36,6 +36,7 @@ export SURFACE="104"     # Miller index of crystal surface {104, 001}
 # system size
 export SURFACE_SIZE='12'    # size of crystal surface in nm {3, 5, 8, 9, 10, 11, 12, 13}
 export BOX_HEIGHT='13'      # height of simulation box in nm
+export VACUUM_HEIGHT='0'    # height of vacuum layer in nm
 export PDB_BULK_ZMIN='6.52' # z-coordinate of bottom of bulk part of crystal in nm in PDB file
 export PDB_BULK_ZMAX='6.83' # z-coordinate of top of bulk part of crystal in nm in PDB file
 

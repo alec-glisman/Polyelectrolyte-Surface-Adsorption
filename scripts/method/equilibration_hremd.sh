@@ -134,6 +134,12 @@ else
             sed -i 's/ref-t.*/ref-t                     = '"${TEMPERATURE_K}/g" "${sim_name}.mdp" || exit 1
             sed -i 's/gen-temp.*/gen-temp                  = '"${TEMPERATURE_K}/g" "${sim_name}.mdp" || exit 1
             sed -i 's/ref-p.*/ref-p                     = '"${PRESSURE_BAR} ${PRESSURE_BAR}/g" "${sim_name}.mdp" || exit 1
+            # add vacuum parameters to mdp file
+            if [[ "${VACUUM_HEIGHT}" -gt 0 ]]; then
+                sed -i 's/^ewald-geometry .*/ewald-geometry            = 3dc/g' "${sim_name}.mdp" || exit 1
+                sed -i 's/^pbc .*/pbc                       = xy/g' "${sim_name}.mdp" || exit 1
+                sed -i 's/^nwall .*/nwall                     = 2/g' "${sim_name}.mdp" || exit 1
+            fi
 
             # copy plumed file
             cp "${dat_file}" "plumed.dat" || exit 1

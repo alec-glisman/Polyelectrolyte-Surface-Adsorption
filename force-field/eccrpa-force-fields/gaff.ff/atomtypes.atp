@@ -19,3 +19,6 @@ Na                22.98980  ; NA, clorine
 ; Water atoms
 HW_spc             1.00800  ; SPC/E Water HW
 OW_spc            15.99940  ; SPC/E Water OW
+; Wall atoms
+WR                 0.00000  ; wall atom
+WL                 0.00000  ; wall atom

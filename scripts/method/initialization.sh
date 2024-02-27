@@ -83,7 +83,6 @@ fi
 # Copy input files to working directory ########################################
 # ##############################################################################
 echo "INFO: Copying input files to working directory"
-
 {
     # copy force field files
     mkdir -p "forcefield.ff"
@@ -108,13 +107,19 @@ echo "INFO: Copying input files to working directory"
         sed -i 's/^rvdw.*/rvdw = 0.7/g' "mdin.mdp"
     fi
 
+    # add vacuum parameters to mdp file
+    if [[ "${VACUUM_HEIGHT}" -gt 0 ]]; then
+        sed -i 's/^ewald-geometry .*/ewald-geometry            = 3dc/g' "${sim_name}.mdp" || exit 1
+        sed -i 's/^pbc .*/pbc                       = xy/g' "${sim_name}.mdp" || exit 1
+        sed -i 's/^nwall .*/nwall                     = 2/g' "${sim_name}.mdp" || exit 1
+    fi
+
 } >>"${log_file}" 2>&1
 
 # ##############################################################################
 # Import Structure to Gromacs ##################################################
 # ##############################################################################
 echo "INFO: Importing structure to Gromacs"
-
 {
     # make template pdb file
     cp -np "crystal.pdb" "${sim_name}.pdb"
@@ -169,22 +174,18 @@ echo "INFO: Importing structure to Gromacs"
 
     # get box dimensions from last line of gro file
     box_dim="$(tail -n 1 "${sim_name}.gro")"
-    z="$(echo "${box_dim}" | awk '{print $3}')"
-    new_z="$(bc <<<"scale=5; ${BOX_HEIGHT} * 1.00000")"
+    z_pdb="$(echo "${box_dim}" | awk '{print $3}')"
 
     # increase z-dimension of box to BOX_HEIGHT by string replacement of 3rd column in last line of gro file
-    sed -i "s/${z}/${new_z}/g" "${sim_name}.gro"
+    z_box_height="$(bc <<<"scale=5; ${BOX_HEIGHT} * 1.00000")"
+    sed -i "s/${z_pdb}/${z_box_height}/g" "${sim_name}.gro"
 
     # find minimum z-coordinate of crystal by last 6 columns of each CRB containing line in gro file
     carbonate_carbon_z="$(grep 'CRB' "crystal.gro" | grep -o '.\{6\}$' | awk '{$1=$1};1')"
     minimum_z_coord="$(echo "${carbonate_carbon_z}" | sort -n)"
     z_min="$(echo "${minimum_z_coord}" | awk 'NR==1{print $1}')"
-    # subtract 1.5 nm to z_min to ensure that all atoms are within the box and we can see water structure
-    if [[ "${BOX_HEIGHT}" -gt 5 ]]; then
-        offset='1.5'
-    else
-        offset='0.0'
-    fi
+    # subtract offset [nm] to z_min to ensure that all atoms are within the box and we can see water structure
+    offset='0.05'
     z_min="$(bc <<<"scale=5; ${z_min} - ${offset}")"
     echo "DEBUG: Minimum z-coordinate of crystal [nm]: ${z_min}"
 
@@ -204,8 +205,8 @@ System
 EOF
 } >>"${log_file}" 2>&1
 
-echo "DEBUG: Initial box height [A]: ${z}"
-echo "DEBUG: Final box height [A]: ${new_z}"
+echo "DEBUG: Initial box height [A]: ${z_pdb}"
+echo "DEBUG: Final box height [A]: ${z_box_height}"
 echo "DEBUG: Minimum z-coordinate of crystal initially [nm]: ${z_min}"
 
 # ##############################################################################
@@ -382,10 +383,20 @@ EOF
 } >>"${log_file}" 2>&1
 
 # ##############################################################################
+# Add Vacuum Layer #############################################################
+# ##############################################################################
+echo "INFO: Adding vacuum layer"
+{
+    # increase z-dimension of box with vacuum layer by string replacement of 3rd column in last line of gro file
+    z_box_height="$(bc <<<"scale=5; ${BOX_HEIGHT} * 1.00000")"
+    z_box_vacuum_height="$(bc <<<"scale=5; ${z_box_height} + ${VACUUM_HEIGHT}")"
+    sed -i "s/${z_box_height}/${z_box_vacuum_height}/g" "${sim_name}.gro"
+} >>"${log_file}" 2>&1
+
+# ##############################################################################
 # Make Index File ##############################################################
 # ##############################################################################
 echo "INFO: Making index file"
-
 {
     # create blank index file
     if [[ "${N_CHAIN}" -gt 0 ]]; then
@@ -567,7 +578,6 @@ EOF
 # Add positional restraints ####################################################
 # ##############################################################################
 echo "INFO: Adding positional restraints"
-
 {
     # change POSRES default to component specific POSRES
     if [[ "${N_CHAIN}" -gt 0 ]]; then
@@ -578,7 +588,7 @@ echo "INFO: Adding positional restraints"
     else
         sed -i 's/POSRES$/POSRES_CRYSTAL/g' topol.top
     fi
-}
+} >>"${log_file}" 2>&1
 
 # ##############################################################################
 # Create Topology ##############################################################
@@ -636,7 +646,6 @@ echo "DEBUG: Number of aqueous carbonate ions: ${n_carbonate}"
 # Archive data #################################################################
 # ##############################################################################
 echo "INFO: Archiving files"
-
 {
     # copy input files to structure directory
     mkdir -p '0-structure'
@@ -658,7 +667,6 @@ echo "INFO: Archiving files"
 # Run Energy Minimization ######################################################
 # ##############################################################################
 echo "INFO: Running energy minimization"
-
 {
     # run energy minimization
     # shellcheck disable=SC2086
@@ -695,7 +703,6 @@ EOF
 # Clean Up #####################################################################
 # ##############################################################################
 echo "INFO: Cleaning up"
-
 {
     # create output directory
     mkdir -p "2-output"

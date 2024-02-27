@@ -105,6 +105,12 @@ sim_name="prod_opes_one_multicv"
                 sed -i 's/nstxout-compressed.*/nstxout-compressed = 10000/g' "${sim_name}.mdp" || exit 1
                 sed -i 's/nstenergy.*/nstenergy = 10000/g' "${sim_name}.mdp" || exit 1
             fi
+            # add vacuum parameters to mdp file
+            if [[ "${VACUUM_HEIGHT}" -gt 0 ]]; then
+                sed -i 's/^ewald-geometry .*/ewald-geometry            = 3dc/g' "${sim_name}.mdp" || exit 1
+                sed -i 's/^pbc .*/pbc                       = xy/g' "${sim_name}.mdp" || exit 1
+                sed -i 's/^nwall .*/nwall                     = 2/g' "${sim_name}.mdp" || exit 1
+            fi
 
             # copy plumed file
             echo "DEBUG: Copying plumed file"
