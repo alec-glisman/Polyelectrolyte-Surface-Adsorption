@@ -49,6 +49,7 @@ done
 
 # filter input globals
 input_globals=("${input_globals[@]:${idxs[0]}:${#idxs[@]}}")
+echo "DEBUG: Running input global directories: ${input_globals[@]}"
 
 # start script
 date_time=$(date +"%Y-%m-%d %T")
