@@ -95,12 +95,6 @@ else
             sed -i 's/^rcoulomb.*/rcoulomb = 0.7/g' "${sim_name}.mdp" || exit 1
             sed -i 's/^rvdw.*/rvdw = 0.7/g' "${sim_name}.mdp" || exit 1
         fi
-        # add vacuum parameters to mdp file
-        if [[ "${VACUUM_HEIGHT}" -gt 0 ]]; then
-            sed -i 's/^ewald-geometry .*/ewald-geometry            = 3dc/g' "${sim_name}.mdp" || exit 1
-            sed -i 's/^pbc .*/pbc                       = xy/g' "${sim_name}.mdp" || exit 1
-            sed -i 's/^nwall .*/nwall                     = 2/g' "${sim_name}.mdp" || exit 1
-        fi
 
         # make tpr file for NVT equilibration
         "${GMX_BIN}" -nocopyright grompp \
@@ -193,12 +187,6 @@ else
             sed -i 's/^rcoulomb.*/rcoulomb = 0.7/g' "${sim_name}.mdp" || exit 1
             sed -i 's/^rvdw.*/rvdw = 0.7/g' "${sim_name}.mdp" || exit 1
         fi
-        # add vacuum parameters to mdp file
-        if [[ "${VACUUM_HEIGHT}" -gt 0 ]]; then
-            sed -i 's/^ewald-geometry .*/ewald-geometry            = 3dc/g' "${sim_name}.mdp" || exit 1
-            sed -i 's/^pbc .*/pbc                       = xy/g' "${sim_name}.mdp" || exit 1
-            sed -i 's/^nwall .*/nwall                     = 2/g' "${sim_name}.mdp" || exit 1
-        fi
 
         # make tpr file
         "${GMX_BIN}" -nocopyright grompp \
@@ -290,6 +278,24 @@ for i in "${!previous_sim_gro_box_dimensions_array[@]}"; do
     percent_change="$(echo "scale=4; (${sim_gro_box_dimension} - ${previous_sim_gro_box_dimension}) / ${previous_sim_gro_box_dimension} * 100" | bc)"
     echo "DEBUG: Percent change in dimension ${i}: ${percent_change}"'%'
 done
+
+# ##############################################################################
+# Add Vacuum Layer #############################################################
+# ##############################################################################
+if [[ "${VACUUM_HEIGHT}" -eq 0 ]]; then
+    echo "INFO: Skipping vacuum layer"
+else
+    echo "INFO: Adding vacuum layer"
+    {
+        # get box height from last line of gro file
+        box_dim="$(tail -n 1 "${sim_name}.gro")"
+        z_height="$(echo "${box_dim}" | awk '{print $3}')"
+        z_vacuum_height="$(bc <<<"scale=5; ${z_height} + ${VACUUM_HEIGHT}")"
+
+        # replace z-dimension of box with vacuum layer by string replacement of 3rd column in last line of gro file
+        sed -i "s/${z_height}/${z_vacuum_height}/g" "${sim_name}.gro"
+    } >>"${log_file}" 2>&1
+fi
 
 # #######################################################################################
 # Production equilibration ##############################################################

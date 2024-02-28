@@ -15,7 +15,7 @@ export GPU_IDS='-1'     # GPU device(s) to use (0 = first GPU, 01 = first two GP
 # System components ###########################################################
 
 # tag for system
-export TAG_JOBID="7.1.0_00idx" # tag to append to system name
+export TAG_JOBID="7.2.0-01idx" # tag to append to system name
 
 # statistical mechanics
 export PRODUCTION_ENSEMBLE='NVT' # {NVT, NPT}
@@ -41,21 +41,14 @@ export PDB_BULK_ZMIN='4.62' # z-coordinate of bottom of bulk part of crystal in 
 export PDB_BULK_ZMAX='5.09' # z-coordinate of top of bulk part of crystal in nm in PDB file
 
 # number of each component
-export N_MONOMER='16'  # number of monomers in chain {1, 2, 5, 8, 16, 32}
-export N_CHAIN='1'     # number of chains
-export N_CARBONATE='0' # number of aqueous carbonate ions
-export N_SODIUM='16'   # number of aqueous sodium ions
-export N_CALCIUM='0'   # number of aqueous calcium ions
-export N_CHLORINE='0'  # number of aqueous chlorine ions
+export N_MONOMER='0'    # number of monomers in chain {1, 2, 5, 8, 16, 32}
+export N_CHAIN='0'      # number of chains
+export N_CARBONATE='0'  # number of aqueous carbonate ions
+export N_SODIUM='0'     # number of aqueous sodium ions
+export N_CALCIUM='64'   # number of aqueous calcium ions
+export N_CHLORINE='128' # number of aqueous chlorine ions
 
 # Enhanced sampling ###########################################################
-
-# harmonic restraints
-export PE_WALL_MIN='0.3'      # z-coordinate of lower wall in nm
-export PE_WALL_MAX='4.0'      # z-coordinate of upper wall in nm
-export PE_WALL_MAX_EQBM='2.0' # z-coordinate of upper wall in nm during equilibration
-export ATOM_REFERENCE='7310'  # atom number of reference atom for harmonic restraints (1 = first atom)
-export ATOM_OFFSET='-0.305'   # z-coordinate offset of reference atom from crystal surface in nm
 
 # hamiltonian replica exchange
 export HREMD_N_REPLICA='32' # number of replicas in HREMD simulations
@@ -65,13 +58,13 @@ export HREMD_N_STEPS='1000' # number of steps between replica exchange attempts
 export ONEOPES_N_REPLICA='8'        # number of replicas in OneOPES simulations
 export ONEOPES_N_STEPS='1000'       # number of steps between replica exchange attempts
 export ONEOPES_LARGE_BARRIER='30'   # [kJ/mol] large barrier height for OneOPES replica exchange
-export ONEOPES_SMALL_BARRIER='8'    # [kJ/mol] small barrier height for OneOPES replica exchange
-export ONEOPES_REPLICA_2_TEMP='304' # [K] max OPES MultiTherm temperature of replica 2
-export ONEOPES_REPLICA_3_TEMP='312' # [K] max OPES MultiTherm temperature of replica 3
-export ONEOPES_REPLICA_4_TEMP='326' # [K] max OPES MultiTherm temperature of replica 4
-export ONEOPES_REPLICA_5_TEMP='338' # [K] max OPES MultiTherm temperature of replica 5
-export ONEOPES_REPLICA_6_TEMP='354' # [K] max OPES MultiTherm temperature of replica 6
-export ONEOPES_REPLICA_7_TEMP='374' # [K] max OPES MultiTherm temperature of replica 7
+export ONEOPES_SMALL_BARRIER='5'    # [kJ/mol] small barrier height for OneOPES replica exchange
+export ONEOPES_REPLICA_2_TEMP='300' # [K] max OPES MultiTherm temperature of replica 2
+export ONEOPES_REPLICA_3_TEMP='310' # [K] max OPES MultiTherm temperature of replica 3
+export ONEOPES_REPLICA_4_TEMP='325' # [K] max OPES MultiTherm temperature of replica 4
+export ONEOPES_REPLICA_5_TEMP='340' # [K] max OPES MultiTherm temperature of replica 5
+export ONEOPES_REPLICA_6_TEMP='355' # [K] max OPES MultiTherm temperature of replica 6
+export ONEOPES_REPLICA_7_TEMP='370' # [K] max OPES MultiTherm temperature of replica 7
 
 # well-tempered metadynamics
 export METAD_BIASFACTOR='8'       # bias factor for C.V. effective temperature
@@ -81,3 +74,10 @@ export METAD_GRID_SPACING='0.005' # width of bins in the meta-dynamics grid
 export METAD_GRID_MIN='0'         # minimum grid point for Gaussian deposition
 export METAD_GRID_MAX='10'        # maximum grid point for Gaussian deposition
 export METAD_PACE='500'           # [steps] between deposition of Gaussians
+
+# harmonic restraints
+export PE_WALL_MIN='0.0'      # z-coordinate of lower wall in nm
+export PE_WALL_MAX='20.0'     # z-coordinate of upper wall in nm
+export PE_WALL_MAX_EQBM='2.0' # z-coordinate of upper wall in nm during equilibration
+export ATOM_REFERENCE='7310'  # atom number of reference atom for harmonic restraints (1 = first atom)
+export ATOM_OFFSET='-0.305'   # z-coordinate offset of reference atom from crystal surface in nm
