@@ -352,21 +352,29 @@ if [[ "${N_SLAB}" -eq 2 ]]; then
             cp -np "${archive_dir}/${sim_name}.gro" "${sim_name}_2slab_pre.gro" || exit 1
             sed -i "s/${z_height}/${z_height_2slab}/" "${sim_name}_2slab_pre.gro"
 
-            # FIXME: this is not working
-            # insert reflected crystal into gro file
-            "${GMX_BIN}" insert-molecules \
+            # convert box and crystal to pdb files
+            "${GMX_BIN}" editconf \
                 -f "${sim_name}_2slab_pre.gro" \
-                -ci "crystal_reflected.gro" \
-                -ip "positions.dat" \
-                -rot 'none' \
-                -radius '0' \
-                -dr '0' '0' '1' \
-                -replace 'SOL' \
-                -o "${sim_name}_2slab.gro" || exit 1
+                -o "${sim_name}_2slab_pre.pdb"
+            sed -i '/^TER/d' "${sim_name}_2slab_pre.pdb"
+            sed -i '/^ENDMDL/d' "${sim_name}_2slab_pre.pdb"
+            "${GMX_BIN}" editconf \
+                -f "crystal_reflected.gro" \
+                -o "crystal_reflected.pdb"
+            sed -i "/^TITLE.*/d" "crystal_reflected.pdb"
+            sed -i "/^REMARK.*/d" "crystal_reflected.pdb"
+            sed -i "/^CRYST1.*/d" "crystal_reflected.pdb"
+            sed -i "/^MODEL.*/d" "crystal_reflected.pdb"
 
-            # TODO: add second slab to simulation
+            # merge pdb files into gro file
+            \cat "${sim_name}_2slab_pre.pdb" "crystal_reflected.pdb" >"${sim_name}_2slab.pdb"
+            "${GMX_BIN}" editconf \
+                -f "${sim_name}_2slab.pdb" \
+                -o "${sim_name}_2slab.gro"
 
-            # TODO: update index file
+            # TODO: make new topology files with 2slab
+
+            # TODO: make new index file
 
         } >>"${log_file}" 2>&1
     fi
