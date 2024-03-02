@@ -106,6 +106,12 @@ echo "INFO: Copying input files to working directory"
         sed -i 's/^rcoulomb.*/rcoulomb = 0.7/g' "mdin.mdp"
         sed -i 's/^rvdw.*/rvdw = 0.7/g' "mdin.mdp"
     fi
+    # add vacuum parameters to mdp file
+    if [[ "${VACUUM}" == "True" ]]; then
+        sed -i 's/^ewald-geometry .*/ewald-geometry            = 3dc/g' "mdin.mdp"
+        sed -i 's/^pbc .*/pbc                       = xy/g' "mdin.mdp"
+        sed -i 's/^nwall .*/nwall                     = 2/g' "mdin.mdp"
+    fi
 } >>"${log_file}" 2>&1
 
 # ##############################################################################
@@ -177,7 +183,7 @@ echo "INFO: Importing structure to Gromacs"
     minimum_z_coord="$(echo "${carbonate_carbon_z}" | sort -n)"
     z_min="$(echo "${minimum_z_coord}" | awk 'NR==1{print $1}')"
     # subtract offset [nm] to z_min to ensure that all atoms are within the box and we can see water structure
-    offset='0.05'
+    offset='0.00'
     z_min="$(bc <<<"scale=5; ${z_min} - ${offset}")"
     echo "DEBUG: Minimum z-coordinate of crystal [nm]: ${z_min}"
 
@@ -215,7 +221,7 @@ echo "INFO: Adding solvent"
 
     # subtract z_min from pdb bulk z-coordinates and add buffer for outer layers
     buffer='0.3'
-    gro_zmin="$(bc <<<"scale=5; ${PDB_BULK_ZMIN} - ${z_min} - ${buffer}")"
+    # gro_zmin="$(bc <<<"scale=5; ${PDB_BULK_ZMIN} - ${z_min} - ${buffer}")"
     gro_zmax="$(bc <<<"scale=5; ${PDB_BULK_ZMAX} - ${z_min} + ${buffer}")"
 
     # find "bad" water molecules that are inside the crystal
@@ -223,7 +229,7 @@ echo "INFO: Adding solvent"
         -f "${sim_name}.gro" \
         -s "${sim_name}.gro" \
         -on "bad_waters.ndx" <<EOF
-"Bad_SOL" same residue as (name OW HW1 HW2 and (z >= ${gro_zmin} and z <= ${gro_zmax}))
+"Bad_SOL" same residue as (name OW HW1 HW2 and (z <= ${gro_zmax}))
 EOF
     # remove "f0_t0.000" from index file groups
     sed -i 's/_f0_t0.000//g' "bad_waters.ndx"
@@ -249,7 +255,7 @@ Good_Atoms
 EOF
 } >>"${log_file}" 2>&1
 
-echo "DEBUG: Minimum z-coordinate of crystal after solvation [nm]: ${gro_zmin}"
+# echo "DEBUG: Minimum z-coordinate of crystal after solvation [nm]: ${gro_zmin}"
 echo "DEBUG: Maximum z-coordinate of crystal after solvation [nm]: ${gro_zmax}"
 
 # find number of "bad" water molecules from log file
@@ -377,183 +383,8 @@ EOF
 # ##############################################################################
 # Make Index File ##############################################################
 # ##############################################################################
-echo "INFO: Making index file"
-{
-    # create blank index file
-    if [[ "${N_CHAIN}" -gt 0 ]]; then
-        idx_group='17'
-    else
-        idx_group='6'
-    fi
-    idx_crystal="${idx_group}"
-
-    "${GMX_BIN}" make_ndx \
-        -f "${sim_name}.gro" \
-        -o "index.ndx" \
-        <<EOF
-q
-EOF
-
-    # clear index_crystal.ndx file
-    # shellcheck disable=SC2188
-    >"index_crystal.ndx" || true
-
-    # add crystal groups to index file
-    "${GMX_BIN}" select \
-        -f "crystal.pdb" \
-        -s "crystal.pdb" \
-        -n "index.ndx" \
-        -on "index_crystal.ndx" \
-        <<EOF
-"Crystal" resname CRB CA
-"Crystal_Bulk" same residue as (name CX1 CA and (z >= ${PDB_BULK_ZMIN} and z <= ${PDB_BULK_ZMAX}))
-"Top_Crystal_Surface" same residue as (name CX1 CA and (z > ${PDB_BULK_ZMAX}))
-"Bottom_Crystal_Surface" same residue as (name CX1 CA and (z < ${PDB_BULK_ZMIN}))
-EOF
-    # save group numbers
-    group_bulk="$((idx_group + 1))"
-    group_top_surface="$((idx_group + 2))"
-    group_bottom_surface="$((idx_group + 3))"
-
-    # remove "f0_t0.000" from index file groups
-    sed -i 's/_f0_t0.000//g' "index_crystal.ndx"
-    # append crystal groups to index file
-    cat "index_crystal.ndx" >>"index.ndx"
-    idx_group=$((idx_group + 4))
-
-    # add crystal sub-groups to index file
-    "${GMX_BIN}" make_ndx \
-        -f "crystal.pdb" \
-        -n "index.ndx" \
-        -o "index.ndx" \
-        <<EOF
-${group_bulk} & ! a CA*
-name ${idx_group} Crystal_Bulk_Carbonate
-${group_bulk} & a CX*
-name $((idx_group + 1)) Crystal_Bulk_Carbonate_Carbon
-${group_bulk} & a OX*
-name $((idx_group + 2)) Crystal_Bulk_Carbonate_Oxygen
-${group_bulk} & a O*
-name $((idx_group + 3)) Crystal_Bulk_Calcium
-${group_top_surface} & ! a CA*
-name $((idx_group + 4)) Crystal_Top_Surface_Carbonate
-${group_top_surface} & a CX*
-name $((idx_group + 5)) Crystal_Top_Surface_Carbonate_Carbon
-${group_top_surface} & a OX*
-name $((idx_group + 6)) Crystal_Top_Surface_Carbonate_Oxygen
-${group_top_surface} & a O*
-name $((idx_group + 7)) Crystal_Top_Surface_Calcium
-${group_top_surface} & ! a CA*
-name $((idx_group + 8)) Crystal_Bottom_Surface_Carbonate
-${group_top_surface} & a CX*
-name $((idx_group + 9)) Crystal_Bottom_Surface_Carbonate_Carbon
-${group_top_surface} & a OX*
-name $((idx_group + 10)) Crystal_Bottom_Surface_Carbonate_Oxygen
-${group_top_surface} & a O*
-name $((idx_group + 11)) Crystal_Bottom_Surface_Calcium
-
-q
-EOF
-    idx_group=$((idx_group + 12))
-
-    # add system section groups to index file
-    "${GMX_BIN}" make_ndx \
-        -f "${sim_name}.pdb" \
-        -n "index.ndx" \
-        -o "index.ndx" \
-        <<EOF
-${group_bulk}
-name $((idx_group)) Frozen
-! ${group_bulk}
-name $((idx_group + 1)) Mobile 
-! ${group_bulk} & ! ${group_top_surface} & ! ${group_bottom_surface}
-name $((idx_group + 2)) Aqueous
-
-q
-EOF
-    idx_group=$((idx_group + 3))
-
-    # add chain groups to index file
-    if [[ "${N_CHAIN}" -gt 0 ]]; then
-        "${GMX_BIN}" make_ndx \
-            -f "pdb2gmx_clean.pdb" \
-            -n "index.ndx" \
-            -o "index.ndx" \
-            <<EOF
-a * & chain A
-name ${idx_group} Chain
-a O* & chain A
-name $((idx_group + 1)) Chain_Oxygen
-
-q
-EOF
-        idx_group=$((idx_group + 2))
-    fi
-
-    # add aqueous sodium ions to index file
-    if [[ "${N_SODIUM}" -gt 0 ]]; then
-        "${GMX_BIN}" make_ndx \
-            -f "${sim_name}.pdb" \
-            -n "index.ndx" \
-            -o "index.ndx" \
-            <<EOF
-a NA & ! chain A & ! chain B & ! r CRB
-name ${idx_group} Aqueous_Sodium
-
-q
-EOF
-        idx_group=$((idx_group + 1))
-    fi
-
-    # add aqueous calcium ions to index file
-    if [[ "${N_CALCIUM}" -gt 0 ]]; then
-        "${GMX_BIN}" make_ndx \
-            -f "${sim_name}.pdb" \
-            -n "index.ndx" \
-            -o "index.ndx" \
-            <<EOF
-a CA & ! chain A & ! chain B & ! ${idx_crystal}
-name ${idx_group} Aqueous_Calcium
-
-q
-EOF
-        idx_group=$((idx_group + 1))
-    fi
-
-    # add aqueous chloride ions to index file
-    if [[ "${N_CHLORINE}" -gt 0 ]]; then
-        "${GMX_BIN}" make_ndx \
-            -f "${sim_name}.pdb" \
-            -n "index.ndx" \
-            -o "index.ndx" \
-            <<EOF
-a CL & ! chain A & ! chain B
-name ${idx_group} Aqueous_Chloride
-q
-EOF
-        idx_group=$((idx_group + 1))
-    fi
-
-    # add aqueous carbonate ions to index file
-    if [[ "${N_CARBONATE}" -gt 0 ]]; then
-        "${GMX_BIN}" make_ndx \
-            -f "${sim_name}.pdb" \
-            -n "index.ndx" \
-            -o "index.ndx" \
-            <<EOF
-a CX* | a OX* & ! chain A & ! chain B
-name ${idx_group} Aqueous_Carbonate
-a CX* & ! chain A & ! chain B
-name $((idx_group + 1)) Aqueous_Carbonate_Carbon
-a OX* & ! chain A & ! chain B
-name $((idx_group + 2)) Aqueous_Carbonate_Oxygen
-
-q
-EOF
-        idx_group=$((idx_group + 3))
-    fi
-
-} >>"${log_file}" 2>&1
+echo "INFO: Calling index.sh"
+"${script_path}/index.sh"
 
 # ##############################################################################
 # Add positional restraints ####################################################

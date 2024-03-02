@@ -106,10 +106,13 @@ sim_name="prod_opes_one_multicv"
                 sed -i 's/nstenergy.*/nstenergy = 10000/g' "${sim_name}.mdp" || exit 1
             fi
             # add vacuum parameters to mdp file
-            if [[ "${VACUUM_HEIGHT}" -gt 0 ]]; then
+            if [[ "${VACUUM}" == 'True' ]]; then
                 sed -i 's/^ewald-geometry .*/ewald-geometry            = 3dc/g' "${sim_name}.mdp" || exit 1
                 sed -i 's/^pbc .*/pbc                       = xy/g' "${sim_name}.mdp" || exit 1
                 sed -i 's/^nwall .*/nwall                     = 2/g' "${sim_name}.mdp" || exit 1
+                if [[ "${N_SLABS}" -eq 2 ]]; then
+                    sed -i 's/^wall-atomtype             = WR WL.*/wall-atomtype             = WR WR/g' "${sim_name}.mdp" || exit 1
+                fi
             fi
 
             # copy plumed file

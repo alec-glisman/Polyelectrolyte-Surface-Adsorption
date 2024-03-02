@@ -58,4 +58,4 @@ lincs-warnangle           = 30           ; print warning to log file and stderr 
 nwall                     = 0            ; number of walls
 wall-type                 = 9-3          ; type of wall potential
 wall-atomtype             = WR WL        ; the atom type name in the force field for each wall.
-wall-density              = 0.1 0.1      ; [nm-3] / [nm-2] the number density of the atoms for each wall
+wall-density              = 50 50        ; [nm-3] / [nm-2] the number density of the atoms for each wall

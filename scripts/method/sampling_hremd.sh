@@ -122,10 +122,13 @@ else
             sed -i 's/gen-temp.*/gen-temp                  = '"${TEMPERATURE_K}/g" "${sim_name}.mdp" || exit 1
             sed -i 's/ref-p.*/ref-p                     = '"${PRESSURE_BAR} ${PRESSURE_BAR}/g" "${sim_name}.mdp" || exit 1
             # add vacuum parameters to mdp file
-            if [[ "${VACUUM_HEIGHT}" -gt 0 ]]; then
+            if [[ "${VACUUM}" == 'True' ]]; then
                 sed -i 's/^ewald-geometry .*/ewald-geometry            = 3dc/g' "${sim_name}.mdp" || exit 1
                 sed -i 's/^pbc .*/pbc                       = xy/g' "${sim_name}.mdp" || exit 1
                 sed -i 's/^nwall .*/nwall                     = 2/g' "${sim_name}.mdp" || exit 1
+                if [[ "${N_SLABS}" -eq 2 ]]; then
+                    sed -i 's/^wall-atomtype             = WR WL.*/wall-atomtype             = WR WR/g' "${sim_name}.mdp" || exit 1
+                fi
             fi
             # non-base replicas write data 10x less frequently
             if [[ "${replica}" -ne '00' ]]; then
