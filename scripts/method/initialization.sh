@@ -111,6 +111,7 @@ echo "INFO: Copying input files to working directory"
         sed -i 's/^ewald-geometry .*/ewald-geometry            = 3dc/g' "mdin.mdp"
         sed -i 's/^pbc .*/pbc                       = xy/g' "mdin.mdp"
         sed -i 's/^nwall .*/nwall                     = 2/g' "mdin.mdp"
+        sed -i 's/^wall-atomtype             = WR WL.*/wall-atomtype             = WL WL/g' "mdin.mdp"
     fi
 } >>"${log_file}" 2>&1
 
@@ -183,7 +184,7 @@ echo "INFO: Importing structure to Gromacs"
     minimum_z_coord="$(echo "${carbonate_carbon_z}" | sort -n)"
     z_min="$(echo "${minimum_z_coord}" | awk 'NR==1{print $1}')"
     # subtract offset [nm] to z_min to ensure that all atoms are within the box and we can see water structure
-    offset='0.00'
+    offset='0.1'
     z_min="$(bc <<<"scale=5; ${z_min} - ${offset}")"
     echo "DEBUG: Minimum z-coordinate of crystal [nm]: ${z_min}"
 
@@ -384,7 +385,7 @@ EOF
 # Make Index File ##############################################################
 # ##############################################################################
 echo "INFO: Calling index.sh"
-"${script_path}/index.sh"
+"${project_path}/scripts/utilities/index.sh" || exit 1
 
 # ##############################################################################
 # Add positional restraints ####################################################
