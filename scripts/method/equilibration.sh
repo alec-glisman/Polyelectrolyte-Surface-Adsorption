@@ -102,7 +102,8 @@ else
             sed -i 's/^ewald-geometry .*/ewald-geometry            = 3dc/g' "${sim_name}.mdp" || exit 1
             sed -i 's/^pbc .*/pbc                       = xy/g' "${sim_name}.mdp" || exit 1
             sed -i 's/^nwall .*/nwall                     = 2/g' "${sim_name}.mdp" || exit 1
-            sed -i 's/^wall-atomtype             = WR WL.*/wall-atomtype             = WL WL/g' "${sim_name}.mdp" || exit 1
+            # FIXME: wall-atomtype is leading to instability, may need to be removed
+            # sed -i 's/^wall-atomtype             = WR WL.*/wall-atomtype             = WL WL/g' "${sim_name}.mdp" || exit 1
             echo "wall-r-linpot = 0.1" >>"${sim_name}.mdp" || exit 1
         fi
 
@@ -187,8 +188,9 @@ else
         cp -np "${previous_archive_dir}/${previous_sim_name}.gro" "${previous_sim_name}.gro" || exit 1
 
         cp "${mdp_file_npt}" "${sim_name}.mdp" || exit 1
-        # freeze atoms in mdp file
-        sed -i 's/freezegrps.*/freezegrps = Crystal/g' "${sim_name}.mdp" || exit 1
+        # delete lines from frozen groups
+        sed -i '/freezegrps/d' "${sim_name}.mdp" || exit 1
+        sed -i '/freezedim/d' "${sim_name}.mdp" || exit 1
         # replace temperature and pressure in mdp file
         sed -i 's/ref-t.*/ref-t                     = '"${TEMPERATURE_K}/g" "${sim_name}.mdp" || exit 1
         sed -i 's/gen-temp.*/gen-temp                  = '"${TEMPERATURE_K}/g" "${sim_name}.mdp" || exit 1
@@ -204,8 +206,9 @@ else
             sed -i 's/^ewald-geometry .*/ewald-geometry            = 3dc/g' "${sim_name}.mdp" || exit 1
             sed -i 's/^pbc .*/pbc                       = xy/g' "${sim_name}.mdp" || exit 1
             sed -i 's/^nwall .*/nwall                     = 2/g' "${sim_name}.mdp" || exit 1
-            sed -i 's/^wall-atomtype             = WR WL.*/wall-atomtype             = WL WL/g' "${sim_name}.mdp" || exit 1
-            echo "wall-r-linpot = 0.1" >>"${sim_name}.mdp" || exit 1
+            # FIXME: wall-atomtype is leading to instability, may need to be removed
+            # sed -i 's/^wall-atomtype             = WR WL.*/wall-atomtype             = WL WL/g' "${sim_name}.mdp" || exit 1
+            # echo "wall-r-linpot = 0.1" >>"${sim_name}.mdp" || exit 1
         fi
 
         # make tpr file
@@ -283,10 +286,12 @@ fi
 previous_sim_gro_last_line="$(tail -n 1 "${previous_archive_dir}/${previous_sim_name}.gro")"
 previous_sim_gro_box_dimensions="$(echo "${previous_sim_gro_last_line}" | awk '{print $1, $2, $3}')"
 echo "DEBUG: NVT system dimensions: ${previous_sim_gro_box_dimensions}"
+
 # get last line of current sim gro file
 sim_gro_last_line="$(tail -n 1 "${archive_dir}/${sim_name}.gro")"
 sim_gro_box_dimensions="$(echo "${sim_gro_last_line}" | awk '{print $1, $2, $3}')"
 echo "DEBUG: NPT system dimensions: ${sim_gro_box_dimensions}"
+
 # calculate percent change in each dimension
 # shellcheck disable=SC2206
 previous_sim_gro_box_dimensions_array=(${previous_sim_gro_box_dimensions})
@@ -310,21 +315,6 @@ if [[ "${N_SLAB}" -eq 2 ]]; then
 fi
 
 # #######################################################################################
-# Make box orthorhombic ##############################################################
-# #######################################################################################
-echo "INFO: Making box orthorhombic"
-{
-    cp -np "${archive_dir}/${sim_name}.gro" "${archive_dir}/${sim_name}_triclinic.gro"
-    "${GMX_BIN}" trjconv \
-        -f "${archive_dir}/${sim_name}.gro" \
-        -s "${archive_dir}/${sim_name}.tpr" \
-        -o "${archive_dir}/${sim_name}.gro" \
-        -ur 'rect' <<EOF
-System
-EOF
-} >>"${log_file}" 2>&1
-
-# #######################################################################################
 # Production equilibration ##############################################################
 # #######################################################################################
 echo "INFO: Starting production equilibration"
@@ -345,6 +335,9 @@ else
             # copy output files from NVT equilibration
             cp -np "${previous_archive_dir}/${previous_sim_name}.gro" "${previous_sim_name}.gro" || exit 1
 
+            # delete lines from frozen groups
+            sed -i '/freezegrps/d' "${sim_name}.mdp" || exit 1
+            sed -i '/freezedim/d' "${sim_name}.mdp" || exit 1
             # replace temperature and pressure in mdp file
             cp "${mdp_file_prod}" "${sim_name}.mdp" || exit 1
             sed -i 's/ref-t.*/ref-t                     = '"${TEMPERATURE_K}/g" "${sim_name}.mdp" || exit 1
@@ -361,7 +354,7 @@ else
                 sed -i 's/^ewald-geometry .*/ewald-geometry            = 3dc/g' "${sim_name}.mdp" || exit 1
                 sed -i 's/^pbc .*/pbc                       = xy/g' "${sim_name}.mdp" || exit 1
                 sed -i 's/^nwall .*/nwall                     = 2/g' "${sim_name}.mdp" || exit 1
-                if [[ "${N_SLABS}" -eq 2 ]]; then
+                if [[ "${N_SLAB}" -eq 2 ]]; then
                     sed -i 's/^wall-atomtype             = WR WL.*/wall-atomtype             = WR WR/g' "${sim_name}.mdp" || exit 1
                 fi
             fi

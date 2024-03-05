@@ -50,9 +50,6 @@ constraint-algorithm      = lincs        ; chooses which solver satisfies any no
 lincs-order               = 4            ; accuracy of lincs: the number of matrices in the expansion for the matrix inversion
 lincs-iter                = 1            ; number of iterative corrections to matrix inversion to compensate for lengthening due to rotation
 lincs-warnangle           = 30           ; print warning to log file and stderr if bond rotations be more than this angle
-;;; Frozen groups ;;;
-freezegrps                = Frozen       ; groups that are to be frozen
-freezedim                 = Y Y Y        ; directions in which the groups are frozen
 ;;; Vacuum parameters ;;;
 nwall                     = 0            ; number of walls
 wall-type                 = 9-3          ; type of wall potential

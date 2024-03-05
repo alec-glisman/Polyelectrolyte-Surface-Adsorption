@@ -42,7 +42,7 @@ export PDB_BULK_ZMIN='6.52' # z-coordinate of bottom of bulk part of crystal in 
 export PDB_BULK_ZMAX='6.83' # z-coordinate of top of bulk part of crystal in nm in PDB file
 
 # number of each component
-export N_SLABS='1'     # number of crystal slabs {1, 2}
+export N_SLAB='1'      # number of crystal slabs {1, 2}
 export N_MONOMER='32'  # number of monomers in chain {1, 2, 5, 8, 16, 32}
 export N_CHAIN='1'     # number of chains
 export N_CARBONATE='0' # number of aqueous carbonate ions
