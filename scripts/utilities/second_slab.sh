@@ -9,7 +9,7 @@
 #             submission/input/*.sh script. Script should only be called from
 #             the equilibration.sh script.
 
-z_buffer="0.1" # [nm]
+z_buffer="0.0" # [nm]
 sim_name="npt_eqbm"
 archive_dir="3-second-slab"
 log_file="second_slab.log"
@@ -18,7 +18,7 @@ log_file="second_slab.log"
 # Add second slab to box #######################################################
 # ##############################################################################
 # check if output gro file already exists
-if [[ -f "${sim_name}_2slab.gro" ]]; then
+if [[ -f "${archive_dir}/${sim_name}_2slab.gro" ]]; then
     echo "DEBUG: Second slab already added"
 else
     {
@@ -88,13 +88,15 @@ else
 
         # move files to archive directory
         mkdir -p "${archive_dir}"
+        mv "crystal.gro" "${archive_dir}/"
         mv "crystal_reflected.gro" "${archive_dir}/"
         mv "crystal_reflected.pdb" "${archive_dir}/"
         mv "positions.dat" "${archive_dir}/"
         mv "${sim_name}_2slab_pre.gro" "${archive_dir}/"
         mv "${sim_name}_2slab_pre.pdb" "${archive_dir}/"
         mv "${sim_name}_2slab.pdb" "${archive_dir}/"
-        cp "${sim_name}_2slab.gro" "${archive_dir}/"
+        mv "${sim_name}_2slab.gro" "${archive_dir}/"
+        cp "${archive_dir}/${sim_name}_2slab.gro" "${archive_dir}/${sim_name}.gro"
     } >>"${log_file}" 2>&1
 fi
 
