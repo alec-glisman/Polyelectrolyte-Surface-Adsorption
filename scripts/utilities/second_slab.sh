@@ -111,11 +111,9 @@ fi
 # ##############################################################################
 # Remake system topology #######################################################
 # ##############################################################################
-
 # update number of atoms in topology file
 if [[ -f "${archive_dir}/topol.top" ]]; then
     echo "DEBUG: Topology file already updated"
-
 else
     echo "DEBUG: Updating topology file"
     {
@@ -123,7 +121,7 @@ else
         grep -A 1000 "molecules" topol.top >temp.txt
         n_mol_slab="$(grep "Ion_chain_X" temp.txt | awk '{print $2}')"
         n_mol_2slab="$(echo "2 * ${n_mol_slab}" | bc)"
-        sed -i "s/${n_mol_slab}/${n_mol_2slab}/" temp.txt
+        sed -i "s/Ion_chain_X.*/Ion_chain_X         ${n_mol_2slab}/" temp.txt
         # replace [ molecules ] and following in topol.top
         sed -i '/molecules/,$d' topol.top
         cat temp.txt >>topol.top
@@ -138,34 +136,21 @@ fi
 # ##############################################################################
 # Remake system index ##########################################################
 # ##############################################################################
-
-# Current groups:
-
 if [[ -f "${archive_dir}/index.ndx" ]]; then
     echo "DEBUG: Index file already updated"
 else
-    # call python script to update index file
-    echo "DEBUG: Updating index file"
-    cp -np "index.ndx" "${archive_dir}/index_1slab.ndx" || exit 1
-    "${GMX_BIN}" make_ndx \
-        -f "${sim_name}.gro" \
-        -n "index.ndx" \
-        -o "index.ndx" <<EOF
-q
-EOF
-
-    python3 "${project_path}/python/twoslab_index.py" \
-        -i "index.ndx" \
-        -g "${sim_name}.gro" \
-        -o "index.ndx" \
-        -v || exit 1
-
-    cp "index.ndx" "${archive_dir}/"
-    cp -np "index.ndx" "${archive_dir}/index_1slab.ndx" || exit 1
-    "${GMX_BIN}" make_ndx \
-        -f "${sim_name}.gro" \
-        -n "index.ndx" \
-        -o "index.ndx" <<EOF
-q
-EOF
+    {
+        python3 "${project_path}/python/twoslab_index.py" \
+            -i "index.ndx" \
+            -g "${sim_name}.gro" \
+            -o "index.ndx" \
+            -v || exit 1
+        cp "index.ndx" "${archive_dir}/"
+    } >>"${log_file}" 2>&1
 fi
+
+# ##############################################################################
+# Clean up #####################################################################
+# ##############################################################################
+# delete all backup files
+find . -type f -name '#*#' -delete || true

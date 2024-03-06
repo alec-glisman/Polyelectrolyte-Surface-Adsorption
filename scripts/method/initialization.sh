@@ -111,8 +111,6 @@ echo "INFO: Copying input files to working directory"
         sed -i 's/^ewald-geometry .*/ewald-geometry            = 3dc/g' "mdin.mdp"
         sed -i 's/^pbc .*/pbc                       = xy/g' "mdin.mdp"
         sed -i 's/^nwall .*/nwall                     = 2/g' "mdin.mdp"
-        # FIXME: this is not working
-        # sed -i 's/^wall-atomtype             = WR WL.*/wall-atomtype             = WL WL/g' "mdin.mdp"
     fi
 } >>"${log_file}" 2>&1
 

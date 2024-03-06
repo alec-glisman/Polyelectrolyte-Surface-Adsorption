@@ -102,8 +102,6 @@ else
             sed -i 's/^ewald-geometry .*/ewald-geometry            = 3dc/g' "${sim_name}.mdp" || exit 1
             sed -i 's/^pbc .*/pbc                       = xy/g' "${sim_name}.mdp" || exit 1
             sed -i 's/^nwall .*/nwall                     = 2/g' "${sim_name}.mdp" || exit 1
-            # FIXME: wall-atomtype is leading to instability, may need to be removed
-            # sed -i 's/^wall-atomtype             = WR WL.*/wall-atomtype             = WL WL/g' "${sim_name}.mdp" || exit 1
             echo "wall-r-linpot = 0.1" >>"${sim_name}.mdp" || exit 1
         fi
 
@@ -206,9 +204,6 @@ else
             sed -i 's/^ewald-geometry .*/ewald-geometry            = 3dc/g' "${sim_name}.mdp" || exit 1
             sed -i 's/^pbc .*/pbc                       = xy/g' "${sim_name}.mdp" || exit 1
             sed -i 's/^nwall .*/nwall                     = 2/g' "${sim_name}.mdp" || exit 1
-            # FIXME: wall-atomtype is leading to instability, may need to be removed
-            # sed -i 's/^wall-atomtype             = WR WL.*/wall-atomtype             = WL WL/g' "${sim_name}.mdp" || exit 1
-            # echo "wall-r-linpot = 0.1" >>"${sim_name}.mdp" || exit 1
         fi
 
         # make tpr file
