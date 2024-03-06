@@ -9,7 +9,7 @@ import gromacs as gmx
 
 class TwoSlabIdxGenerator:
 
-    def __init__(self, input_idx: Path, input_gro: Path, verbose: bool = False) -> None:
+    def __init__(self, input_idx: Path, input_gro: Path, verbose: bool = True) -> None:
         # parse input index file
         self.ndx = gmx.fileformats.ndx.NDX()
         self.ndx.read(input_idx)
@@ -19,9 +19,17 @@ class TwoSlabIdxGenerator:
         with open(self.input_gro, "r", encoding="utf-8") as f:
             self.gro = f.read()
         self.n_atoms = int(self.gro.split("\n")[1])
-        n_crb_atoms = len([line for line in self.gro.split("\n") if "CRB" in line])
-        self.n_crystal_atoms = int(3 * n_crb_atoms / 2)
+        self.n_crystal_atoms = len(self.ndx["Crystal"])
 
+        # input validation
+        total_atoms = self.n_atoms
+        if total_atoms != len(self.ndx["System"]):
+            raise ValueError(
+                "Number of atoms mismatch in System group:"
+                + f" {total_atoms} != {len(self.ndx['System'])}"
+            )
+
+        self.verbose = verbose
         if verbose:
             print(f"Number of atoms: {self.n_atoms}")
             print(f"Number of crystal atoms in first slab: {self.n_crystal_atoms}")
@@ -29,37 +37,56 @@ class TwoSlabIdxGenerator:
 
     def _update_original_index(self, min_index: int, offset: int) -> None:
         # update original index for all groups with offset from second slab
-        for group in self.ndx.keys():
-            self.ndx[group] = [
-                i + offset if i >= min_index else i for i in self.ndx[group]
-            ]
+        for key, value in self.ndx.items():
+            updated = [i + offset if i > min_index else i for i in value]
+            self.ndx[key] = np.array(updated, dtype=int)
+            if self.verbose:
+                n_changed = sum([i > min_index for i in value])
+                if n_changed > 0:
+                    print(f"Updated {n_changed} indices in group {key}")
+                else:
+                    print(f"No indices updated in group {key}")
 
-    def _add_second_slab(self, min_index: int, n_atoms: int) -> None:
-        # get atoms in frozen and mobile groups
-        frozen = self.ndx["Frozen"]
-        frozen_slab = frozen[frozen < min_index]
-        mobile = self.ndx["Mobile"]
-        mobile_slab = mobile[mobile < min_index]
+        total_atoms = self.n_atoms
+        if total_atoms != len(self.ndx["System"]):
+            raise ValueError(
+                f"Number of atoms mismatch in System group: {total_atoms} != {len(self.ndx['System'])}"
+            )
 
-        # TODO: add relevant atoms to frozen and mobile groups
-        frozen_second_slab = [i + min_index for i in frozen_slab]
-        mobile_second_slab = [i + min_index for i in mobile_slab]
-        self.ndx["Frozen"] = np.append(frozen, frozen_second_slab)
-        self.ndx["Mobile"] = np.append(mobile, mobile_second_slab)
-
-        # FIXME: for all subgroups of "Crystal", only add relevant atoms
+    def _add_second_slab(self, min_index: int) -> None:
         # add second slab to all groups matching patterns
-        patterns = ["Crystal", "System", "non-Water"]
-        group_new = np.array([min_index + i for i in range(1, n_atoms + 1)])
-        for group in self.ndx.items():
-            group = group[0]
-            if any(pattern in group for pattern in patterns):
-                group_original = self.ndx[group]
-                self.ndx[group] = np.append(group_original, group_new)
+        patterns = ["System", "non-Water", "Frozen", "Mobile", "Crystal"]
+        for key, value in self.ndx.items():
+            if any(p in key for p in patterns):
+                group_new = np.array(
+                    [i + min_index for i in value if i <= min_index], dtype=int
+                )
+                if len(group_new) > 0:
+                    self.ndx[key] = np.append(value, group_new, axis=0)
+                if self.verbose and len(group_new) > 0:
+                    print(f"Added {len(group_new)} atoms to group {key}")
+                elif self.verbose:
+                    print(f"No atoms added to group {key}")
+
+        total_atoms = self.n_atoms + self.n_crystal_atoms
+        if total_atoms != len(self.ndx["System"]):
+            raise ValueError(
+                f"Number of atoms mismatch in System group: {total_atoms} != {len(self.ndx['System'])}"
+            )
+
+    def _sort(self) -> None:
+        for key, value in self.ndx.items():
+            self.ndx[key] = np.sort(value)
 
     def generate(self, output_top: Path) -> None:
         self._update_original_index(self.n_crystal_atoms, self.n_crystal_atoms)
-        self._add_second_slab(self.n_crystal_atoms, self.n_crystal_atoms)
+        self._add_second_slab(self.n_crystal_atoms)
+        self._sort()
+
+        assert self.n_atoms + self.n_crystal_atoms == max(
+            self.ndx["System"]
+        ), f"Number of atoms mismatch in System group: {self.n_atoms} != {max(self.ndx['System'])}"
+
         self.save(output_top)
 
     def save(self, output_top: Path) -> None:

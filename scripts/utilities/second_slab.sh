@@ -147,10 +147,25 @@ else
     # call python script to update index file
     echo "DEBUG: Updating index file"
     cp -np "index.ndx" "${archive_dir}/index_1slab.ndx" || exit 1
+    "${GMX_BIN}" make_ndx \
+        -f "${sim_name}.gro" \
+        -n "index.ndx" \
+        -o "index.ndx" <<EOF
+q
+EOF
+
     python3 "${project_path}/python/twoslab_index.py" \
         -i "index.ndx" \
         -g "${sim_name}.gro" \
         -o "index.ndx" \
         -v || exit 1
+
     cp "index.ndx" "${archive_dir}/"
+    cp -np "index.ndx" "${archive_dir}/index_1slab.ndx" || exit 1
+    "${GMX_BIN}" make_ndx \
+        -f "${sim_name}.gro" \
+        -n "index.ndx" \
+        -o "index.ndx" <<EOF
+q
+EOF
 fi

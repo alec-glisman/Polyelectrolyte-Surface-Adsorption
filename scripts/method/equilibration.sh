@@ -327,6 +327,7 @@ if [[ "${N_SLAB}" -eq 2 ]]; then
 else
     previous_archive_dir="${archive_dir}"
 fi
+echo "DEBUG: Using previous archive directory: ${previous_archive_dir}"
 
 # check if output gro file already exists
 if [[ -f "${archive_dir}/${sim_name}.gro" ]]; then
