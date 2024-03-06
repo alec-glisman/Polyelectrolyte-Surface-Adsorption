@@ -14,6 +14,10 @@ sim_name="npt_eqbm"
 archive_dir="3-second-slab"
 log_file="second_slab.log"
 
+# find path to this script
+script_path="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
+project_path="${script_path}/../.."
+
 # ##############################################################################
 # Add second slab to box #######################################################
 # ##############################################################################
@@ -22,6 +26,8 @@ if [[ -f "${archive_dir}/${sim_name}_2slab.gro" ]]; then
     echo "DEBUG: Second slab already added"
 else
     {
+        echo "DEBUG: Adding second slab to box"
+
         # copy crystal.pdb from initialization
         cp -np "../1-energy-minimization/crystal.gro" "crystal.gro" || exit 1
 
@@ -70,18 +76,20 @@ else
         "${GMX_BIN}" editconf \
             -f "${sim_name}_2slab_pre.gro" \
             -o "${sim_name}_2slab_pre.pdb"
-        sed -i '/^TER/d' "${sim_name}_2slab_pre.pdb"
-        sed -i '/^ENDMDL/d' "${sim_name}_2slab_pre.pdb"
         "${GMX_BIN}" editconf \
             -f "crystal_reflected.gro" \
             -o "crystal_reflected.pdb"
-        sed -i "/^TITLE.*/d" "crystal_reflected.pdb"
-        sed -i "/^REMARK.*/d" "crystal_reflected.pdb"
-        sed -i "/^CRYST1.*/d" "crystal_reflected.pdb"
-        sed -i "/^MODEL.*/d" "crystal_reflected.pdb"
+
+        # remove unnecessary lines from pdb files
+        sed -i '/^TER/d' "crystal_reflected.pdb"
+        sed -i '/^ENDMDL/d' "crystal_reflected.pdb"
+        sed -i "/^TITLE.*/d" "${sim_name}_2slab_pre.pdb
+        sed -i "/^REMARK.*/d" "${sim_name}_2slab_pre.pdb
+        sed -i "/^CRYST1.*/d" "${sim_name}_2slab_pre.pdb
+        sed -i "/^MODEL.*/d" "${sim_name}_2slab_pre.pdb
 
         # merge pdb files into gro file
-        \cat "${sim_name}_2slab_pre.pdb" "crystal_reflected.pdb" >"${sim_name}_2slab.pdb"
+        \cat "crystal_reflected.pdb" "${sim_name}_2slab_pre.pdb" >"${sim_name}_2slab.pdb"
         "${GMX_BIN}" editconf \
             -f "${sim_name}_2slab.pdb" \
             -o "${sim_name}_2slab.gro"
@@ -103,9 +111,46 @@ fi
 # ##############################################################################
 # Remake system topology #######################################################
 # ##############################################################################
-# TODO: make new topology files with 2slab
+
+# update number of atoms in topology file
+if [[ -f "${archive_dir}/topol.top" ]]; then
+    echo "DEBUG: Topology file already updated"
+
+else
+    echo "DEBUG: Updating topology file"
+    {
+        # get all lines [ molecules ] and following from topol.top
+        grep -A 1000 "molecules" topol.top >temp.txt
+        n_mol_slab="$(grep "Ion_chain_X" temp.txt | awk '{print $2}')"
+        n_mol_2slab="$(echo "2 * ${n_mol_slab}" | bc)"
+        sed -i "s/${n_mol_slab}/${n_mol_2slab}/" temp.txt
+        # replace [ molecules ] and following in topol.top
+        sed -i '/molecules/,$d' topol.top
+        cat temp.txt >>topol.top
+        rm temp.txt
+        cp topol.top "${archive_dir}/"
+    } >>"${log_file}" 2>&1
+    echo "DEBUG: n_mol_slab = ${n_mol_slab}"
+    echo "DEBUG: n_mol_2slab = ${n_mol_2slab}"
+
+fi
 
 # ##############################################################################
 # Remake system index ##########################################################
 # ##############################################################################
-# TODO: make new index file
+
+# Current groups:
+
+if [[ -f "${archive_dir}/index.ndx" ]]; then
+    echo "DEBUG: Index file already updated"
+else
+    # call python script to update index file
+    echo "DEBUG: Updating index file"
+    cp -np "index.ndx" "${archive_dir}/index_1slab.ndx" || exit 1
+    python3 "${project_path}/python/twoslab_index.py" \
+        -i "index.ndx" \
+        -g "${sim_name}.gro" \
+        -o "index.ndx" \
+        -v || exit 1
+    cp "index.ndx" "${archive_dir}/"
+fi
