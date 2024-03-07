@@ -25,8 +25,8 @@ project_path="${script_path}/../.."
 if [[ -f "${archive_dir}/${sim_name}_2slab.gro" ]]; then
     echo "DEBUG: Second slab already added"
 else
+    echo "INFO: Adding second slab to box"
     {
-        echo "DEBUG: Adding second slab to box"
 
         # copy crystal.pdb from initialization
         cp -np "../1-energy-minimization/crystal.gro" "crystal.gro" || exit 1
@@ -115,7 +115,7 @@ fi
 if [[ -f "${archive_dir}/topol.top" ]]; then
     echo "DEBUG: Topology file already updated"
 else
-    echo "DEBUG: Updating topology file"
+    echo "INFO: Updating topology file"
     {
         # get all lines [ molecules ] and following from topol.top
         grep -A 1000 "molecules" topol.top >temp.txt
@@ -139,8 +139,10 @@ fi
 if [[ -f "${archive_dir}/index.ndx" ]]; then
     echo "DEBUG: Index file already updated"
 else
+    echo "INFO: Updating index file"
+    echo "DEBUG: Python exe: $(which python)"
     {
-        python3 "${project_path}/python/twoslab_index.py" \
+        python "${project_path}/python/twoslab_index.py" \
             -i "index.ndx" \
             -g "${sim_name}.gro" \
             -o "index.ndx" \
