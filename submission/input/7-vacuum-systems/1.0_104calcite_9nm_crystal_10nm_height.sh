@@ -8,9 +8,9 @@
 
 # Hardware ####################################################################
 
-export CPU_THREADS='4' # number of CPU threads to use (-1 = all available)
-export PIN_OFFSET='0'  # offset for CPU thread pinning (-1 = no offset)
-export GPU_IDS='0'     # GPU device(s) to use (0 = first GPU, 01 = first two GPUs)
+export CPU_THREADS='-1' # number of CPU threads to use (-1 = all available)
+export PIN_OFFSET='-1'  # offset for CPU thread pinning (-1 = no offset)
+export GPU_IDS='-1'     # GPU device(s) to use (0 = first GPU, 01 = first two GPUs)
 
 # System components ###########################################################
 
