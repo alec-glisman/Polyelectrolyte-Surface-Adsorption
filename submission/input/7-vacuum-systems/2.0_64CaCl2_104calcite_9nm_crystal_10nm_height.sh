@@ -34,6 +34,7 @@ export CRYSTAL="calcite" # {calcite, aragonite, vaterite}
 export SURFACE="104"     # Miller index of crystal surface {104, 001}
 
 # system size
+export VACUUM='True'        # {True, False}
 export SURFACE_SIZE='9'     # size of crystal surface in nm {3, 5, 8, 9, 10, 11, 12, 13}
 export BOX_HEIGHT='10'      # height of simulation box in nm
 export VACUUM_HEIGHT='30'   # height of vacuum layer in nm
@@ -41,6 +42,7 @@ export PDB_BULK_ZMIN='4.62' # z-coordinate of bottom of bulk part of crystal in 
 export PDB_BULK_ZMAX='5.09' # z-coordinate of top of bulk part of crystal in nm in PDB file
 
 # number of each component
+export N_SLAB='2'       # number of crystal slabs {1, 2}
 export N_MONOMER='0'    # number of monomers in chain {1, 2, 5, 8, 16, 32}
 export N_CHAIN='0'      # number of chains
 export N_CARBONATE='0'  # number of aqueous carbonate ions

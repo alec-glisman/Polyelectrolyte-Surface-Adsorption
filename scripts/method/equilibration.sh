@@ -85,8 +85,10 @@ else
         cp -np "${previous_archive_dir}/topol.top" "topol.top" || exit 1
         cp -np "${previous_archive_dir}/index.ndx" "index.ndx" || exit 1
 
-        # replace temperature in mdp file
         cp "${mdp_file_nvt}" "${sim_name}.mdp" || exit 1
+        # freeze atoms in mdp file
+        sed -i 's/freezegrps.*/freezegrps = Crystal/g' "${sim_name}.mdp" || exit 1
+        # replace temperature in mdp file
         sed -i 's/ref-t.*/ref-t                     = '"${TEMPERATURE_K}/g" "${sim_name}.mdp" || exit 1
         sed -i 's/gen-temp.*/gen-temp                  = '"${TEMPERATURE_K}/g" "${sim_name}.mdp" || exit 1
         # small surfaces have smaller cutoffs
@@ -94,6 +96,13 @@ else
             sed -i 's/^rlist.*/rlist = 0.7/g' "${sim_name}.mdp" || exit 1
             sed -i 's/^rcoulomb.*/rcoulomb = 0.7/g' "${sim_name}.mdp" || exit 1
             sed -i 's/^rvdw.*/rvdw = 0.7/g' "${sim_name}.mdp" || exit 1
+        fi
+        # add vacuum parameters to mdp file
+        if [[ "${VACUUM}" == 'True' ]]; then
+            sed -i 's/^ewald-geometry .*/ewald-geometry            = 3dc/g' "${sim_name}.mdp" || exit 1
+            sed -i 's/^pbc .*/pbc                       = xy/g' "${sim_name}.mdp" || exit 1
+            sed -i 's/^nwall .*/nwall                     = 2/g' "${sim_name}.mdp" || exit 1
+            echo "wall-r-linpot = 0.1" >>"${sim_name}.mdp" || exit 1
         fi
 
         # make tpr file for NVT equilibration
@@ -176,8 +185,11 @@ else
         # copy output files from NVT equilibration
         cp -np "${previous_archive_dir}/${previous_sim_name}.gro" "${previous_sim_name}.gro" || exit 1
 
-        # replace temperature and pressure in mdp file
         cp "${mdp_file_npt}" "${sim_name}.mdp" || exit 1
+        # delete lines from frozen groups
+        sed -i '/freezegrps/d' "${sim_name}.mdp" || exit 1
+        sed -i '/freezedim/d' "${sim_name}.mdp" || exit 1
+        # replace temperature and pressure in mdp file
         sed -i 's/ref-t.*/ref-t                     = '"${TEMPERATURE_K}/g" "${sim_name}.mdp" || exit 1
         sed -i 's/gen-temp.*/gen-temp                  = '"${TEMPERATURE_K}/g" "${sim_name}.mdp" || exit 1
         sed -i 's/ref-p.*/ref-p                     = '"${PRESSURE_BAR} ${PRESSURE_BAR}/g" "${sim_name}.mdp" || exit 1
@@ -186,6 +198,12 @@ else
             sed -i 's/^rlist.*/rlist = 0.7/g' "${sim_name}.mdp" || exit 1
             sed -i 's/^rcoulomb.*/rcoulomb = 0.7/g' "${sim_name}.mdp" || exit 1
             sed -i 's/^rvdw.*/rvdw = 0.7/g' "${sim_name}.mdp" || exit 1
+        fi
+        # add vacuum parameters to mdp file
+        if [[ "${VACUUM}" == 'True' ]]; then
+            sed -i 's/^ewald-geometry .*/ewald-geometry            = 3dc/g' "${sim_name}.mdp" || exit 1
+            sed -i 's/^pbc .*/pbc                       = xy/g' "${sim_name}.mdp" || exit 1
+            sed -i 's/^nwall .*/nwall                     = 2/g' "${sim_name}.mdp" || exit 1
         fi
 
         # make tpr file
@@ -263,10 +281,12 @@ fi
 previous_sim_gro_last_line="$(tail -n 1 "${previous_archive_dir}/${previous_sim_name}.gro")"
 previous_sim_gro_box_dimensions="$(echo "${previous_sim_gro_last_line}" | awk '{print $1, $2, $3}')"
 echo "DEBUG: NVT system dimensions: ${previous_sim_gro_box_dimensions}"
+
 # get last line of current sim gro file
 sim_gro_last_line="$(tail -n 1 "${archive_dir}/${sim_name}.gro")"
 sim_gro_box_dimensions="$(echo "${sim_gro_last_line}" | awk '{print $1, $2, $3}')"
 echo "DEBUG: NPT system dimensions: ${sim_gro_box_dimensions}"
+
 # calculate percent change in each dimension
 # shellcheck disable=SC2206
 previous_sim_gro_box_dimensions_array=(${previous_sim_gro_box_dimensions})
@@ -279,22 +299,14 @@ for i in "${!previous_sim_gro_box_dimensions_array[@]}"; do
     echo "DEBUG: Percent change in dimension ${i}: ${percent_change}"'%'
 done
 
-# ##############################################################################
-# Add Vacuum Layer #############################################################
-# ##############################################################################
-if [[ "${VACUUM_HEIGHT}" -eq 0 ]]; then
-    echo "INFO: Skipping vacuum layer"
-else
-    echo "INFO: Adding vacuum layer"
-    {
-        # get box height from last line of gro file
-        box_dim="$(tail -n 1 "${sim_name}.gro")"
-        z_height="$(echo "${box_dim}" | awk '{print $3}')"
-        z_vacuum_height="$(bc <<<"scale=5; ${z_height} + ${VACUUM_HEIGHT}")"
-
-        # replace z-dimension of box with vacuum layer by string replacement of 3rd column in last line of gro file
-        sed -i "s/${z_height}/${z_vacuum_height}/g" "${sim_name}.gro"
-    } >>"${log_file}" 2>&1
+# #######################################################################################
+# Add Second Slab  ######################################################################
+# #######################################################################################
+if [[ "${N_SLAB}" -eq 2 ]]; then
+    echo "INFO: Adding second slab"
+    cp -np "${archive_dir}/${sim_name}.gro" "${sim_name}.gro"
+    "${project_path}/scripts/utilities/second_slab.sh" || exit 1
+    rm "${sim_name}.gro"
 fi
 
 # #######################################################################################
@@ -302,9 +314,15 @@ fi
 # #######################################################################################
 echo "INFO: Starting production equilibration"
 previous_sim_name="${sim_name}"
-previous_archive_dir="${archive_dir}"
 sim_name="prod_eqbm"
 archive_dir="3-pre-production"
+
+if [[ "${N_SLAB}" -eq 2 ]]; then
+    previous_archive_dir="3-second-slab"
+else
+    previous_archive_dir="${archive_dir}"
+fi
+echo "DEBUG: Using previous archive directory: ${previous_archive_dir}"
 
 # check if output gro file already exists
 if [[ -f "${archive_dir}/${sim_name}.gro" ]]; then
@@ -315,11 +333,13 @@ else
         # if tpr file does not exist, create it
         if [[ ! -f "${sim_name}.tpr" ]]; then
             echo "DEBUG: Creating tpr file"
-            # copy output files from NVT equilibration
             cp -np "${previous_archive_dir}/${previous_sim_name}.gro" "${previous_sim_name}.gro" || exit 1
 
-            # replace temperature and pressure in mdp file
             cp "${mdp_file_prod}" "${sim_name}.mdp" || exit 1
+            # delete lines from frozen groups
+            sed -i '/freezegrps/d' "${sim_name}.mdp" || exit 1
+            sed -i '/freezedim/d' "${sim_name}.mdp" || exit 1
+            # replace temperature and pressure in mdp file
             sed -i 's/ref-t.*/ref-t                     = '"${TEMPERATURE_K}/g" "${sim_name}.mdp" || exit 1
             sed -i 's/gen-temp.*/gen-temp                  = '"${TEMPERATURE_K}/g" "${sim_name}.mdp" || exit 1
             sed -i 's/ref-p.*/ref-p                     = '"${PRESSURE_BAR} ${PRESSURE_BAR}/g" "${sim_name}.mdp" || exit 1
@@ -330,10 +350,13 @@ else
                 sed -i 's/^rvdw.*/rvdw = 0.7/g' "${sim_name}.mdp" || exit 1
             fi
             # add vacuum parameters to mdp file
-            if [[ "${VACUUM_HEIGHT}" -gt 0 ]]; then
+            if [[ "${VACUUM}" == 'True' ]]; then
                 sed -i 's/^ewald-geometry .*/ewald-geometry            = 3dc/g' "${sim_name}.mdp" || exit 1
                 sed -i 's/^pbc .*/pbc                       = xy/g' "${sim_name}.mdp" || exit 1
                 sed -i 's/^nwall .*/nwall                     = 2/g' "${sim_name}.mdp" || exit 1
+                if [[ "${N_SLAB}" -eq 2 ]]; then
+                    sed -i 's/^wall-atomtype             = WR WL.*/wall-atomtype             = WR WR/g' "${sim_name}.mdp" || exit 1
+                fi
             fi
 
             # copy plumed file

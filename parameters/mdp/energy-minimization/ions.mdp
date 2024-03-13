@@ -7,7 +7,7 @@ nstcomm                   = 100          ; [steps] frequency for center of mass 
 ;;; Energy minimization ;;;
 emtol                     = 10.0         ; [kJ mol^{-1} nm^{-1}] the minimization is converged when the maximum force is smaller than this value
 emstep                    = 0.10         ; [nm] initial step-size
-nsteps                    = 100000       ; [steps] Maximum number of (minimization) steps to perform
+nsteps                    = 10000        ; [steps] Maximum number of (minimization) steps to perform
 ;;; Output control ;;;
 nstxout                   = 0            ; [steps] number of steps that elapse between writing coordinates to the output trajectory file (trr)
 nstvout                   = 0            ; [steps] number of steps that elapse between writing velocities to the output trajectory file (trr)
