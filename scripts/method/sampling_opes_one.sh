@@ -183,17 +183,18 @@ echo "DEBUG: Number of MPI processes per node: ${ONEOPES_N_SIM_PER_NODE}"
 echo "DEBUG: Number of threads per MPI process: ${ONEOPES_N_THREAD_PER_SIM}"
 echo "DEBUG: Using $((ONEOPES_N_SIM_PER_NODE * ONEOPES_N_THREAD_PER_SIM)) threads per node"
 
-{
-    if [[ -f "${cwd}/completed.txt" ]]; then
-        echo "WARNING: completed.txt already exists"
-        echo "INFO: Skipping production OneOPES simulation"
+if [[ -f "${cwd}/completed.txt" ]]; then
+    echo "WARNING: completed.txt already exists"
+    echo "INFO: Skipping production OneOPES simulation"
 
-    elif [[ "${FLAG_ARCHIVE}" = true ]]; then
-        echo "WARNING: Archive flag is set, mdrun will not be called"
-        echo "INFO: Skipping production OneOPES simulation"
+elif [[ "${FLAG_ARCHIVE}" = true ]]; then
+    echo "WARNING: Archive flag is set, mdrun will not be called"
+    echo "INFO: Skipping production OneOPES simulation"
 
-    else
-        # call mdrun
+else
+    # call mdrun
+    echo "INFO: Calling mdrun"
+    {
         "${MPI_BIN}" -np "${ONEOPES_N_REPLICA}" \
             --map-by "ppr:${ONEOPES_N_SIM_PER_NODE}:node:PE=${ONEOPES_N_THREAD_PER_SIM}" \
             --use-hwthread-cpus --bind-to 'hwthread' \
@@ -207,9 +208,36 @@ echo "DEBUG: Using $((ONEOPES_N_SIM_PER_NODE * ONEOPES_N_THREAD_PER_SIM)) thread
             echo "DEBUG: Simulation completed"
             touch "${cwd}/completed.txt"
             echo "completed: $(date)" >"${cwd}/completed.txt"
+        else
+            echo "INFO: Simulation did not complete"
+            exit 0
         fi
+    } >>"${log_file_md}" 2>&1
+
+    # check if gromacs simulation completed or was terminated
+    echo "INFO: Checking if simulation completed successfully"
+    bool_completed=false
+    while IFS= read -r line; do
+        if [[ "${line}" == *"Writing final coordinates."* ]]; then
+            bool_completed=true
+        fi
+    done <"${log_file_md}"
+    echo "DEBUG: bool_completed = ${bool_completed}"
+
+    # make completed simulation text file if simulation completed successfully
+    if [[ "${bool_completed}" = true ]]; then
+        echo "INFO: Simulation completed successfully"
+        touch "completed.txt"
+        echo "completed: $(date)" >"completed.txt"
+
+    # otherwise, exit script without error
+    else
+        echo "WARNING: ${sim_name}.gro does not exist. Simulation did not complete successfully"
+        echo "INFO: Exiting script"
+        exit 0
+
     fi
-} >>"${log_file_md}" 2>&1
+fi
 
 # #######################################################################################
 # Concatenate trajectories ##############################################################
@@ -229,89 +257,103 @@ cd "${cwd}/replica_00" || exit
 } >>"${log_file_concat}" 2>&1
 
 # rsync output files to archive directory
-echo "INFO: Archiving simulation for replica_00"
 archive_dir="1-runs"
-{
-    rsync --archive --verbose --progress --human-readable --itemize-changes \
-        "${sim_name}."* "${archive_dir}/"
-    rsync --archive --verbose --progress --human-readable --itemize-changes \
-        ./*.data "${archive_dir}/"
-    rsync --archive --verbose --progress --human-readable --itemize-changes \
-        ./*.dat "${archive_dir}/"
-    rsync --archive --verbose --progress --human-readable --itemize-changes \
-        ./*.Kernels* "${archive_dir}/"
-} >>"${log_file_concat}" 2>&1
+if [[ ! -d "${archive_dir}" ]] || [[ "${FLAG_ARCHIVE}" = true ]]; then
+    echo "INFO: Archiving simulation for replica_00"
+    {
+        rsync --archive --verbose --progress --human-readable --itemize-changes \
+            "${sim_name}."* "${archive_dir}/"
+        rsync --archive --verbose --progress --human-readable --itemize-changes \
+            ./*.data "${archive_dir}/"
+        rsync --archive --verbose --progress --human-readable --itemize-changes \
+            ./*.dat "${archive_dir}/"
+        rsync --archive --verbose --progress --human-readable --itemize-changes \
+            ./*.Kernels* "${archive_dir}/"
+    } >>"${log_file_concat}" 2>&1
+else
+    echo "INFO: Archive directory for replica_00 already exists. Skipping"
+fi
 
 # concatenate files into single trajectory
 echo "INFO: Concatenating files"
 concat_dir="2-concatenated"
-{
-    mkdir -p "${concat_dir}"
+if [[ ! -d "${concat_dir}" ]] || [[ "${FLAG_ARCHIVE}" = true ]]; then
+    echo "INFO: Concatenating files"
+    {
+        mkdir -p "${concat_dir}"
 
-    # concatenate xtc files
-    "${GMX_BIN}" -nocopyright trjcat \
-        -f "${archive_dir}/${sim_name}."*.xtc \
-        -o "${concat_dir}/${sim_name}.xtc" || exit 1
+        # concatenate xtc files
+        "${GMX_BIN}" -nocopyright trjcat \
+            -f "${archive_dir}/${sim_name}."*.xtc \
+            -o "${concat_dir}/${sim_name}.xtc" || exit 1
 
-    # concatenate edr files
-    "${GMX_BIN}" -nocopyright eneconv \
-        -f "${archive_dir}/${sim_name}."*.edr \
-        -o "${concat_dir}/${sim_name}.edr" || exit 1
+        # concatenate edr files
+        "${GMX_BIN}" -nocopyright eneconv \
+            -f "${archive_dir}/${sim_name}."*.edr \
+            -o "${concat_dir}/${sim_name}.edr" || exit 1
 
-    # copy other files
-    cp "${archive_dir}/${sim_name}.tpr" "${concat_dir}/${sim_name}.tpr" || exit 1
+        # copy other files
+        cp "${archive_dir}/${sim_name}.tpr" "${concat_dir}/${sim_name}.tpr" || exit 1
 
-    # dump pdb file from last frame
-    "${GMX_BIN}" -nocopyright trjconv \
-        -f "${concat_dir}/${sim_name}.xtc" \
-        -s "${concat_dir}/${sim_name}.tpr" \
-        -o "${concat_dir}/${sim_name}.pdb" \
-        -pbc 'mol' -ur 'compact' -conect \
-        -dump "1000000000000" <<EOF
+        # dump pdb file from last frame
+        "${GMX_BIN}" -nocopyright trjconv \
+            -f "${concat_dir}/${sim_name}.xtc" \
+            -s "${concat_dir}/${sim_name}.tpr" \
+            -o "${concat_dir}/${sim_name}.pdb" \
+            -pbc 'mol' -ur 'compact' -conect \
+            -dump "1000000000000" <<EOF
 System
 EOF
 
-    # dump gro file from last frame
-    "${GMX_BIN}" -nocopyright trjconv \
-        -f "${concat_dir}/${sim_name}.xtc" \
-        -s "${concat_dir}/${sim_name}.tpr" \
-        -o "${concat_dir}/${sim_name}.gro" \
-        -dump "1000000000000" <<EOF
+        # dump gro file from last frame
+        "${GMX_BIN}" -nocopyright trjconv \
+            -f "${concat_dir}/${sim_name}.xtc" \
+            -s "${concat_dir}/${sim_name}.tpr" \
+            -o "${concat_dir}/${sim_name}.gro" \
+            -dump "1000000000000" <<EOF
 System
 EOF
 
-    # copy plumed files
-    cp "${archive_dir}/"*.data "${concat_dir}/" || exit 1
-} >>"${log_file_concat}" 2>&1
+        # copy plumed files
+        cp "${archive_dir}/"*.data "${concat_dir}/" || exit 1
+    } >>"${log_file_concat}" 2>&1
+else
+    echo "INFO: Concatenated directory already exists. Skipping"
+fi
 
 # dump trajectory without solvent
 echo "INFO: Dumping trajectory without solvent"
 nosol_dir="3-no-solvent"
-{
-    mkdir -p "${nosol_dir}"
+if [[ ! -d "${nosol_dir}" ]] || [[ "${FLAG_ARCHIVE}" = true ]]; then
+    echo "INFO: Dumping trajectory without solvent"
+    {
+        mkdir -p "${nosol_dir}"
 
-    # pdb structure
-    "${GMX_BIN}" trjconv \
-        -f "${concat_dir}/${sim_name}.xtc" \
-        -s "${concat_dir}/${sim_name}.tpr" \
-        -o "${nosol_dir}/${sim_name}.pdb" \
-        -pbc 'mol' -ur 'compact' -conect \
-        -dump "1000000000000" <<EOF
+        # pdb structure
+        "${GMX_BIN}" trjconv \
+            -f "${concat_dir}/${sim_name}.xtc" \
+            -s "${concat_dir}/${sim_name}.tpr" \
+            -o "${nosol_dir}/${sim_name}.pdb" \
+            -pbc 'mol' -ur 'compact' -conect \
+            -dump "1000000000000" <<EOF
 non-Water
 EOF
 
-    # xtc trajectory
-    "${GMX_BIN}" trjconv \
-        -f "${concat_dir}/${sim_name}.xtc" \
-        -s "${concat_dir}/${sim_name}.tpr" \
-        -o "${nosol_dir}/${sim_name}.xtc" \
-        -pbc 'mol' -ur 'compact' <<EOF
+        # xtc trajectory
+        "${GMX_BIN}" trjconv \
+            -f "${concat_dir}/${sim_name}.xtc" \
+            -s "${concat_dir}/${sim_name}.tpr" \
+            -o "${nosol_dir}/${sim_name}.xtc" \
+            -pbc 'mol' -ur 'compact' <<EOF
 non-Water
 EOF
 
-    # copy *.data files
-    cp "${concat_dir}/"*.data -t "${nosol_dir}/" || exit 1
-} >>"${log_file_concat}" 2>&1
+        # copy *.data files
+        cp "${concat_dir}/"*.data -t "${nosol_dir}/" || exit 1
+    } >>"${log_file_concat}" 2>&1
+else
+    echo "INFO: No-solvent directory already exists. Skipping"
+fi
 
 # #######################################################################################
 # Clean Up ##############################################################################
