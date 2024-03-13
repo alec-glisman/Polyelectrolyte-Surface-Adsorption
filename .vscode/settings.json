@@ -75,6 +75,7 @@
         "Mdrun",
         "METAD",
         "metadynamics",
+        "mindepth",
         "mpic",
         "mpicc",
         "mpiexec",

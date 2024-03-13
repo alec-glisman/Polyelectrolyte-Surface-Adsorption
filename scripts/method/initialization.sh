@@ -106,14 +106,6 @@ echo "INFO: Copying input files to working directory"
         sed -i 's/^rcoulomb.*/rcoulomb = 0.7/g' "mdin.mdp"
         sed -i 's/^rvdw.*/rvdw = 0.7/g' "mdin.mdp"
     fi
-
-    # add vacuum parameters to mdp file
-    if [[ "${VACUUM_HEIGHT}" -gt 0 ]]; then
-        sed -i 's/^ewald-geometry .*/ewald-geometry            = 3dc/g' "mdin.mdp"
-        sed -i 's/^pbc .*/pbc                       = xy/g' "mdin.mdp"
-        sed -i 's/^nwall .*/nwall                     = 2/g' "mdin.mdp"
-    fi
-
 } >>"${log_file}" 2>&1
 
 # ##############################################################################
@@ -380,17 +372,6 @@ echo "INFO: Create topology file with all solutes"
         -conect <<EOF
 System
 EOF
-} >>"${log_file}" 2>&1
-
-# ##############################################################################
-# Add Vacuum Layer #############################################################
-# ##############################################################################
-echo "INFO: Adding vacuum layer"
-{
-    # increase z-dimension of box with vacuum layer by string replacement of 3rd column in last line of gro file
-    z_box_height="$(bc <<<"scale=5; ${BOX_HEIGHT} * 1.00000")"
-    z_box_vacuum_height="$(bc <<<"scale=5; ${z_box_height} + ${VACUUM_HEIGHT}")"
-    sed -i "s/${z_box_height}/${z_box_vacuum_height}/g" "${sim_name}.gro"
 } >>"${log_file}" 2>&1
 
 # ##############################################################################
