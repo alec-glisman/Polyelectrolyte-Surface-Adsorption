@@ -33,32 +33,17 @@ time_init="$(date +%Y_%m_%d_%H_%M_%S)"
 cwd_init="$(pwd)"
 cwd="${cwd_init}/3-sampling-md"
 log_dir="${cwd}/logs"
-log_file="${log_dir}/${time_init}-md.log"
 
 # #######################################################################################
 # Check for existing files ##############################################################
 # #######################################################################################
 echo "CRITICAL: Starting MD production"
+log_file="${log_dir}/${time_init}-md.log"
 
 # move to working directory
 mkdir -p "${cwd}"
 mkdir -p "${log_dir}"
 cd "${cwd}" || exit
-
-# check if output gro file already exists
-if [[ -f "output/system.gro" ]]; then
-    echo "WARNING: output/system.gro already exists"
-    echo "INFO: Exiting script"
-    exit 0
-fi
-
-# #######################################################################################
-# Run simulation ########################################################################
-# #######################################################################################
-echo "INFO: Running production MD simulation"
-previous_sim_name="prod_eqbm"
-previous_archive_dir="${cwd_init}/2-equilibration/4-output"
-sim_name="prod_md"
 
 # write header to log file
 {
@@ -72,6 +57,60 @@ sim_name="prod_md"
     echo ""
 } >>"${log_file}" 2>&1
 
+# #######################################################################################
+# Prepare simulation ####################################################################
+# #######################################################################################
+previous_sim_name="prod_eqbm"
+previous_archive_dir="${cwd_init}/2-equilibration/4-output"
+sim_name="prod_md"
+
+if [[ ! -f "${sim_name}.tpr" ]]; then
+    echo "INFO: Preparing simulation tpr file"
+    {
+        # copy output files from equilibration
+        cp -np "${previous_archive_dir}/${previous_sim_name}.gro" "${previous_sim_name}.gro" || exit 1
+        cp -np "${previous_archive_dir}/topol.top" "topol.top" || exit 1
+        cp -np "${previous_archive_dir}/index.ndx" "index.ndx" || exit 1
+
+        # copy mdp file
+        cp "${mdp_file}" "${sim_name}.mdp" || exit 1
+        sed -i 's/ref-t.*/ref-t                     = '"${TEMPERATURE_K}/g" "${sim_name}.mdp" || exit 1
+        sed -i 's/gen-temp.*/gen-temp                  = '"${TEMPERATURE_K}/g" "${sim_name}.mdp" || exit 1
+        sed -i 's/ref-p.*/ref-p                     = '"${PRESSURE_BAR} ${PRESSURE_BAR}/g" "${sim_name}.mdp" || exit 1
+        # small surfaces have smaller cutoffs
+        if [[ "${SURFACE_SIZE}" -lt 4 ]]; then
+            sed -i 's/^rlist.*/rlist = 0.7/g' "${sim_name}.mdp" || exit 1
+            sed -i 's/^rcoulomb.*/rcoulomb = 0.7/g' "${sim_name}.mdp" || exit 1
+            sed -i 's/^rvdw.*/rvdw = 0.7/g' "${sim_name}.mdp" || exit 1
+        fi
+        # add vacuum parameters to mdp file
+        if [[ "${VACUUM_HEIGHT}" -gt 0 ]]; then
+            sed -i 's/^ewald-geometry .*/ewald-geometry            = 3dc/g' "${sim_name}.mdp" || exit 1
+            sed -i 's/^pbc .*/pbc                       = xy/g' "${sim_name}.mdp" || exit 1
+            sed -i 's/^nwall .*/nwall                     = 2/g' "${sim_name}.mdp" || exit 1
+        fi
+
+        # create tpr file
+        "${GMX_BIN}" -nocopyright grompp \
+            -f "${sim_name}.mdp" \
+            -c "${previous_sim_name}.gro" \
+            -r "${previous_sim_name}.gro" \
+            -n "index.ndx" \
+            -p "topol.top" \
+            -o "${sim_name}.tpr"
+        rm "${previous_sim_name}.gro" || exit 1
+    } >>"${log_file}" 2>&1
+
+else
+    echo "DEBUG: Using existing tpr file"
+
+fi
+
+# #######################################################################################
+# Run simulation ########################################################################
+# #######################################################################################
+echo "INFO: Running production MD simulation"
+
 if [[ -f "completed.txt" ]]; then
     echo "WARNING: completed.txt already exists"
     echo "INFO: Skipping production MD simulation"
@@ -81,61 +120,39 @@ elif [[ "${FLAG_ARCHIVE}" = true ]]; then
     echo "INFO: Skipping production MD simulation"
 
 else
+    echo "INFO: Calling mdrun"
     {
-        # copy output files from equilibration
-        cp -np "${previous_archive_dir}/${previous_sim_name}.gro" "${previous_sim_name}.gro" || exit 1
-        cp -np "${previous_archive_dir}/topol.top" "topol.top" || exit 1
-        cp -np "${previous_archive_dir}/index.ndx" "index.ndx" || exit 1
-
-        # if tpr file does not exist, create it
-        if [[ ! -f "${sim_name}.tpr" ]]; then
-            echo "DEBUG: Creating tpr file"
-
-            # copy mdp file
-            cp "${mdp_file}" "${sim_name}.mdp" || exit 1
-            sed -i 's/ref-t.*/ref-t                     = '"${TEMPERATURE_K}/g" "${sim_name}.mdp" || exit 1
-            sed -i 's/gen-temp.*/gen-temp                  = '"${TEMPERATURE_K}/g" "${sim_name}.mdp" || exit 1
-            sed -i 's/ref-p.*/ref-p                     = '"${PRESSURE_BAR} ${PRESSURE_BAR}/g" "${sim_name}.mdp" || exit 1
-            # small surfaces have smaller cutoffs
-            if [[ "${SURFACE_SIZE}" -lt 4 ]]; then
-                sed -i 's/^rlist.*/rlist = 0.7/g' "${sim_name}.mdp" || exit 1
-                sed -i 's/^rcoulomb.*/rcoulomb = 0.7/g' "${sim_name}.mdp" || exit 1
-                sed -i 's/^rvdw.*/rvdw = 0.7/g' "${sim_name}.mdp" || exit 1
-            fi
-            # add vacuum parameters to mdp file
-            if [[ "${VACUUM}" == 'True' ]]; then
-                sed -i 's/^ewald-geometry .*/ewald-geometry            = 3dc/g' "${sim_name}.mdp" || exit 1
-                sed -i 's/^pbc .*/pbc                       = xy/g' "${sim_name}.mdp" || exit 1
-                sed -i 's/^nwall .*/nwall                     = 2/g' "${sim_name}.mdp" || exit 1
-                if [[ "${N_SLAB}" -eq 2 ]]; then
-                    sed -i 's/^wall-atomtype             = WR WL.*/wall-atomtype             = WR WR/g' "${sim_name}.mdp" || exit 1
-                fi
-            fi
-
-            # create tpr file
-            "${GMX_BIN}" -nocopyright grompp \
-                -f "${sim_name}.mdp" \
-                -c "${previous_sim_name}.gro" \
-                -r "${previous_sim_name}.gro" \
-                -n "index.ndx" \
-                -p "topol.top" \
-                -o "${sim_name}.tpr"
-            rm "${previous_sim_name}.gro" || exit 1
-        fi
-
         # shellcheck disable=SC2153,SC2086
         "${GMX_BIN}" -nocopyright mdrun -v \
             -maxh "${WALLTIME_HOURS}" \
             -deffnm "${sim_name}" -cpi "${sim_name}.cpt" \
             ${GMX_CPU_ARGS} ${GMX_GPU_ARGS} \
             -noappend
+    } >>"${log_file}" 2>&1
 
-        # make completed simulation text file
+    # check if gromacs simulation completed or was terminated
+    echo "INFO: checking if simulation completed successfully"
+    bool_completed=false
+    while IFS= read -r line; do
+        if [[ "${line}" == *"writing final coordinates."* ]]; then
+            bool_completed=true
+        fi
+    done <"${log_file}"
+    echo "DEBUG: bool_completed = ${bool_completed}"
+
+    # make completed simulation text file if simulation completed successfully
+    if [[ "${bool_completed}" = true ]]; then
+        echo "INFO: simulation completed successfully"
         touch "completed.txt"
-        # write completed simulation text file
         echo "completed: $(date)" >"completed.txt"
 
-    } >>"${log_file}" 2>&1
+    # otherwise, exit script without error
+    else
+        echo "WARNING: ${sim_name}.gro does not exist. simulation did not complete successfully"
+        echo "INFO: exiting script"
+        exit 0
+    fi
+
 fi
 
 # #######################################################################################
@@ -158,141 +175,172 @@ log_file="${log_dir}/${time_init}-concatenation.log"
 
 # rsync output files to archive directory
 archive_dir="1-runs"
-{
-    rsync --archive --verbose --progress --human-readable --itemize-changes \
-        "${sim_name}."* "${archive_dir}/" || exit 1
-} >>"${log_file}" 2>&1
+if [[ ! -d "${archive_dir}" ]] || [[ "${FLAG_ARCHIVE}" = true ]]; then
+    echo "INFO: Archiving simulation"
+    {
+        rsync --archive --verbose --progress --human-readable --itemize-changes \
+            "${sim_name}."* "${archive_dir}/" || exit 1
+        rsync --archive --verbose --progress --human-readable --itemize-changes \
+            ./*.data "${archive_dir}/" || exit 1
+        rsync --archive --verbose --progress --human-readable --itemize-changes \
+            ./*.dat "${archive_dir}/" || exit 1
+        rsync --archive --verbose --progress --human-readable --itemize-changes \
+            ./*.Kernels* "${archive_dir}/" || exit 1
+    } >>"${log_file}" 2>&1
+else
+    echo "INFO: Skipping archiving simulation"
+fi
 
 # concatenate files into single trajectory
-echo "INFO: Concatenating trajectories"
 concat_dir="2-concatenated"
-{
-    mkdir -p "${concat_dir}"
+if [[ ! -d "${concat_dir}" ]] || [[ "${FLAG_ARCHIVE}" = true ]]; then
+    echo "INFO: Concatenating trajectories"
+    {
+        mkdir -p "${concat_dir}"
 
-    # concatenate xtc files
-    "${GMX_BIN}" -nocopyright trjcat \
-        -f "${archive_dir}/${sim_name}."*.xtc \
-        -o "${concat_dir}/${sim_name}.xtc" || exit 1
+        # concatenate xtc files
+        "${GMX_BIN}" -nocopyright trjcat \
+            -f "${archive_dir}/${sim_name}."*.xtc \
+            -o "${concat_dir}/${sim_name}.xtc" || exit 1
 
-    # concatenate edr files
-    "${GMX_BIN}" -nocopyright eneconv \
-        -f "${archive_dir}/${sim_name}."*.edr \
-        -o "${concat_dir}/${sim_name}.edr" || exit 1
+        # concatenate edr files
+        "${GMX_BIN}" -nocopyright eneconv \
+            -f "${archive_dir}/${sim_name}."*.edr \
+            -o "${concat_dir}/${sim_name}.edr" || exit 1
 
-    # copy other files
-    cp "${archive_dir}/${sim_name}.tpr" "${concat_dir}/${sim_name}.tpr" || exit 1
+        # copy other files
+        cp "${archive_dir}/${sim_name}.tpr" "${concat_dir}/${sim_name}.tpr" || exit 1
 
-    # dump pdb file from last frame
-    "${GMX_BIN}" -nocopyright trjconv \
-        -f "${concat_dir}/${sim_name}.xtc" \
-        -s "${concat_dir}/${sim_name}.tpr" \
-        -o "${concat_dir}/${sim_name}.pdb" \
-        -pbc 'mol' -ur 'compact' -conect \
-        -dump "1000000000000" <<EOF
+        # dump pdb file from last frame
+        "${GMX_BIN}" -nocopyright trjconv \
+            -f "${concat_dir}/${sim_name}.xtc" \
+            -s "${concat_dir}/${sim_name}.tpr" \
+            -o "${concat_dir}/${sim_name}.pdb" \
+            -pbc 'mol' -ur 'compact' -conect \
+            -dump "1000000000000" <<EOF
 System
 EOF
 
-    # dump gro file from last frame
-    "${GMX_BIN}" -nocopyright trjconv \
-        -f "${concat_dir}/${sim_name}.xtc" \
-        -s "${concat_dir}/${sim_name}.tpr" \
-        -o "${concat_dir}/${sim_name}.gro" \
-        -dump "1000000000000" <<EOF
+        # dump gro file from last frame
+        "${GMX_BIN}" -nocopyright trjconv \
+            -f "${concat_dir}/${sim_name}.xtc" \
+            -s "${concat_dir}/${sim_name}.tpr" \
+            -o "${concat_dir}/${sim_name}.gro" \
+            -dump "1000000000000" <<EOF
 System
 EOF
-} >>"${log_file}" 2>&1
+
+        # copy plumed files
+        cp "${archive_dir}/"*.data "${concat_dir}/" || exit 1
+    } >>"${log_file}" 2>&1
+else
+    echo "INFO: Skipping concatenation"
+fi
 
 # dump trajectory without solvent
-echo "INFO: Dumping trajectory without solvent"
 nosol_dir="3-no-solvent"
-{
-    mkdir -p "${nosol_dir}"
+if [[ ! -d "${nosol_dir}" ]] || [[ "${FLAG_ARCHIVE}" = true ]]; then
+    echo "INFO: Dumping trajectory without solvent"
+    {
+        mkdir -p "${nosol_dir}"
 
-    # pdb structure
-    "${GMX_BIN}" trjconv \
-        -f "${concat_dir}/${sim_name}.xtc" \
-        -s "${concat_dir}/${sim_name}.tpr" \
-        -o "${nosol_dir}/${sim_name}.pdb" \
-        -pbc 'mol' -ur 'compact' -conect \
-        -dump "1000000000000" <<EOF
+        # pdb structure
+        "${GMX_BIN}" trjconv \
+            -f "${concat_dir}/${sim_name}.xtc" \
+            -s "${concat_dir}/${sim_name}.tpr" \
+            -o "${nosol_dir}/${sim_name}.pdb" \
+            -pbc 'mol' -ur 'compact' -conect \
+            -dump "1000000000000" <<EOF
 non-Water
 EOF
 
-    # xtc trajectory
-    "${GMX_BIN}" trjconv \
-        -f "${concat_dir}/${sim_name}.xtc" \
-        -s "${concat_dir}/${sim_name}.tpr" \
-        -o "${nosol_dir}/${sim_name}.xtc" \
-        -pbc 'mol' -ur 'compact' <<EOF
+        # xtc trajectory
+        "${GMX_BIN}" trjconv \
+            -f "${concat_dir}/${sim_name}.xtc" \
+            -s "${concat_dir}/${sim_name}.tpr" \
+            -o "${nosol_dir}/${sim_name}.xtc" \
+            -pbc 'mol' -ur 'compact' <<EOF
 non-Water
 EOF
 
-} >>"${log_file}" 2>&1
+        # copy *.data files
+        cp "${concat_dir}/"*.data -t "${nosol_dir}/" || exit 1
+    } >>"${log_file}" 2>&1
+else
+    echo "INFO: Skipping dumping trajectory without solvent"
+fi
 
 # #######################################################################################
 # Analysis ##############################################################################
 # #######################################################################################
-echo "INFO: Analyzing trajectory"
 log_file="${log_dir}/${time_init}-analysis.log"
 
-# write header to log file
-{
-    echo "################################################################################"
-    echo "Script: ${BASH_SOURCE[0]}"
-    echo "Date: $(date)"
-    echo "Host: $(hostname)"
-    echo "System: ${MONOMER}-${BLOCK}-${CRYSTAL}-${SURFACE}-${SURFACE_SIZE}nm-${BOX_HEIGHT}nm-${N_MONOMER}mon-${N_CHAIN}chain-${N_CARBONATE}co3-${N_SODIUM}na-${N_CALCIUM}ca-${N_CHLORINE}cl"
-    echo "Ensemble: ${PRODUCTION_ENSEMBLE} ${TEMPERATURE_K}K ${PRESSURE_BAR}bar"
-    echo "################################################################################"
-    echo ""
-} >>"${log_file}" 2>&1
+if [[ ! -d "png" ]] || [[ "${FLAG_ARCHIVE}" = true ]]; then
+    echo "INFO: Analyzing trajectory"
+    # write header to log file
+    {
+        echo "################################################################################"
+        echo "Script: ${BASH_SOURCE[0]}"
+        echo "Date: $(date)"
+        echo "Host: $(hostname)"
+        echo "System: ${MONOMER}-${BLOCK}-${CRYSTAL}-${SURFACE}-${SURFACE_SIZE}nm-${BOX_HEIGHT}nm-${N_MONOMER}mon-${N_CHAIN}chain-${N_CARBONATE}co3-${N_SODIUM}na-${N_CALCIUM}ca-${N_CHLORINE}cl"
+        echo "Ensemble: ${PRODUCTION_ENSEMBLE} ${TEMPERATURE_K}K ${PRESSURE_BAR}bar"
+        echo "################################################################################"
+        echo ""
+    } >>"${log_file}" 2>&1
 
-{
-    # plot system parameters over time
-    params=('Potential' 'Kinetic-En.' 'Total-Energy' 'Temperature' 'Pressure')
-    if [[ "${PRODUCTION_ENSEMBLE^^}" == "NPT" ]]; then
-        params+=('Density')
-    fi
-    echo "DEBUG: Parameters to plot: ${params[*]}"
-    for param in "${params[@]}"; do
-        filename="${param,,}"
-        "${GMX_BIN}" -nocopyright energy \
-            -f "${concat_dir}/${sim_name}.edr" \
-            -o "${filename}.xvg" <<EOF
+    {
+        # plot system parameters over time
+        params=('Potential' 'Kinetic-En.' 'Total-Energy' 'Temperature' 'Pressure')
+        if [[ "${PRODUCTION_ENSEMBLE^^}" == "NPT" ]]; then
+            params+=('Density')
+        fi
+        echo "DEBUG: Parameters to plot: ${params[*]}"
+        for param in "${params[@]}"; do
+            filename="${param,,}"
+            "${GMX_BIN}" -nocopyright energy \
+                -f "${concat_dir}/${sim_name}.edr" \
+                -o "${filename}.xvg" <<EOF
 ${param}
 0
 EOF
-        # convert xvg to png
-        gracebat -nxy "${filename}.xvg" \
-            -hdevice "PNG" \
-            -autoscale "xy" \
-            -printfile "${filename}.png" \
-            -fixed "3840" "2160"
-    done
+            # convert xvg to png
+            gracebat -nxy "${filename}.xvg" \
+                -hdevice "PNG" \
+                -autoscale "xy" \
+                -printfile "${filename}.png" \
+                -fixed "3840" "2160"
+        done
 
-    # copy all xvg files to xvg directory
-    mkdir -p "xvg"
-    cp -p ./*.xvg "xvg/" || exit 1
-    rm ./*.xvg || exit 1
+        # copy all xvg files to xvg directory
+        mkdir -p "xvg"
+        cp -p ./*.xvg "xvg/" || exit 1
+        rm ./*.xvg || exit 1
 
-    # copy all png files to png directory
-    mkdir -p "png"
-    cp -p ./*.png "png/" || exit 1
-    rm ./*.png || exit 1
-} >>"${log_file}" 2>&1
+        # copy all png files to png directory
+        mkdir -p "png"
+        cp -p ./*.png "png/" || exit 1
+        rm ./*.png || exit 1
+    } >>"${log_file}" 2>&1
+
+else
+    echo "INFO: Skipping analysis"
+fi
 
 # #######################################################################################
 # Clean Up ##############################################################################
 # #######################################################################################
 echo "INFO: Cleaning up"
-log_file="cleanup.log"
+log_file="${log_dir}/${time_init}-cleanup.log"
 
-# iterate over directories and delete backup files
-for dir in "${archive_dir}" "${concat_dir}" "${nosol_dir}" "."; do
-    find "${dir}" -type f -name '#*#' -delete || true
-done
+{
+    # iterate over directories and delete backup files
+    for dir in "${archive_dir}" "${concat_dir}" "${nosol_dir}" "."; do
+        find "${dir}" -type f -name '#*#' -delete || true
+    done
 
-# move to initial working directory
-cd "${cwd_init}" || exit 1
+    # move to initial working directory
+    cd "${cwd_init}" || exit 1
+} >>"${log_file}" 2>&1
 
 echo "CRITICAL: Finished MD sampling"
