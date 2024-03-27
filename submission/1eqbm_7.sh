@@ -5,7 +5,7 @@
 
 # Slurm: Node configuration
 #SBATCH --partition=all --qos=dow --account=dow
-#SBATCH --nodes=1 --ntasks-per-node=8 --mem=4G
+#SBATCH --nodes=1 --ntasks-per-node=16 --mem=4G
 #SBATCH --gres=gpu:1 --gpu-bind=closest
 
 # Slurm: Runtime I/O

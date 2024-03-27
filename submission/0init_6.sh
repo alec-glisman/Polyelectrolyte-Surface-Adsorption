@@ -27,11 +27,15 @@ input_globals=()
 while IFS= read -r -d '' file; do
     input_globals+=("${file##*/}")
 done < <(find "${params_dir}" -type f -name "*.sh" -print0)
-echo "${input_globals[@]}"
 
 # sort input globals
 # shellcheck disable=SC2207
 IFS=$'\n' input_globals=($(sort <<<"${input_globals[*]}"))
+
+echo "INFO: Found ${#input_globals[@]} input global directories"
+for idx in "${!input_globals[@]}"; do
+    echo "DEBUG: ${idx}: ${input_globals[idx]}"
+done
 
 # start script
 date_time=$(date +"%Y-%m-%d %T")
