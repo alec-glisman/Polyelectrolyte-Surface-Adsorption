@@ -141,6 +141,9 @@ else
             if [[ "${N_CALCIUM}" -eq '0' ]]; then
                 sed -i 's/NDX_GROUP=Aqueous_Calcium/NDX_GROUP=Crystal_Top_Surface_Calcium/g' "plumed.dat" || exit 1
             fi
+            if [[ "${N_CHAIN}" -gt '1' ]]; then
+                sed -i '/WHOLEMOLECULES ENTITY0=gr_chain/d' "plumed.dat" || exit 1
+            fi
             sed -i 's/{LOWER_WALL_HEIGHT}/'"${PE_WALL_MIN}"'/g' "plumed.dat" || exit 1
             sed -i 's/{UPPER_WALL_HEIGHT}/'"${PE_WALL_MAX_EQBM}"'/g' "plumed.dat" || exit 1
             sed -i 's/{WALL_OFFSET}/'"${ATOM_OFFSET}"'/g' "plumed.dat" || exit 1

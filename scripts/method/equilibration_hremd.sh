@@ -153,6 +153,9 @@ else
             if [[ "${N_CALCIUM}" -eq '0' ]]; then
                 sed -i 's/NDX_GROUP=Aqueous_Calcium/NDX_GROUP=Crystal_Top_Surface_Calcium/g' "plumed.dat" || exit 1
             fi
+            if [[ "${N_CHAIN}" -gt '1' ]]; then
+                sed -i '/WHOLEMOLECULES ENTITY0=gr_chain/d' "plumed.dat" || exit 1
+            fi
 
             # append all "hot" atom names with '_' in [atoms] section only
             echo "DEBUG: Processing topology for replica_${replica}"
