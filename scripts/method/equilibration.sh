@@ -315,7 +315,6 @@ fi
 echo "INFO: Starting production equilibration"
 previous_sim_name="${sim_name}"
 sim_name="prod_eqbm"
-archive_dir="3-pre-production"
 
 if [[ "${N_SLAB}" -eq 2 ]]; then
     previous_archive_dir="3-second-slab"
@@ -323,6 +322,7 @@ else
     previous_archive_dir="${archive_dir}"
 fi
 echo "DEBUG: Using previous archive directory: ${previous_archive_dir}"
+archive_dir="3-pre-production"
 
 # check if output gro file already exists
 if [[ -f "${archive_dir}/${sim_name}.gro" ]]; then
