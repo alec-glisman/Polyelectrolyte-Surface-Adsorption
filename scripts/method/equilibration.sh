@@ -336,9 +336,9 @@ else
             cp -np "${previous_archive_dir}/${previous_sim_name}.gro" "${previous_sim_name}.gro" || exit 1
 
             cp "${mdp_file_prod}" "${sim_name}.mdp" || exit 1
-            # delete lines from frozen groups
-            sed -i '/freezegrps/d' "${sim_name}.mdp" || exit 1
-            sed -i '/freezedim/d' "${sim_name}.mdp" || exit 1
+            # # delete lines from frozen groups
+            # sed -i '/freezegrps/d' "${sim_name}.mdp" || exit 1
+            # sed -i '/freezedim/d' "${sim_name}.mdp" || exit 1
             # replace temperature and pressure in mdp file
             sed -i 's/ref-t.*/ref-t                     = '"${TEMPERATURE_K}/g" "${sim_name}.mdp" || exit 1
             sed -i 's/gen-temp.*/gen-temp                  = '"${TEMPERATURE_K}/g" "${sim_name}.mdp" || exit 1
