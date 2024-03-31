@@ -13,7 +13,6 @@ set -o pipefail # exit when a command in a pipe fails
 # #######################################################################################
 # Find Inputs ###########################################################################
 # #######################################################################################
-
 input_base_dir="/nfs/zeal_nas/home_mount/aglisman/GitHub/Polyelectrolyte-Surface-Adsorption/data_archive/6_single_chain_binding"
 input_append_dir="3-sampling-opes-one/replica_00"
 sim_name="prod_opes_one_multicv"
@@ -26,16 +25,19 @@ input_dirs=("${input_dirs[@]/#/${input_base_dir}/}")
 # get dir of this file
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 
+# FIXME: remove this line
+# drop first 4 elements
+input_dirs=("${input_dirs[@]:4}")
+
 # #######################################################################################
 # Call script in parallel ###############################################################
 # #######################################################################################
-
 # print all input directories
 echo "INFO: Found ${#input_dirs[@]} input directories"
 for idx in "${!input_dirs[@]}"; do
     echo "DEBUG: ${idx}: ${input_dirs[idx]}"
 done
 
-parallel --link --keep-order --ungroup --halt-on-error '2' --jobs '4' --joblog 'concatenate_sim.log' \
+parallel --link --keep-order --ungroup --halt-on-error '0' --jobs '30' --joblog 'concatenate_sim.log' \
     "${script_dir}/concatenate_sim.sh" "{1}" "${sim_name}" \
     ::: "${input_dirs[@]}"
