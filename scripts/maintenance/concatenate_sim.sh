@@ -158,11 +158,11 @@ echo "INFO: Cleaning up"
     echo ""
 } >>"${log_file_cleanup}" 2>&1
 
-# {
-#     # iterate over directories and delete backup files
-#     for dir in "${archive_dir}" "${concat_dir}" "${nosol_dir}" "."; do
-#         find "${dir}" -type f -name '#*#' -delete || true
-#     done
-# } >>"${log_file_cleanup}" 2>&1
+{
+    # iterate over directories and delete backup files
+    for dir in "${archive_dir}" "${concat_dir}" "${nosol_dir}" "."; do
+        find "${dir}" -type f -name '#*#' -delete || true
+    done
+} >>"${log_file_cleanup}" 2>&1
 
 echo "CRITICAL: Finished Concatenation for simulation ${sim_name} at directory ${cwd}"

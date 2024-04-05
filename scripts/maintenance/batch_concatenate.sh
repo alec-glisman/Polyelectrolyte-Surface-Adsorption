@@ -25,10 +25,6 @@ input_dirs=("${input_dirs[@]/#/${input_base_dir}/}")
 # get dir of this file
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 
-# FIXME: remove this line
-# drop first 4 elements
-input_dirs=("${input_dirs[@]:4}")
-
 # #######################################################################################
 # Call script in parallel ###############################################################
 # #######################################################################################
