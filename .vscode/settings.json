@@ -114,6 +114,7 @@
         "pinstride",
         "PLUMEDROOT",
         "pname",
+        "Polyelectrolyte",
         "POSRES",
         "PREC",
         "printfile",
