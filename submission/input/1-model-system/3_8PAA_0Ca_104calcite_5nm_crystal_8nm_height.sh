@@ -45,6 +45,8 @@ export PRESSURE_BAR='1'          # pressure in bar
 
 # hamiltonian replica exchange
 export HREMD_N_REPLICA='8'  # number of replicas in HREMD simulations
+export HREMD_T_MIN='300'    # [K] min temperature of HREMD replicas, set to TEMPERATURE_K
+export HREMD_T_MAX='440'    # [K] max temperature of HREMD replicas
 export HREMD_N_STEPS='1000' # number of steps between replica exchange attempts
 
 # OneOPES replica exchange

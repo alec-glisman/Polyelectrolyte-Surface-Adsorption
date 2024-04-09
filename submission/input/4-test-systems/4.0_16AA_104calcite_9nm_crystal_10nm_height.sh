@@ -54,6 +54,8 @@ export TAG_JOBID="4.4.0" # tag to append to system name
 
 # hamiltonian replica exchange
 export HREMD_N_REPLICA='32' # number of replicas in HREMD simulations
+export HREMD_T_MIN='300'    # [K] min temperature of HREMD replicas, set to TEMPERATURE_K
+export HREMD_T_MAX='440'    # [K] max temperature of HREMD replicas
 export HREMD_N_STEPS='1000' # number of steps between replica exchange attempts
 
 # OneOPES replica exchange

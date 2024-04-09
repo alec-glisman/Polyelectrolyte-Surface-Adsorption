@@ -52,8 +52,8 @@ bias_atoms=(
 mapfile -t arr_replica < <(seq -f "%02g" 0 "$((HREMD_N_REPLICA - 1))")
 mapfile -t arr_temp < <(
     awk -v n="${HREMD_N_REPLICA}" \
-        -v t_min="${TEMPERATURE_K}" \
-        -v t_max='440' \
+        -v t_min="${HREMD_T_MIN}" \
+        -v t_max="${HREMD_T_MAX}" \
         -v PREC='100' \
         'BEGIN{for(i=0; i < n; i++){
         printf "%.17g\n", t_min*exp(i*log(t_max/t_min)/(n-1));

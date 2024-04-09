@@ -1,4 +1,4 @@
-name: md
+name: md-surface
 channels:
   - defaults
   - intel
