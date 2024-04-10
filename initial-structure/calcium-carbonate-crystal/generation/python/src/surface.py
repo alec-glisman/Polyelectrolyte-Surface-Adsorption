@@ -54,6 +54,10 @@ class SurfaceGen:
             print(f"Hexagonal lattice: {self.unit_cell.lattice.is_hexagonal()}")
 
         self.unit_cell = self.space_group.get_conventional_standard_structure()
+        if self.verbose:
+            info = str(self.unit_cell).split("\n")[:5]
+            for line in info:
+                print(line)
 
     def _generate_slabs(self):
         self.generator = SlabGenerator(
@@ -118,11 +122,7 @@ class SurfaceGen:
 
     def create_pdb(self, filename: Path) -> None:
         self.cif_to_pdb(filename)
-        try:
-            self.pdb_clean(filename)
-        except Exception as e:
-            warnings.warn(f"Error creating pdb file: {e}")
-            os.rename(f"{filename}.pdb", f"{filename}_error.pdb")
+        self.pdb_clean(filename)
         os.remove(f"{filename}.cif")
 
     def cif_to_pdb(self, filename: Path) -> None:
@@ -145,6 +145,12 @@ class SurfaceGen:
         # output file
         ob_conv.WriteFile(mol, f"{filename}.pdb")
 
+        if self.verbose:
+            print(f"OpenBabel converted {filename}.cif to {filename}.pdb")
+            print(f"\tNumber of atoms: {mol.NumAtoms()}")
+            print(f"\tNumber of bonds: {mol.NumBonds()}")
+            print(f"\tNumber of residues: {mol.NumResidues()}")
+
     def pdb_clean(self, filename: Path) -> None:
         # use MDAnalysis to read pdb file and guess bonds
         u = mda.Universe(
@@ -155,28 +161,28 @@ class SurfaceGen:
         )
         ag = u.atoms
 
+        # set record type and segment id
+        for atom in ag:  # pylint: disable=not-an-iterable
+            atom.record_type = "ATOM"
+            atom.segment.segid = ""
+
+        # set atom and residue names
+        for atom in ag:  # pylint: disable=not-an-iterable
+            if atom.name == "C":
+                atom.name = "CX1"
+                atom.residue.resname = "CRB"
+            elif atom.name == "O":
+                atom.name = "OX1"
+                atom.residue.resname = "CRB"
+            elif atom.name == "CA":
+                atom.residue.resname = "CA"
+            else:
+                raise ValueError(f"Unknown atom name {atom.name}")
+
         try:
-            # set atom and residue names
-            for atom in ag:  # pylint: disable=not-an-iterable
-                if atom.name == "C":
-                    atom.name = "CX1"
-                    atom.residue.resname = "CRB"
-                elif atom.name == "O":
-                    atom.name = "OX1"
-                    atom.residue.resname = "CRB"
-                elif atom.name == "CA":
-                    atom.residue.resname = "CA"
-                else:
-                    raise ValueError(f"Unknown atom name {atom.name}")
-
-            # set record type and segment id
-            for atom in ag:  # pylint: disable=not-an-iterable
-                atom.record_type = "ATOM"
-                atom.segment.segid = ""
-
             # add bonds to oxygen atoms
             for atom in ag:  # pylint: disable=not-an-iterable
-                if (atom.residue.resname != "UNL") and len(atom.bonds) == 0:
+                if (atom.name == "OX1") and len(atom.bonds) == 0:
                     sel_c = u.select_atoms(
                         f"element C and around 1.3 index {atom.index}"
                     )
@@ -265,8 +271,12 @@ class SurfaceGen:
             u.trajectory.add_transformations(*transform)
 
         except Exception as e:
-            warnings.warn(f"Error cleaning pdb file: {e}")
-            filename = Path(filename + "_error")
+            os.remove(f"{filename}.pdb")
+            parent_dir = Path(filename).parent
+            filename = parent_dir / f"error_{Path(filename).name}"
+            u.atoms.write(f"{filename}.pdb", bonds="conect", reindex=False)
+            warnings.warn(f"Error in pdb_clean: {e}")
+            return
 
         # write the new structure
         u.atoms.write(
@@ -276,9 +286,6 @@ class SurfaceGen:
             bonds="conect",
             reindex=False,
         )
-
-        if filename.endswith("_error"):
-            return
 
         # load new structure
         with open(f"{filename}.pdb", "r", encoding="utf-8") as f:
@@ -301,7 +308,7 @@ class SurfaceGen:
         atom_lines = np.array(atom_lines)
         atom_lines = atom_lines[np.argsort(resids)]
 
-        # write new pdb file
+        # write reordered pdb file
         with open(f"{filename}.pdb", "w", encoding="utf-8") as f:
             for i in range(first_atom_line):
                 f.write(lines[i])
@@ -309,3 +316,13 @@ class SurfaceGen:
                 f.write(lines[i])
             for i in range(last_atom_line + 1, len(lines)):
                 f.write(lines[i])
+
+        # update indices in pdb file
+        u = mda.Universe(f"{filename}.pdb")
+        u.atoms.write(
+            f"{filename}.pdb",
+            remarks="CaCO3 crystal structure generated with Pymatgen, "
+            + "OpenBabel and MDAnalysis",
+            bonds="conect",
+            reindex=True,
+        )
