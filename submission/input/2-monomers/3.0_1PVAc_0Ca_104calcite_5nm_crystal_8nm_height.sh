@@ -20,7 +20,7 @@ export TEMPERATURE_K='300'       # temperature in Kelvin
 export PRESSURE_BAR='1'          # pressure in bar
 
 # integration
-export INTEGRATION_NS='100' # [ns] final simulation time for production run {100, 500}
+export INTEGRATION_NS='100' # [ns] final simulation time for production run {100, 500, 1000}
 
 # polyelectrolyte chemistry
 export MONOMER="Ace" # Dominant monomer: {Acr, Acn, Asp, Glu, Ace, Alc}
