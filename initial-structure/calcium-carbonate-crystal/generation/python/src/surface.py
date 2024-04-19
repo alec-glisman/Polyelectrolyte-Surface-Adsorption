@@ -164,27 +164,23 @@ def replicates(filename: Path, size_nm: int) -> tuple:
 
 def replicate_pdb(filename: Path, replicate: tuple) -> None:
     uni = mda.Universe(f"{filename}")
+    box = uni.dimensions[:3]
+    angles = uni.dimensions[3:]
+    copied = []
 
-    # increase the size of the unit cell
-    dim = uni.dimensions
-    for i in range(3):
-        dim[i] = dim[i] * replicate[i]
-    transform = [
-        transformations.boxdimensions.set_dimensions(dim),
-    ]
-    uni.trajectory.add_transformations(*transform)
+    for x in range(replicate[0]):
+        for y in range(replicate[1]):
+            for z in range(replicate[2]):
+                u_ = uni.copy()
+                move_by = box * (x, y, z)
+                u_.atoms.translate(move_by)
+                copied.append(u_.atoms)
 
-    # duplicate atoms
-    for i in range(1, replicate[0]):
-        for j in range(1, replicate[1]):
-            for k in range(1, replicate[2]):
-                transform = [
-                    transformations.translate([i * dim[0], j * dim[1], k * dim[2]]),
-                ]
-                uni.trajectory.add_transformations(*transform)
-
+    new_universe = mda.Merge(*copied)
+    new_box = box * (replicate[0], replicate[1], replicate[2])
+    new_universe.dimensions = list(new_box) + list(angles)
     # write the new structure
-    uni.atoms.write(
+    new_universe.atoms.write(
         f"{filename}",
         remarks="CaCO3 crystal structure generated with MDAnalysis",
         bonds="conect",

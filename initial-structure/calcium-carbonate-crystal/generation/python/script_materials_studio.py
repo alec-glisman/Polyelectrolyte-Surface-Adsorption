@@ -35,7 +35,7 @@ def main() -> None:
             else:
                 miller_out = miller_indices
 
-            output_pdb = dir_output / f"{polymorph}-{"_".join(map(str, miller_out))}-{size}nm.pdb"
+            output_pdb = dir_output / f"{polymorph}-{"".join(map(str, miller_out))}surface-{size}nm.pdb"
             clean_pdb(pdb_file, output_pdb)
             cell_replicates = replicates(output_pdb, size)
             print(f"  Size: {size} nm, Replicates: {cell_replicates}")
