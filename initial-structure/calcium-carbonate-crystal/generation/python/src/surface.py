@@ -22,6 +22,176 @@ class SurfaceProperties:
     z_translation: float = 0.0  # [nm]
 
 
+def clean_pdb(input_file: Path, output_file: Path) -> None:
+    # load universe
+    u = mda.Universe(f"{input_file}")
+    ag = u.atoms
+
+    # rigid body transformations to remove empty space
+    z_min = np.nanmin(u.atoms.positions[:, 2])
+    z_max = np.nanmax(u.atoms.positions[:, 2])
+    trans = [0, 0, -z_min]
+    dim = u.dimensions
+    dim[2] = z_max - z_min
+    transform = [
+        transformations.translate(trans),
+        transformations.boxdimensions.set_dimensions(dim),
+    ]
+    u.trajectory.add_transformations(*transform)
+
+    # set record type and segment id
+    for atom in ag:  # pylint: disable=not-an-iterable
+        atom.record_type = "ATOM"
+        atom.segment.segid = ""
+
+    # set atom and residue names
+    for atom in ag:  # pylint: disable=not-an-iterable
+        if atom.name.startswith("Ca"):
+            atom.name = "CA"
+            atom.residue.resname = "CA"
+            if len(atom.bonded_atoms) != 0:
+                msg = f"Calcium atom {atom.index} has {len(atom.bonded_atoms)} bonds"
+                raise ValueError(msg)
+
+        elif atom.name.startswith("C"):
+            atom.name = "CX1"
+            atom.residue.resname = "CRB"
+            if len(atom.bonded_atoms) != 3:
+                msg = f"Carbon atom {atom.index} has {len(atom.bonded_atoms)} bonds"
+                raise ValueError(msg)
+
+            # set oxygen atom names
+            for j, gr_atom in enumerate(atom.bonded_atoms):
+                if len(gr_atom.bonded_atoms) != 1:
+                    msg = (
+                        f"Oxygen atom {gr_atom.index} has {len(gr_atom.bonded_atoms)}"
+                        + " bonds"
+                    )
+                    raise ValueError(msg)
+                gr_atom.name = f"OX{j+1}"
+                gr_atom.residue.resname = "CRB"
+
+    # add residue id
+
+    idx_resid = 1
+    for atom in u.select_atoms("name CX1"):
+        res = u.add_Residue(
+            resname="CRB",
+            resid=idx_resid,
+            resnum=idx_resid,
+            segid="",
+            chainID="",
+            icode="",
+        )
+        atom.residue = res
+        idx_resid += 1
+
+        for bonded_atom in atom.bonded_atoms:
+            bonded_atom.residue = atom.residue
+
+    for atom in u.select_atoms("name CA"):
+        res = u.add_Residue(
+            resname="CA",
+            resid=idx_resid,
+            resnum=idx_resid,
+            segid="",
+            chainID="",
+            icode="",
+        )
+        atom.residue = res
+        idx_resid += 1
+
+    # write the new structure
+    u.atoms.write(
+        f"{output_file}",
+        remarks="CaCO3 crystal structure generated with MDAnalysis",
+        bonds="conect",
+        reindex=False,
+    )
+
+    # load new structure
+    with open(f"{output_file}", "r", encoding="utf-8") as f:
+        lines = f.readlines()
+
+    # find first and last atom line indices
+    atom_lines = []
+    for i, line in enumerate(lines):
+        if line.startswith("ATOM"):
+            atom_lines.append(i)
+    first_atom_line = atom_lines[0]
+    last_atom_line = atom_lines[-1]
+
+    # reorder indices in atom lines by residue number (column 23-26)
+    resids = []
+    for i in range(first_atom_line, last_atom_line + 1):
+        resid = int(lines[i][22:26])
+        resids.append(resid)
+    # sort atom lines by residue number
+    atom_lines = np.array(atom_lines)
+    atom_lines = atom_lines[np.argsort(resids)]
+
+    # write reordered pdb file
+    with open(f"{output_file}", "w", encoding="utf-8") as f:
+        for i in range(first_atom_line):
+            f.write(lines[i])
+        for i in atom_lines:
+            f.write(lines[i])
+        for i in range(last_atom_line + 1, len(lines)):
+            f.write(lines[i])
+
+    # update indices and unwrap atoms in pdb file
+    u = mda.Universe(f"{output_file}")
+    transform = [
+        transformations.unwrap(u.atoms),
+    ]
+    u.trajectory.add_transformations(*transform)
+    u.atoms.write(
+        f"{output_file}",
+        remarks="CaCO3 crystal structure generated with MDAnalysis",
+        bonds="conect",
+        reindex=True,
+    )
+
+
+def replicates(filename: Path, size_nm: int) -> tuple:
+    uni = mda.Universe(f"{filename}")
+    dim = uni.dimensions
+    rep = np.ones(3, dtype=int)
+    for i in range(2):
+        rep[i] = max(np.round(size_nm * 10 / dim[i]), 1)
+    return rep
+
+
+def replicate_pdb(filename: Path, replicate: tuple) -> None:
+    uni = mda.Universe(f"{filename}")
+
+    # increase the size of the unit cell
+    dim = uni.dimensions
+    for i in range(3):
+        dim[i] = dim[i] * replicate[i]
+    transform = [
+        transformations.boxdimensions.set_dimensions(dim),
+    ]
+    uni.trajectory.add_transformations(*transform)
+
+    # duplicate atoms
+    for i in range(1, replicate[0]):
+        for j in range(1, replicate[1]):
+            for k in range(1, replicate[2]):
+                transform = [
+                    transformations.translate([i * dim[0], j * dim[1], k * dim[2]]),
+                ]
+                uni.trajectory.add_transformations(*transform)
+
+    # write the new structure
+    uni.atoms.write(
+        f"{filename}",
+        remarks="CaCO3 crystal structure generated with MDAnalysis",
+        bonds="conect",
+        reindex=True,
+    )
+
+
 class SurfaceGen:
 
     def __init__(
