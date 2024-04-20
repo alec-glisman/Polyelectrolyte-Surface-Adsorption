@@ -143,6 +143,8 @@ def clean_pdb(input_file: Path, output_file: Path) -> None:
     u = mda.Universe(f"{output_file}")
     transform = [
         transformations.unwrap(u.atoms),
+        transformations.center_in_box(u.atoms),
+        transformations.wrap(u.atoms, compound="residues"),
     ]
     u.trajectory.add_transformations(*transform)
     u.atoms.write(
@@ -159,7 +161,9 @@ def replicates(filename: Path, size_nm: int) -> tuple:
     rep = np.ones(3, dtype=int)
     for i in range(2):
         rep[i] = max(np.round(size_nm * 10 / dim[i]), 1)
-    return rep
+
+    sizes = dim[:3] * rep
+    return rep, sizes / 10.0
 
 
 def replicate_pdb(filename: Path, replicate: tuple) -> None:

@@ -11,7 +11,7 @@ from surface import clean_pdb, replicates, replicate_pdb  # noqa: E402
 
 
 def main() -> None:
-    sizes = np.arange(1, 15)  # [nm] surface sizes
+    sizes = np.arange(1, 17)  # [nm] surface sizes
 
     # input files
     dir_file = Path(f"{__file__}").parent
@@ -29,16 +29,25 @@ def main() -> None:
         miller_indices = [int(index.strip("()")) for index in index_group]
         print(f"Polymorph: {polymorph}, Miller indices: {miller_indices}")
 
+        # unit cell
+        output_pdb = dir_output / \
+            f"{polymorph}-{"".join(map(str, miller_indices))}surface-unitcell.pdb"
+        clean_pdb(pdb_file, output_pdb)
+
         for size in sizes:
             if len(miller_indices) == 4:
                 miller_out = conv_hex_to_cubic_idx(miller_indices)
             else:
                 miller_out = miller_indices
 
-            output_pdb = dir_output / f"{polymorph}-{"".join(map(str, miller_out))}surface-{size}nm.pdb"
+            output_pdb = dir_output / \
+                f"{polymorph}-{"".join(map(str, miller_out))}surface-{size}nm.pdb"
             clean_pdb(pdb_file, output_pdb)
-            cell_replicates = replicates(output_pdb, size)
-            print(f"  Size: {size} nm, Replicates: {cell_replicates}")
+            cell_replicates, box_dim = replicates(output_pdb, size)
+            box_dim = np.round(box_dim, 1)
+
+            print(f"  Crystal length: {size} nm, Box dimension: {box_dim} nm"
+                  + f", Number of replicates: {cell_replicates}")
 
             replicate_pdb(output_pdb, cell_replicates)
 
