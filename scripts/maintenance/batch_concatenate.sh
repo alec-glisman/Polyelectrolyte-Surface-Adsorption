@@ -13,7 +13,7 @@ set -o pipefail # exit when a command in a pipe fails
 # #######################################################################################
 # Find Inputs ###########################################################################
 # #######################################################################################
-input_base_dir="/nfs/zeal_nas/home_mount/aglisman/GitHub/Polyelectrolyte-Surface-Adsorption/data_archive/6_single_chain_binding"
+input_base_dir="/nfs/zeal_nas/home_mount/aglisman/GitHub/Polyelectrolyte-Surface-Adsorption/data_archive/6_single_chain_binding/cleaned"
 input_append_dir="3-sampling-opes-one/replica_00"
 sim_name="prod_opes_one_multicv"
 

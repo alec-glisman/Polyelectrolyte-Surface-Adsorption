@@ -43,6 +43,11 @@ else
     GMX_BIN="gmx"
 fi
 
+archive_dir="1-runs"
+concat_dir="2-concatenated"
+nosol_dir="3-no-solvent"
+polymer_dir="4-polymer"
+
 # move to working directory
 cd "${cwd}" || exit 1
 mkdir -p "${log_dir}"
@@ -62,7 +67,6 @@ echo "CRITICAL: Starting Concatenation for simulation ${sim_name} at directory $
 
 # rsync output files to archive directory
 echo "INFO: Archiving simulation"
-archive_dir="1-runs"
 {
     rsync --archive --verbose --progress --human-readable --itemize-changes \
         "${sim_name}."* "${archive_dir}/"
@@ -76,7 +80,6 @@ archive_dir="1-runs"
 
 # concatenate files into single trajectory
 echo "INFO: Concatenating files"
-concat_dir="2-concatenated"
 {
     mkdir -p "${concat_dir}"
 
@@ -118,7 +121,6 @@ EOF
 
 # dump trajectory without solvent
 echo "INFO: Dumping trajectory without solvent"
-nosol_dir="3-no-solvent"
 {
     mkdir -p "${nosol_dir}"
 
@@ -141,8 +143,36 @@ EOF
 non-Water
 EOF
 
-    # copy *.data files
+    # copy plumed files
     cp "${concat_dir}/"*.data -t "${nosol_dir}/" || exit 1
+} >>"${log_file_concat}" 2>&1
+
+# dump trajectory with only polymer/protein
+echo "INFO: Dumping trajectory with only polymer/protein"
+{
+    mkdir -p "${polymer_dir}"
+
+    # pdb structure
+    "${GMX_BIN}" trjconv \
+        -f "${concat_dir}/${sim_name}.xtc" \
+        -s "${concat_dir}/${sim_name}.tpr" \
+        -o "${polymer_dir}/${sim_name}.pdb" \
+        -pbc 'mol' -ur 'compact' -conect \
+        -dump "1000000000000" <<EOF
+Protein
+EOF
+
+    # xtc trajectory
+    "${GMX_BIN}" trjconv \
+        -f "${concat_dir}/${sim_name}.xtc" \
+        -s "${concat_dir}/${sim_name}.tpr" \
+        -o "${polymer_dir}/${sim_name}.xtc" \
+        -pbc 'mol' -ur 'compact' <<EOF
+Protein
+EOF
+
+    # copy plumed files
+    cp "${concat_dir}/"*.data -t "${polymer_dir}/" || exit 1
 } >>"${log_file_concat}" 2>&1
 
 # #######################################################################################
@@ -160,7 +190,7 @@ echo "INFO: Cleaning up"
 
 {
     # iterate over directories and delete backup files
-    for dir in "${archive_dir}" "${concat_dir}" "${nosol_dir}" "."; do
+    for dir in "${archive_dir}" "${concat_dir}" "${nosol_dir}" "." "${polymer_dir}"; do
         find "${dir}" -type f -name '#*#' -delete || true
     done
 } >>"${log_file_cleanup}" 2>&1
