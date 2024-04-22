@@ -183,7 +183,7 @@ echo "INFO: Importing structure to Gromacs"
     minimum_z_coord="$(echo "${carbonate_carbon_z}" | sort -n)"
     z_min="$(echo "${minimum_z_coord}" | awk 'NR==1{print $1}')"
     # subtract offset [nm] to z_min to ensure that all atoms are within the box and we can see water structure
-    offset='0.1'
+    offset='0.0'
     z_min="$(bc <<<"scale=5; ${z_min} - ${offset}")"
     echo "DEBUG: Minimum z-coordinate of crystal [nm]: ${z_min}"
 

@@ -8,7 +8,7 @@ set -o errexit # exit when a command fails. Add || true to commands allowed to f
 set -o nounset # exit when script tries to use undeclared variables
 
 # data I/O directories
-source_dir='/nfs/zeal_nas/home_mount/aglisman/GitHub/Polyelectrolyte-Surface-Adsorption/data_archive/6_single_chain_binding/cleaned'
+source_dir='/nfs/zeal_nas/home_mount/aglisman/GitHub/Polyelectrolyte-Surface-Adsorption/data_archive'
 dest_dir='/nfs/zeal_nas/data_mount/aglisman-data/1-electronic-continuum-correction/7-single-chain-surface-binding'
 
 # ########################################################################## #

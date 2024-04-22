@@ -1,3 +1,11 @@
+"""
+This script generates the surface of the calcium carbonate crystal using the
+PDB outputs from the Materials Studio software.
+
+Author: Alec Glisman (GitHub: alec-glisman)
+Date: 2024-04-22
+"""
+
 import os
 import sys
 from pathlib import Path
@@ -11,7 +19,30 @@ from surface import clean_pdb, replicates, replicate_pdb  # noqa: E402
 
 
 def main() -> None:
-    sizes = np.arange(1, 17)  # [nm] surface sizes
+    """
+    Main function to generate surface structures of calcium carbonate crystal.
+
+    This script generates surface structures of calcium carbonate crystal using
+    input PDB files and replicates them to different sizes. The generated structures
+    are saved as PDB files in the output directory.
+
+    The script takes the following steps:
+    1. Reads the input PDB files from the materials-studio/pdb directory.
+    2. Creates an output directory to save the generated surface structures.
+    3. For each input PDB file, it extracts the polymorph and Miller indices.
+    4. Cleans the PDB file and saves it as the unit cell structure.
+    5. Generates surface structures of different sizes by replicating the unit cell.
+    6. Saves the replicated structures as PDB files in the output directory.
+
+    The sizes of the surface structures are defined by the 'sizes' array, which
+    contains the desired surface sizes in nanometers.
+
+    Note: This script requires the 'miller' and 'surface' modules.
+
+    Returns:
+        None
+    """
+    sizes = np.arange(1, 16)  # [nm] surface sizes
 
     # input files
     dir_file = Path(f"{__file__}").parent
@@ -27,27 +58,30 @@ def main() -> None:
 
         index_group = pdb_file.stem.split(" ")[1:]
         miller_indices = [int(index.strip("()")) for index in index_group]
+        if len(miller_indices) == 4:
+            miller_out = conv_hex_to_cubic_idx(miller_indices)
+            print(f"Hexagonal indices: {miller_indices}, Cubic indices: {miller_out}")
+        else:
+            miller_out = miller_indices
+
         print(f"Polymorph: {polymorph}, Miller indices: {miller_indices}")
 
         # unit cell
-        output_pdb = dir_output / \
-            f"{polymorph}-{"".join(map(str, miller_indices))}surface-unitcell.pdb"
+        output_filename = f"{polymorph}-{''.join(map(str, miller_out))}surface"
+        output_pdb = dir_output / f"{output_filename}-unitcell.pdb"
         clean_pdb(pdb_file, output_pdb)
 
         for size in sizes:
-            if len(miller_indices) == 4:
-                miller_out = conv_hex_to_cubic_idx(miller_indices)
-            else:
-                miller_out = miller_indices
 
-            output_pdb = dir_output / \
-                f"{polymorph}-{"".join(map(str, miller_out))}surface-{size}nm.pdb"
+            output_pdb = dir_output / f"{output_filename}-{size}nm.pdb"
             clean_pdb(pdb_file, output_pdb)
             cell_replicates, box_dim = replicates(output_pdb, size)
             box_dim = np.round(box_dim, 1)
 
-            print(f"  Crystal length: {size} nm, Box dimension: {box_dim} nm"
-                  + f", Number of replicates: {cell_replicates}")
+            print(
+                f"  Crystal length: {size} nm, Box dimension: {box_dim} nm"
+                + f", Number of replicates: {cell_replicates}"
+            )
 
             replicate_pdb(output_pdb, cell_replicates)
 
