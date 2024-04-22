@@ -76,6 +76,12 @@ def main() -> None:
             output_pdb = dir_output / f"{output_filename}-{size}nm.pdb"
             clean_pdb(pdb_file, output_pdb)
             cell_replicates, box_dim = replicates(output_pdb, size)
+
+            # if aragonite 110, double the z dimension
+            if polymorph == "aragonite" and miller_out == [1, 1, 0]:
+                cell_replicates[2] *= 2
+                box_dim[2] *= 2
+
             box_dim = np.round(box_dim, 1)
 
             print(
