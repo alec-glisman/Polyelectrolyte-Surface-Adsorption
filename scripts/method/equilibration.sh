@@ -216,9 +216,6 @@ else
             -o "${sim_name}.tpr"
         rm "${previous_sim_name}.gro" || exit 1
 
-        # plumed performance
-        export PLUMED_NUM_THREADS="${CPU_THREADS}"
-
         # run NPT equilibration
         # shellcheck disable=SC2086
         "${GMX_BIN}" -nocopyright mdrun -v \
@@ -387,6 +384,9 @@ else
             # activate restart in plumed file
             sed -i 's/#RESTART/RESTART/g' "plumed.dat" || exit 1
         fi
+
+        # plumed performance
+        export PLUMED_NUM_THREADS="${CPU_THREADS}"
 
         # run production equilibration
         # shellcheck disable=SC2086
