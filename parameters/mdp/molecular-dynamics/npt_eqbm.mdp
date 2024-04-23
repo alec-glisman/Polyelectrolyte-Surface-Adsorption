@@ -40,7 +40,7 @@ tc-grps                   = System                 ; groups to couple separately
 tau-t                     = 0.50                   ; [ps] time constant for coupling (one for each group in tc-grps)
 ref-t                     = 300                    ; [K] reference temperature for coupling (one for each group in tc-grps)
 ;;; Pressure Coupling ;;;
-Pcoupl                    = Parrinello-Rahman     ; No pressure coupling, This means fixed box size. Extended-ensemble pressure coupling where the box vectors are subject to an equation of motion. The equation of motion for the atoms is coupled to this. No instantaneous scaling takes place.
+Pcoupl                    = C-rescale             ; No pressure coupling, This means fixed box size. Extended-ensemble pressure coupling where the box vectors are subject to an equation of motion. The equation of motion for the atoms is coupled to this. No instantaneous scaling takes place.
 Pcoupltype                = semiisotropic         ; specifies the kind of isotropy of the pressure coupling used.
 tau-p                     = 5.0                   ; [ps] The time constant for pressure coupling (one value for all directions).
 ref-p                     = 1.0 1.0               ; [bar] the reference pressure for coupling

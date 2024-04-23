@@ -9,7 +9,7 @@
 #             submission/input/*.sh script. Script should only be called from
 #             the equilibration.sh script.
 
-z_buffer="0.0" # [nm]
+z_buffer="0.1" # [nm]
 sim_name="npt_eqbm"
 archive_dir="3-second-slab"
 log_file="second_slab.log"
@@ -41,7 +41,7 @@ else
         z_max="$(echo "${z_coords}" | tail -n 1)"
         z_min="$(echo "${z_coords}" | head -n 1)"
         z_height_crystal="$(echo "scale=5; ${z_max} - ${z_min}" | bc)"
-        z_translate="$(echo "scale=5; ${z_height} + ${z_max}" | bc)"
+        z_translate="$(echo "scale=5; ${z_height} + ${z_max} + ${z_buffer}" | bc)"
         z_height_2slab="$(echo "scale=5; ${z_height} + ${z_height_crystal} + ${z_buffer}" | bc)"
 
         # insert "-" at column 39 in all lines of gro file to reflect crystal on z-axis

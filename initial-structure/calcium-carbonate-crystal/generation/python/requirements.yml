@@ -29,6 +29,7 @@ dependencies:
   - pymatgen
   - openbabel
   - rdkit
+  - gromacswrapper
   # plotting
   - matplotlib
   - seaborn

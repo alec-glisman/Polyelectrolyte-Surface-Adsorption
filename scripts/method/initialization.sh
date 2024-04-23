@@ -106,12 +106,6 @@ echo "INFO: Copying input files to working directory"
         sed -i 's/^rcoulomb.*/rcoulomb = 0.7/g' "mdin.mdp"
         sed -i 's/^rvdw.*/rvdw = 0.7/g' "mdin.mdp"
     fi
-    # add vacuum parameters to mdp file
-    if [[ "${VACUUM}" == "True" ]]; then
-        sed -i 's/^ewald-geometry .*/ewald-geometry            = 3dc/g' "mdin.mdp"
-        sed -i 's/^pbc .*/pbc                       = xy/g' "mdin.mdp"
-        sed -i 's/^nwall .*/nwall                     = 2/g' "mdin.mdp"
-    fi
 } >>"${log_file}" 2>&1
 
 # ##############################################################################
@@ -182,8 +176,10 @@ echo "INFO: Importing structure to Gromacs"
     carbonate_carbon_z="$(grep 'CRB' "crystal.gro" | grep -o '.\{6\}$' | awk '{$1=$1};1')"
     minimum_z_coord="$(echo "${carbonate_carbon_z}" | sort -n)"
     z_min="$(echo "${minimum_z_coord}" | awk 'NR==1{print $1}')"
+    z_max="$(echo "${minimum_z_coord}" | awk 'END{print $1}')"
+
     # subtract offset [nm] to z_min to ensure that all atoms are within the box and we can see water structure
-    offset='0.0'
+    offset='0.1'
     z_min="$(bc <<<"scale=5; ${z_min} - ${offset}")"
     echo "DEBUG: Minimum z-coordinate of crystal [nm]: ${z_min}"
 
@@ -194,12 +190,14 @@ echo "INFO: Importing structure to Gromacs"
             -f "${sim_name}.gro" \
             -o "${sim_name}.gro" \
             -translate '0' '0' "${z_min}"
+        z_max="$(bc <<<"scale=5; ${z_max} + ${z_min}")"
     else
         # shift z-coordinates of all atoms by z_min
         "${GMX_BIN}" -nocopyright editconf \
             -f "${sim_name}.gro" \
             -o "${sim_name}.gro" \
             -translate '0' '0' "-${z_min}"
+        z_max="$(bc <<<"scale=5; ${z_max} - ${z_min}")"
     fi
 
     # wrap all atoms into box
@@ -230,15 +228,15 @@ echo "INFO: Adding solvent"
 
     # subtract z_min from pdb bulk z-coordinates and add buffer for outer layers
     buffer='0.3'
-    # gro_zmin="$(bc <<<"scale=5; ${PDB_BULK_ZMIN} - ${z_min} - ${buffer}")"
-    gro_zmax="$(bc <<<"scale=5; ${PDB_BULK_ZMAX} - ${z_min} + ${buffer}")"
+    gro_zmin="$(bc <<<"scale=5; (${PDB_BULK_ZMIN} - ${z_min} - ${buffer})")"
+    gro_zmax="$(bc <<<"scale=5; (${PDB_BULK_ZMAX} - ${z_min} + ${buffer})")"
 
     # find "bad" water molecules that are inside the crystal
     "${GMX_BIN}" -nocopyright select \
         -f "${sim_name}.gro" \
         -s "${sim_name}.gro" \
         -on "bad_waters.ndx" <<EOF
-"Bad_SOL" same residue as (name OW HW1 HW2 and (z <= ${gro_zmax}))
+"Bad_SOL" same residue as (name OW HW1 HW2 and (z > ${gro_zmin} and z < ${gro_zmax}))
 EOF
     # remove "f0_t0.000" from index file groups
     sed -i 's/_f0_t0.000//g' "bad_waters.ndx"
@@ -264,12 +262,10 @@ Good_Atoms
 EOF
 } >>"${log_file}" 2>&1
 
-# echo "DEBUG: Minimum z-coordinate of crystal after solvation [nm]: ${gro_zmin}"
-echo "DEBUG: Maximum z-coordinate of crystal after solvation [nm]: ${gro_zmax}"
-
 # find number of "bad" water molecules from log file
 n_bad_atoms="$(grep "Bad_SOL" "${log_file}" | head -n 1 | awk '{print $4}')"
 n_bad_waters="$((n_bad_atoms / 3))"
+echo "DEBUG: Water exclusion zone [nm]: ${gro_zmin} to ${gro_zmax}"
 echo "DEBUG: Number of water molecules inside crystal (removed): ${n_bad_waters}"
 
 {
@@ -517,7 +513,7 @@ echo "INFO: Running energy minimization"
         -f "${sim_name}.trr" \
         -s "${sim_name}.tpr" \
         -o "${sim_name}.gro" \
-        -dump '100000' <<EOF
+        -dump '100000000' <<EOF
 System
 EOF
 
@@ -527,7 +523,7 @@ EOF
         -s "${sim_name}.tpr" \
         -o "${sim_name}_final.pdb" \
         -pbc 'mol' -ur 'tric' \
-        -dump '100000' -conect <<EOF
+        -dump '100000000' -conect <<EOF
 System
 System
 EOF

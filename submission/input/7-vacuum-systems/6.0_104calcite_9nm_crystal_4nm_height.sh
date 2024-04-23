@@ -15,7 +15,7 @@ export GPU_IDS='-1'     # GPU device(s) to use (0 = first GPU, 01 = first two GP
 # System components ###########################################################
 
 # tag for system
-export TAG_JOBID="8.1.0-00idx" # tag to append to system name
+export TAG_JOBID="7.6.0-00idx" # tag to append to system name
 
 # statistical mechanics
 export PRODUCTION_ENSEMBLE='NVT' # {NVT, NPT}
@@ -35,10 +35,10 @@ export SURFACE="104"     # Miller index of crystal surface {104, 001}
 
 # system size
 export VACUUM='True'        # {True, False}
-export SURFACE_SIZE='7'     # size of crystal surface in nm {3, 5, 8, 9, 10, 11, 12, 13}
-export BOX_HEIGHT='10'      # height of simulation box in nm
-export PDB_BULK_ZMIN='0.46' # z-coordinate of bottom of bulk part of crystal in nm in PDB file
-export PDB_BULK_ZMAX='0.30' # z-coordinate of top of bulk part of crystal in nm in PDB file
+export SURFACE_SIZE='9'     # size of crystal surface in nm {3, 5, 8, 9, 10, 11, 12, 13}
+export BOX_HEIGHT='4'       # height of simulation box in nm
+export PDB_BULK_ZMIN='4.62' # z-coordinate of bottom of bulk part of crystal in nm in PDB file
+export PDB_BULK_ZMAX='5.09' # z-coordinate of top of bulk part of crystal in nm in PDB file
 
 # number of each component
 export N_SLAB='2'      # number of crystal slabs {1, 2}
@@ -79,8 +79,8 @@ export METAD_GRID_MAX='10'        # maximum grid point for Gaussian deposition
 export METAD_PACE='500'           # [steps] between deposition of Gaussians
 
 # harmonic restraints
-export ATOM_REFERENCE='1708'  # atom number of reference atom for harmonic restraints (1 = first atom)
-export ATOM_OFFSET='-0.305'   # z-coordinate offset of reference atom from crystal surface in nm
 export PE_WALL_MIN='0.3'      # z-coordinate of lower wall in nm
 export PE_WALL_MAX='4.0'      # z-coordinate of upper wall in nm
 export PE_WALL_MAX_EQBM='2.0' # z-coordinate of upper wall in nm during equilibration
+export ATOM_REFERENCE='7310'  # atom number of reference atom for harmonic restraints (1 = first atom)
+export ATOM_OFFSET='-0.305'   # z-coordinate offset of reference atom from crystal surface in nm
