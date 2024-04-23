@@ -187,11 +187,20 @@ echo "INFO: Importing structure to Gromacs"
     z_min="$(bc <<<"scale=5; ${z_min} - ${offset}")"
     echo "DEBUG: Minimum z-coordinate of crystal [nm]: ${z_min}"
 
-    # shift z-coordinates of all atoms by z_min
-    "${GMX_BIN}" -nocopyright editconf \
-        -f "${sim_name}.gro" \
-        -o "${sim_name}.gro" \
-        -translate '0' '0' "-${z_min}"
+    # if z_min is positive, shift all atoms by -z_min, else shift by z_min
+    if (($(echo "${z_min} < 0" | bc -l))); then
+        # shift z-coordinates of all atoms by -z_min
+        "${GMX_BIN}" -nocopyright editconf \
+            -f "${sim_name}.gro" \
+            -o "${sim_name}.gro" \
+            -translate '0' '0' "${z_min}"
+    else
+        # shift z-coordinates of all atoms by z_min
+        "${GMX_BIN}" -nocopyright editconf \
+            -f "${sim_name}.gro" \
+            -o "${sim_name}.gro" \
+            -translate '0' '0' "-${z_min}"
+    fi
 
     # wrap all atoms into box
     "${GMX_BIN}" -nocopyright trjconv \
