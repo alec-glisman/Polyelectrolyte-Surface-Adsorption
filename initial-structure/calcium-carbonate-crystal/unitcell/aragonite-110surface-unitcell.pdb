@@ -2,47 +2,47 @@ HEADER
 TITLE     MDANALYSIS FRAME 0: CaCO3 crystal structure generated with MDAnalysis
 REMARK     Materials Studio PDB file
 REMARK     Created:  Sat Apr 13 18:55:38 -0500 2024
-CRYST1    5.740    9.386    8.245  90.00  90.00  90.00 P 1           1
-ATOM      1  OX1 CRB X   1       5.246   6.754   2.246  1.00  0.01      X    O1-
-ATOM      2  OX3 CRB X   1       5.188   4.534   2.322  1.00  0.01      X    O  
-ATOM      3  CX1 CRB X   1       5.246   5.618   1.647  1.00  0.01      X    C  
-ATOM      4  OX2 CRB X   1       5.246   5.581   0.363  1.00  0.01      X    O1-
-ATOM      5  OX3 CRB X   2       5.188   7.157   6.533  1.00  0.01      X    O  
-ATOM      6  OX2 CRB X   2       5.246   8.204   4.575  1.00  0.01      X    O1-
-ATOM      7  CX1 CRB X   2       5.246   8.241   5.858  1.00  0.01      X    C  
-ATOM      8  OX1 CRB X   2       5.246   9.376   6.458  1.00  0.01      X    O1-
-ATOM      9  OX3 CRB X   3       3.422  -0.159   2.322  1.00  0.01      X    O  
-ATOM     10  CX1 CRB X   3       3.365   0.925   1.647  1.00  0.01      X    C  
-ATOM     11  OX2 CRB X   3       3.365   2.061   2.246  1.00  0.01      X    O1-
-ATOM     12  OX1 CRB X   3       3.365   0.888   0.363  1.00  0.01      X    O1-
-ATOM     13  OX1 CRB X   4       3.365   3.511   4.575  1.00  0.01      X    O1-
-ATOM     14  OX3 CRB X   4       3.422   2.464   6.533  1.00  0.01      X    O  
-ATOM     15  CX1 CRB X   4       3.365   3.548   5.858  1.00  0.01      X    C  
-ATOM     16  OX2 CRB X   4       3.365   4.684   6.458  1.00  0.01      X    O1-
-ATOM     17  OX3 CRB X   5       0.552   2.174   0.869  1.00  0.01      X    O  
-ATOM     18  CX1 CRB X   5       0.495   1.090   1.544  1.00  0.01      X    C  
-ATOM     19  OX1 CRB X   5       0.495   1.128   2.828  1.00  0.01      X    O1-
-ATOM     20  OX2 CRB X   5       0.495  -0.045   0.944  1.00  0.01      X    O1-
-ATOM     21  CX1 CRB X   6       0.495   3.713   5.755  1.00  0.01      X    C  
-ATOM     22  OX1 CRB X   6       0.495   3.750   7.039  1.00  0.01      X    O1-
-ATOM     23  OX2 CRB X   6       0.495   2.577   5.156  1.00  0.01      X    O1-
-ATOM     24  OX3 CRB X   6       0.552   4.797   5.080  1.00  0.01      X    O  
-ATOM     25  OX3 CRB X   7       2.318   6.867   0.869  1.00  0.01      X    O  
-ATOM     26  CX1 CRB X   7       2.375   5.783   1.544  1.00  0.01      X    C  
-ATOM     27  OX1 CRB X   7       2.375   4.648   0.944  1.00  0.01      X    O1-
-ATOM     28  OX2 CRB X   7       2.375   5.820   2.828  1.00  0.01      X    O1-
-ATOM     29  CX1 CRB X   8       2.375   8.406   5.755  1.00  0.01      X    C  
-ATOM     30  OX1 CRB X   8       2.375   7.270   5.156  1.00  0.01      X    O1-
-ATOM     31  OX3 CRB X   8       2.318   9.490   5.080  1.00  0.01      X    O  
-ATOM     32  OX2 CRB X   8       2.375   8.443   7.039  1.00  0.01      X    O1-
-ATOM     33 CA   CA  X   9       4.361   1.203   4.396  1.00  0.01      X   CA2+
-ATOM     34 CA   CA  X  10       4.361   3.826   0.363  1.00  0.01      X   CA2+
-ATOM     35 CA   CA  X  11       4.250   5.896   4.396  1.00  0.01      X   CA2+
-ATOM     36 CA   CA  X  12       4.250   8.519   0.363  1.00  0.01      X   CA2+
-ATOM     37 CA   CA  X  13       1.379   8.128   3.006  1.00  0.01      X   CA2+
-ATOM     38 CA   CA  X  14       1.379   1.365   7.218  1.00  0.01      X   CA2+
-ATOM     39 CA   CA  X  15       1.491   3.435   3.006  1.00  0.01      X   CA2+
-ATOM     40 CA   CA  X  16       1.491   6.058   7.218  1.00  0.01      X   CA2+
+CRYST1    5.740    9.386    8.145  90.00  90.00  90.00 P 1           1
+ATOM      1  OX1 CRB X   1       5.246   7.540   1.783  1.00  0.01      X    O1-
+ATOM      2  OX3 CRB X   1       5.188   5.320   1.859  1.00  0.01      X    O  
+ATOM      3  CX1 CRB X   1       5.246   6.404   1.184  1.00  0.01      X    C  
+ATOM      4  OX2 CRB X   1       5.246   6.367  -0.100  1.00  0.01      X    O1-
+ATOM      5  OX3 CRB X   2       5.188   7.943   6.070  1.00  0.01      X    O  
+ATOM      6  OX2 CRB X   2       5.246   8.990   4.112  1.00  0.01      X    O1-
+ATOM      7  CX1 CRB X   2       5.246   9.027   5.395  1.00  0.01      X    C  
+ATOM      8  OX1 CRB X   2       5.246  10.162   5.995  1.00  0.01      X    O1-
+ATOM      9  OX3 CRB X   3       3.422   0.627   1.859  1.00  0.01      X    O  
+ATOM     10  CX1 CRB X   3       3.365   1.711   1.184  1.00  0.01      X    C  
+ATOM     11  OX2 CRB X   3       3.365   2.847   1.783  1.00  0.01      X    O1-
+ATOM     12  OX1 CRB X   3       3.365   1.674  -0.100  1.00  0.01      X    O1-
+ATOM     13  OX1 CRB X   4       3.365   4.297   4.112  1.00  0.01      X    O1-
+ATOM     14  OX3 CRB X   4       3.422   3.250   6.070  1.00  0.01      X    O  
+ATOM     15  CX1 CRB X   4       3.365   4.334   5.395  1.00  0.01      X    C  
+ATOM     16  OX2 CRB X   4       3.365   5.470   5.995  1.00  0.01      X    O1-
+ATOM     17  OX3 CRB X   5       0.552   2.960   0.406  1.00  0.01      X    O  
+ATOM     18  CX1 CRB X   5       0.495   1.876   1.081  1.00  0.01      X    C  
+ATOM     19  OX1 CRB X   5       0.495   1.914   2.365  1.00  0.01      X    O1-
+ATOM     20  OX2 CRB X   5       0.495   0.741   0.481  1.00  0.01      X    O1-
+ATOM     21  CX1 CRB X   6       0.495   4.499   5.292  1.00  0.01      X    C  
+ATOM     22  OX1 CRB X   6       0.495   4.536   6.576  1.00  0.01      X    O1-
+ATOM     23  OX2 CRB X   6       0.495   3.363   4.693  1.00  0.01      X    O1-
+ATOM     24  OX3 CRB X   6       0.552   5.583   4.617  1.00  0.01      X    O  
+ATOM     25  OX3 CRB X   7       2.318   7.653   0.406  1.00  0.01      X    O  
+ATOM     26  CX1 CRB X   7       2.375   6.569   1.081  1.00  0.01      X    C  
+ATOM     27  OX1 CRB X   7       2.375   5.434   0.481  1.00  0.01      X    O1-
+ATOM     28  OX2 CRB X   7       2.375   6.606   2.365  1.00  0.01      X    O1-
+ATOM     29  CX1 CRB X   8       2.375   9.192   5.292  1.00  0.01      X    C  
+ATOM     30  OX1 CRB X   8       2.375   8.056   4.693  1.00  0.01      X    O1-
+ATOM     31  OX3 CRB X   8       2.318  10.276   4.617  1.00  0.01      X    O  
+ATOM     32  OX2 CRB X   8       2.375   9.229   6.576  1.00  0.01      X    O1-
+ATOM     33 CA   CA  X   9       4.361   1.989   3.933  1.00  0.01      X   CA2+
+ATOM     34 CA   CA  X  10       4.361   4.612   8.145  1.00  0.01      X   CA2+
+ATOM     35 CA   CA  X  11       4.250   6.682   3.933  1.00  0.01      X   CA2+
+ATOM     36 CA   CA  X  12       4.250   9.305   8.145  1.00  0.01      X   CA2+
+ATOM     37 CA   CA  X  13       1.379   8.914   2.543  1.00  0.01      X   CA2+
+ATOM     38 CA   CA  X  14       1.379   2.151   6.755  1.00  0.01      X   CA2+
+ATOM     39 CA   CA  X  15       1.491   4.221   2.543  1.00  0.01      X   CA2+
+ATOM     40 CA   CA  X  16       1.491   6.844   6.755  1.00  0.01      X   CA2+
 CONECT    1    3
 CONECT    2    3
 CONECT    3    1    2    4

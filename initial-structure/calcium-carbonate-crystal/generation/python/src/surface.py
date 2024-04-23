@@ -28,7 +28,7 @@ def clean_pdb(input_file: Path, output_file: Path) -> None:
     ag = u.atoms
 
     # rigid body transformations to remove empty space
-    z_min = np.nanmin(u.atoms.positions[:, 2])
+    z_min = np.nanmin(u.atoms.positions[:, 2]) + 0.1
     z_max = np.nanmax(u.atoms.positions[:, 2])
     trans = [0, 0, -z_min]
     dim = u.dimensions
@@ -36,6 +36,7 @@ def clean_pdb(input_file: Path, output_file: Path) -> None:
     transform = [
         transformations.translate(trans),
         transformations.boxdimensions.set_dimensions(dim),
+        transformations.unwrap(u.atoms),
     ]
     u.trajectory.add_transformations(*transform)
 
@@ -141,12 +142,6 @@ def clean_pdb(input_file: Path, output_file: Path) -> None:
 
     # update indices and unwrap atoms in pdb file
     u = mda.Universe(f"{output_file}")
-    transform = [
-        transformations.unwrap(u.atoms),
-        transformations.center_in_box(u.atoms),
-        transformations.wrap(u.atoms, compound="residues"),
-    ]
-    u.trajectory.add_transformations(*transform)
     u.atoms.write(
         f"{output_file}",
         remarks="CaCO3 crystal structure generated with MDAnalysis",
@@ -169,9 +164,8 @@ def replicates(filename: Path, size_nm: int) -> tuple:
 def replicate_pdb(filename: Path, replicate: tuple) -> None:
     uni = mda.Universe(f"{filename}")
     box = uni.dimensions[:3]
-    angles = uni.dimensions[3:]
-    copied = []
 
+    copied = []
     for x in range(replicate[0]):
         for y in range(replicate[1]):
             for z in range(replicate[2]):
@@ -182,7 +176,8 @@ def replicate_pdb(filename: Path, replicate: tuple) -> None:
 
     new_universe = mda.Merge(*copied)
     new_box = box * (replicate[0], replicate[1], replicate[2])
-    new_universe.dimensions = list(new_box) + list(angles)
+    new_universe.dimensions = list(new_box) + [90] * 3
+
     # write the new structure
     new_universe.atoms.write(
         f"{filename}",
