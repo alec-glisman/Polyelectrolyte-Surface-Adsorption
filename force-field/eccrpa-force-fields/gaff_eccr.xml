@@ -31,8 +31,6 @@
     <Bond class1='OC' class2='HO' length='0.0973' k='310790.0'/>
     <Bond class1='OH' class2='HO' length='0.0973' k='310790.0'/>
     <Bond class1='OX' class2='CX' length='0.1282' k='521240.0'/>
-    <Bond class1='HW_spc' class2='HW_spc' length='0.15136' k='462750.0'/>
-    <Bond class1='OW_spc' class2='HW_spc' length='0.09572' k='462750.0'/>
   </HarmonicBondForce>
   <HarmonicAngleForce>
     <Angle class1='C' class2='OH' class3='HO' angle='1.8596483179999581' k='417.4'/>
@@ -58,8 +56,6 @@
     <Angle class1='OS' class2='C3' class3='C3' angle='1.8844319933782776' k='569.02'/>
     <Angle class1='OS' class2='C3' class3='H1' angle='1.916022452839375' k='425.09'/>
     <Angle class1='OX' class2='CX' class3='OX' angle='2.0943951023931953' k='671.11'/>
-    <Angle class1='HW_spc' class2='OW_spc' class3='HW_spc' angle='1.8242181341844732' k='836.8'/>
-    <Angle class1='HW_spc' class2='HW_spc' class3='OW_spc' angle='2.2294835864975564' k='0.0'/>
   </HarmonicAngleForce>
   <RBTorsionForce>
     <Proper class1='C' class2='C3' class3='C3' class4='C3' c0='0.65084' c1='1.95253' c2='0.0' c3='-2.60338' c4='0.0' c5='0.0'/>
@@ -115,11 +111,9 @@
     <Atom class='Cl' sigma='0.41' epsilon='0.4928'/>
     <Atom class='C0' sigma='0.26656' epsilon='0.5072'/>
     <Atom class='Na' sigma='0.2115' epsilon='0.544284'/>
-    <Atom class='HW_spc' sigma='0.0' epsilon='0.0'/>
-    <Atom class='OW_spc' sigma='0.316557' epsilon='0.650629'/>
     <Atom class='WR' sigma='0.0' epsilon='0.0'/>
     <Atom class='WL' sigma='0.316557' epsilon='0.650629'/>
-  <NonbondedForce>
+  </NonbondedForce>
   <Residues>
     <Residue name='CRB'>
       <Atom name='CX1' type='CX' charge='0.923841'/>

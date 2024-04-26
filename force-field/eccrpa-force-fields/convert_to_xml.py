@@ -166,7 +166,7 @@ def nonbonded_interactions(filename: str) -> str:
                 xml += f" epsilon='{float(tokens[6])}'"
                 xml += "/>\n"
 
-    xml += "  <NonbondedForce>\n"
+    xml += "  </NonbondedForce>\n"
     return xml
 
 
@@ -274,6 +274,9 @@ def main(directory_force_field: str):
     xml += nonbonded_interactions(f"{directory_force_field}/ffnonbonded.itp")
     xml += residues(f"{directory_force_field}/residues.rtp")
     xml += "</ForceField>\n"
+
+    # remove any lines containing "_spc"
+    xml = "\n".join([line for line in xml.split("\n") if "_spc" not in line])
 
     # write xml to file
     with open("gaff_eccr.xml", "w", encoding="utf-8") as f:
