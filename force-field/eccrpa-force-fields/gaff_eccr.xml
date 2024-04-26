@@ -1,0 +1,476 @@
+<ForceField>
+  <Info>
+    <DateGenerated>2024-04-26</DateGenerated>
+  </Info>
+  <AtomTypes>
+    <Type element="C" name="C" class="C" mass="12.01"/>
+    <Type element="C" name="C3" class="C3" mass="12.01"/>
+    <Type element="H" name="H1" class="H1" mass="1.008"/>
+    <Type element="H" name="HC" class="HC" mass="1.008"/>
+    <Type element="H" name="HO" class="HO" mass="1.008"/>
+    <Type element="O" name="O" class="O" mass="16.00"/>
+    <Type element="O" name="OC" class="OC" mass="16.00"/>
+    <Type element="O" name="OH" class="OH" mass="16.00"/>
+    <Type element="O" name="OS" class="OS" mass="16.00"/>
+    <Type element="C" name="CX" class="CX" mass="12.01"/>
+    <Type element="O" name="OX" class="OX" mass="16.00"/>
+    <Type element="Cl" name="Cl" class="Cl" mass="35.45"/>
+    <Type element="Ca" name="C0" class="C0" mass="40.08"/>
+    <Type element="Na" name="Na" class="Na" mass="22.99"/>
+  </AtomTypes>
+  <HarmonicBondForce>
+    <Bond class1='C' class2='O' length='0.12183' k='542250.0'/>
+    <Bond class1='C' class2='OH' length='0.13513' k='334800.0'/>
+    <Bond class1='C' class2='OS' length='0.13584' k='327020.0'/>
+    <Bond class1='C3' class2='C' length='0.1508' k='274720.0'/>
+    <Bond class1='C3' class2='OC' length='0.14233' k='265010.0'/>
+    <Bond class1='C3' class2='C3' length='0.1535' k='253630.0'/>
+    <Bond class1='C3' class2='OS' length='0.14316' k='258240.0'/>
+    <Bond class1='C3' class2='H1' length='0.10969' k='276650.0'/>
+    <Bond class1='C3' class2='HC' length='0.1092' k='282250.0'/>
+    <Bond class1='OC' class2='HO' length='0.0973' k='310790.0'/>
+    <Bond class1='OH' class2='HO' length='0.0973' k='310790.0'/>
+    <Bond class1='OX' class2='CX' length='0.1282' k='521240.0'/>
+    <Bond class1='HW_spc' class2='HW_spc' length='0.15136' k='462750.0'/>
+    <Bond class1='OW_spc' class2='HW_spc' length='0.09572' k='462750.0'/>
+  </HarmonicBondForce>
+  <HarmonicAngleForce>
+    <Angle class1='C' class2='OH' class3='HO' angle='1.8596483179999581' k='417.4'/>
+    <Angle class1='C3' class2='C' class3='O' angle='2.148674842130219' k='569.28'/>
+    <Angle class1='C3' class2='C' class3='OH' angle='1.9675096657732078' k='572.37'/>
+    <Angle class1='C3' class2='OC' class3='HO' angle='1.872040155689118' k='396.64'/>
+    <Angle class1='C3' class2='C3' class3='C' angle='1.9291124222293325' k='533.79'/>
+    <Angle class1='C3' class2='C3' class3='C3' angle='1.9308577514813268' k='528.94'/>
+    <Angle class1='C3' class2='C3' class3='H1' angle='1.9121827284849875' k='388.28'/>
+    <Angle class1='C3' class2='C3' class3='OC' angle='1.9231783027725518' k='564.84'/>
+    <Angle class1='C3' class2='C3' class3='OS' angle='1.8844319933782776' k='569.02'/>
+    <Angle class1='C3' class2='OS' class3='C' angle='2.0242328664630236' k='529.69'/>
+    <Angle class1='HC' class2='C3' class3='HC' angle='1.8910642445358559' k='329.95'/>
+    <Angle class1='H1' class2='C' class3='H1' angle='1.8929841067130497' k='328.03'/>
+    <Angle class1='H1' class2='C3' class3='H1' angle='1.8929841067130497' k='328.03'/>
+    <Angle class1='HC' class2='C3' class3='C3' angle='1.9207348418197596' k='388.02'/>
+    <Angle class1='HC' class2='C3' class3='C' angle='1.9142771235873808' k='394.97'/>
+    <Angle class1='O' class2='C' class3='O' angle='2.275560278750207' k='654.13'/>
+    <Angle class1='O' class2='C' class3='OH' angle='2.131047016685076' k='635.3'/>
+    <Angle class1='OC' class2='C3' class3='H1' angle='1.924400033248948' k='425.93'/>
+    <Angle class1='OS' class2='C' class3='C3' angle='1.9324285478081216' k='576.56'/>
+    <Angle class1='OS' class2='C' class3='O' angle='2.151118303083011' k='630.11'/>
+    <Angle class1='OS' class2='C3' class3='C3' angle='1.8844319933782776' k='569.02'/>
+    <Angle class1='OS' class2='C3' class3='H1' angle='1.916022452839375' k='425.09'/>
+    <Angle class1='OX' class2='CX' class3='OX' angle='2.0943951023931953' k='671.11'/>
+    <Angle class1='HW_spc' class2='OW_spc' class3='HW_spc' angle='1.8242181341844732' k='836.8'/>
+    <Angle class1='HW_spc' class2='HW_spc' class3='OW_spc' angle='2.2294835864975564' k='0.0'/>
+  </HarmonicAngleForce>
+  <RBTorsionForce>
+    <Proper class1='C' class2='C3' class3='C3' class4='C3' c0='0.65084' c1='1.95253' c2='0.0' c3='-2.60338' c4='0.0' c5='0.0'/>
+    <Proper class1='C' class2='OS' class3='C3' class4='H1' c0='1.60387' c1='4.8116' c2='0.0' c3='-6.41547' c4='0.0' c5='0.0'/>
+    <Proper class1='C3' class2='C' class3='OH' class4='HO' c0='19.2464' c1='0.0' c2='-19.2464' c3='0.0' c4='0.0' c5='0.0'/>
+    <Proper class1='C3' class2='C3' class3='C' class4='O' c0='0.0' c1='0.0' c2='0.0' c3='0.0' c4='0.0' c5='0.0'/>
+    <Proper class1='C3' class2='C3' class3='C' class4='OH' c0='0.0' c1='0.0' c2='0.0' c3='0.0' c4='0.0' c5='0.0'/>
+    <Proper class1='C3' class2='C3' class3='C3' class4='C3' c0='3.68192' c1='3.09616' c2='-2.092' c3='-3.01248' c4='0.0' c5='0.0'/>
+    <Proper class1='C3' class2='C3' class3='C3' class4='H1' c0='0.65084' c1='1.95253' c2='0.0' c3='-2.60338' c4='0.0' c5='0.0'/>
+    <Proper class1='C3' class2='C3' class3='C3' class4='HC' c0='0.66944' c1='2.00832' c2='0.0' c3='-2.67776' c4='0.0' c5='0.0'/>
+    <Proper class1='C3' class2='C3' class3='C3' class4='OH' c0='0.65084' c1='1.95253' c2='0.0' c3='-2.60338' c4='0.0' c5='0.0'/>
+    <Proper class1='C3' class2='C3' class3='C3' class4='OS' c0='0.65084' c1='1.95253' c2='0.0' c3='-2.60338' c4='0.0' c5='0.0'/>
+    <Proper class1='C3' class2='C3' class3='OH' class4='HO' c0='1.71544' c1='0.96232' c2='0.0' c3='-2.67776' c4='0.0' c5='0.0'/>
+    <Proper class1='C3' class2='C3' class3='OC' class4='HO' c0='1.71544' c1='0.96232' c2='0.0' c3='-2.67776' c4='0.0' c5='0.0'/>
+    <Proper class1='C3' class2='C3' class3='OS' class4='C' c0='4.94967' c1='8.15462' c2='0.0' c3='-6.40989' c4='0.0' c5='0.0'/>
+    <Proper class1='C3' class2='OS' class3='C' class4='O' c0='28.4512' c1='5.8576' c2='-22.5936' c3='0.0' c4='0.0' c5='0.0'/>
+    <Proper class1='C3' class2='OS' class3='C' class4='C3' c0='27.4052' c1='14.4348' c2='-22.5936' c3='-19.2464' c4='0.0' c5='0.0'/>
+    <Proper class1='H1' class2='C3' class3='C3' class4='H1' c0='0.65084' c1='1.95253' c2='0.0' c3='-2.60338' c4='0.0' c5='0.0'/>
+    <Proper class1='H1' class2='C3' class3='OC' class4='HO' c0='0.69733' c1='2.092' c2='0.0' c3='-2.78933' c4='0.0' c5='0.0'/>
+    <Proper class1='H1' class2='C3' class3='OH' class4='HO' c0='0.69733' c1='2.092' c2='0.0' c3='-2.78933' c4='0.0' c5='0.0'/>
+    <Proper class1='HC' class2='C3' class3='C3' class4='H1' c0='0.65084' c1='1.95253' c2='0.0' c3='-2.60338' c4='0.0' c5='0.0'/>
+    <Proper class1='HC' class2='C3' class3='C3' class4='C' c0='0.65084' c1='1.95253' c2='0.0' c3='-2.60338' c4='0.0' c5='0.0'/>
+    <Proper class1='HC' class2='C3' class3='C3' class4='HC' c0='0.6276' c1='1.8828' c2='0.0' c3='-2.5104' c4='0.0' c5='0.0'/>
+    <Proper class1='HC' class2='C3' class3='C' class4='O' c0='3.68192' c1='-4.35136' c2='0.0' c3='1.33888' c4='0.0' c5='0.0'/>
+    <Proper class1='HC' class2='C3' class3='C' class4='OH' c0='0.0' c1='0.0' c2='0.0' c3='0.0' c4='0.0' c5='0.0'/>
+    <Proper class1='O' class2='C' class3='OH' class4='HO' c0='27.196' c1='-7.9496' c2='-19.2464' c3='0.0' c4='0.0' c5='0.0'/>
+    <Proper class1='OC' class2='C3' class3='C3' class4='C3' c0='0.65084' c1='1.95253' c2='0.0' c3='-2.60338' c4='0.0' c5='0.0'/>
+    <Proper class1='OC' class2='C3' class3='C3' class4='HC' c0='1.046' c1='-1.046' c2='0.0' c3='0.0' c4='0.0' c5='0.0'/>
+    <Proper class1='OH' class2='C3' class3='C3' class4='HC' c0='1.046' c1='-1.046' c2='0.0' c3='0.0' c4='0.0' c5='0.0'/>
+    <Proper class1='OH' class2='C3' class3='C3' class4='H1' c0='1.046' c1='-1.046' c2='0.0' c3='0.0' c4='0.0' c5='0.0'/>
+    <Proper class1='OS' class2='C3' class3='C3' class4='HC' c0='1.046' c1='-1.046' c2='0.0' c3='0.0' c4='0.0' c5='0.0'/>
+    <Proper class1='OS' class2='C' class3='C3' class4='HC' c0='0.0' c1='0.0' c2='0.0' c3='0.0' c4='0.0' c5='0.0'/>
+  </RBTorsionForce>
+  <PeriodicTorsionForce ordering='amber'>
+    <Improper class1='C3' class2='O' class3='C' class4='O' periodicity1='2' phase1='3.141592653589793' k1='4.6024'/>
+    <Improper class1='C3' class2='O' class3='C' class4='OH' periodicity1='2' phase1='3.141592653589793' k1='4.6024'/>
+    <Improper class1='C3' class2='O' class3='C' class4='OS' periodicity1='2' phase1='3.141592653589793' k1='4.6024'/>
+    <Improper class1='OX' class2='OX' class3='CX' class4='OX' periodicity1='2' phase1='3.141592653589793' k1='57.09905'/>
+  </PeriodicTorsionForce>
+  <NonbondedForce coulomb14scale='0.8333333333333334' lj14scale='0.5'>
+    <UseAttributeFromResidue name='charge'/>
+    <Atom class='C' sigma='0.339967' epsilon='0.359824'/>
+    <Atom class='C3' sigma='0.339967' epsilon='0.45773'/>
+    <Atom class='H1' sigma='0.247135' epsilon='0.0656888'/>
+    <Atom class='HC' sigma='0.264953' epsilon='0.0656888'/>
+    <Atom class='HO' sigma='0.0' epsilon='0.0'/>
+    <Atom class='O' sigma='0.295992' epsilon='0.87864'/>
+    <Atom class='OC' sigma='0.306647' epsilon='0.880314'/>
+    <Atom class='OH' sigma='0.306647' epsilon='0.880314'/>
+    <Atom class='OS' sigma='0.300001' epsilon='0.71128'/>
+    <Atom class='CX' sigma='0.339967' epsilon='0.359824'/>
+    <Atom class='OX' sigma='0.295992' epsilon='0.87864'/>
+    <Atom class='Cl' sigma='0.41' epsilon='0.4928'/>
+    <Atom class='C0' sigma='0.26656' epsilon='0.5072'/>
+    <Atom class='Na' sigma='0.2115' epsilon='0.544284'/>
+    <Atom class='HW_spc' sigma='0.0' epsilon='0.0'/>
+    <Atom class='OW_spc' sigma='0.316557' epsilon='0.650629'/>
+    <Atom class='WR' sigma='0.0' epsilon='0.0'/>
+    <Atom class='WL' sigma='0.316557' epsilon='0.650629'/>
+  <NonbondedForce>
+  <Residues>
+    <Residue name='CRB'>
+      <Atom name='CX1' type='CX' charge='0.923841'/>
+      <Atom name='OX1' type='OX' charge='-0.807947'/>
+      <Atom name='OX2' type='OX' charge='-0.807947'/>
+      <Atom name='OX3' type='OX' charge='-0.807947'/>
+      <Bond atomName1='CX1' atomName2='OX1'/>
+      <Bond atomName1='CX1' atomName2='OX2'/>
+      <Bond atomName1='CX1' atomName2='OX3'/>
+    </Residue>
+    <Residue name='CA'>
+      <Atom name='CA' type='C0' charge='1.5'/>
+    </Residue>
+    <Residue name='LAI'>
+      <Atom name='C' type='C3' charge='-0.257491875'/>
+      <Atom name='HC1' type='HC' charge='0.028804125'/>
+      <Atom name='HC2' type='HC' charge='0.028804125'/>
+      <Atom name='HC3' type='HC' charge='0.028804125'/>
+      <Atom name='CA' type='C3' charge='0.203935125'/>
+      <Atom name='HA1' type='HC' charge='-0.067718625'/>
+      <Atom name='CB' type='C' charge='0.644044125'/>
+      <Atom name='OB1' type='O' charge='-0.6795905625'/>
+      <Atom name='OB2' type='O' charge='-0.6795905625'/>
+      <Bond atomName1='C' atomName2='HC1'/>
+      <Bond atomName1='C' atomName2='HC2'/>
+      <Bond atomName1='C' atomName2='HC3'/>
+      <Bond atomName1='C' atomName2='CA'/>
+      <Bond atomName1='CA' atomName2='HA1'/>
+      <Bond atomName1='CA' atomName2='CB'/>
+      <Bond atomName1='CB' atomName2='OB1'/>
+      <Bond atomName1='CB' atomName2='OB2'/>
+      <ExternalBond atomName='CA'/>
+    </Residue>
+    <Residue name='ACI'>
+      <Atom name='C' type='C3' charge='-0.049697119047619'/>
+      <Atom name='HC1' type='HC' charge='-0.0103643988095238'/>
+      <Atom name='HC2' type='HC' charge='-0.0103643988095238'/>
+      <Atom name='CA' type='C3' charge='0.0233609880952382'/>
+      <Atom name='HA1' type='HC' charge='-0.0315325833333333'/>
+      <Atom name='CB' type='C' charge='0.6732298809523815'/>
+      <Atom name='OB1' type='O' charge='-0.6723161845238093'/>
+      <Atom name='OB2' type='O' charge='-0.6723161845238093'/>
+      <ExternalBond atomName='C'/>
+      <Bond atomName1='C' atomName2='HC1'/>
+      <Bond atomName1='C' atomName2='HC2'/>
+      <Bond atomName1='C' atomName2='CA'/>
+      <Bond atomName1='CA' atomName2='HA1'/>
+      <Bond atomName1='CA' atomName2='CB'/>
+      <Bond atomName1='CB' atomName2='OB1'/>
+      <Bond atomName1='CB' atomName2='OB2'/>
+      <ExternalBond atomName='CA'/>
+    </Residue>
+    <Residue name='RAI'>
+      <Atom name='C' type='C3' charge='0.2935925357142855'/>
+      <Atom name='HC1' type='HC' charge='-0.0710239821428572'/>
+      <Atom name='HC2' type='HC' charge='-0.0710239821428572'/>
+      <Atom name='CA' type='C3' charge='-0.1601147142857145'/>
+      <Atom name='HA1' type='HC' charge='-0.0203357142857143'/>
+      <Atom name='HA2' type='HC' charge='-0.0203357142857143'/>
+      <Atom name='CB' type='C' charge='0.7118585357142855'/>
+      <Atom name='OB1' type='O' charge='-0.7063084821428574'/>
+      <Atom name='OB2' type='O' charge='-0.7063084821428574'/>
+      <ExternalBond atomName='C'/>
+      <Bond atomName1='C' atomName2='HC1'/>
+      <Bond atomName1='C' atomName2='HC2'/>
+      <Bond atomName1='C' atomName2='CA'/>
+      <Bond atomName1='CA' atomName2='HA1'/>
+      <Bond atomName1='CA' atomName2='HA2'/>
+      <Bond atomName1='CA' atomName2='CB'/>
+      <Bond atomName1='CB' atomName2='OB1'/>
+      <Bond atomName1='CB' atomName2='OB2'/>
+    </Residue>
+    <Residue name='AI1'>
+      <Atom name='C' type='C3' charge='-0.1350232960725'/>
+      <Atom name='HC1' type='HC' charge='0.007614856927500005'/>
+      <Atom name='HC2' type='HC' charge='0.007614856927500005'/>
+      <Atom name='HC3' type='HC' charge='0.007614856927500005'/>
+      <Atom name='CA' type='C3' charge='0.1366700063025'/>
+      <Atom name='HA1' type='HC' charge='-0.0742852821975'/>
+      <Atom name='HA2' type='HC' charge='-0.0742852821975'/>
+      <Atom name='CB' type='C' charge='0.6265476005775'/>
+      <Atom name='OB1' type='O' charge='-0.6262341585975'/>
+      <Atom name='OB2' type='O' charge='-0.6262341585975'/>
+      <Bond atomName1='C' atomName2='HC1'/>
+      <Bond atomName1='C' atomName2='HC2'/>
+      <Bond atomName1='C' atomName2='HC3'/>
+      <Bond atomName1='C' atomName2='CA'/>
+      <Bond atomName1='CA' atomName2='HA1'/>
+      <Bond atomName1='CA' atomName2='HA2'/>
+      <Bond atomName1='CA' atomName2='CB'/>
+      <Bond atomName1='CB' atomName2='OB1'/>
+      <Bond atomName1='CB' atomName2='OB2'/>
+    </Residue>
+    <Residue name='LAN'>
+      <Atom name='C' type='C3' charge='-0.332701'/>
+      <Atom name='HC1' type='HC' charge='0.091492'/>
+      <Atom name='HC2' type='HC' charge='0.091492'/>
+      <Atom name='HC3' type='HC' charge='0.091492'/>
+      <Atom name='CA' type='C3' charge='0.136124'/>
+      <Atom name='HA1' type='HC' charge='0.010352'/>
+      <Atom name='CB' type='C' charge='0.680282'/>
+      <Atom name='OB1' type='O' charge='-0.590344'/>
+      <Atom name='OB2' type='OH' charge='-0.645051'/>
+      <Atom name='HB2' type='HO' charge='0.466862'/>
+      <Bond atomName1='C' atomName2='HC1'/>
+      <Bond atomName1='C' atomName2='HC2'/>
+      <Bond atomName1='C' atomName2='HC3'/>
+      <Bond atomName1='C' atomName2='CA'/>
+      <Bond atomName1='CA' atomName2='HA1'/>
+      <Bond atomName1='CA' atomName2='CB'/>
+      <Bond atomName1='CB' atomName2='OB1'/>
+      <Bond atomName1='CB' atomName2='OB2'/>
+      <Bond atomName1='OB2' atomName2='HB2'/>
+      <ExternalBond atomName='CA'/>
+    </Residue>
+    <Residue name='ACN'>
+      <Atom name='C' type='C3' charge='-0.177884875'/>
+      <Atom name='HC1' type='HC' charge='0.0646000069444444'/>
+      <Atom name='HC2' type='HC' charge='0.0646000069444444'/>
+      <Atom name='CA' type='C3' charge='0.113838458333334'/>
+      <Atom name='HA1' type='HC' charge='0.0302305694444445'/>
+      <Atom name='CB' type='C' charge='0.618660791666667'/>
+      <Atom name='OB1' type='O' charge='-0.555382652777777'/>
+      <Atom name='OB2' type='OH' charge='-0.633402152777778'/>
+      <Atom name='HB2' type='HO' charge='0.474739847222222'/>
+      <ExternalBond atomName='C'/>
+      <Bond atomName1='C' atomName2='HC1'/>
+      <Bond atomName1='C' atomName2='HC2'/>
+      <Bond atomName1='C' atomName2='CA'/>
+      <Bond atomName1='CA' atomName2='HA1'/>
+      <Bond atomName1='CA' atomName2='CB'/>
+      <Bond atomName1='CB' atomName2='OB1'/>
+      <Bond atomName1='CB' atomName2='OB2'/>
+      <Bond atomName1='OB2' atomName2='HB2'/>
+      <ExternalBond atomName='CA'/>
+    </Residue>
+    <Residue name='RAN'>
+      <Atom name='C' type='C3' charge='-0.0856301111111111'/>
+      <Atom name='HC1' type='HC' charge='0.0578489444444444'/>
+      <Atom name='HC2' type='HC' charge='0.0578489444444444'/>
+      <Atom name='CA' type='C3' charge='-0.138892111111111'/>
+      <Atom name='HA1' type='HC' charge='0.0657778888888889'/>
+      <Atom name='HA2' type='HC' charge='0.0657778888888889'/>
+      <Atom name='CB' type='C' charge='0.761268888888889'/>
+      <Atom name='OB1' type='O' charge='-0.589203111111111'/>
+      <Atom name='OB2' type='OH' charge='-0.650635111111111'/>
+      <Atom name='HB2' type='HO' charge='0.455837888888889'/>
+      <ExternalBond atomName='C'/>
+      <Bond atomName1='C' atomName2='HC1'/>
+      <Bond atomName1='C' atomName2='HC2'/>
+      <Bond atomName1='C' atomName2='CA'/>
+      <Bond atomName1='CA' atomName2='HA1'/>
+      <Bond atomName1='CA' atomName2='HA2'/>
+      <Bond atomName1='CA' atomName2='CB'/>
+      <Bond atomName1='CB' atomName2='OB1'/>
+      <Bond atomName1='CB' atomName2='OB2'/>
+      <Bond atomName1='OB2' atomName2='HB2'/>
+    </Residue>
+    <Residue name='AN1'>
+      <Atom name='C' type='C3' charge='-0.122067400656818'/>
+      <Atom name='HC1' type='HC' charge='0.039215878493181824'/>
+      <Atom name='HC2' type='HC' charge='0.039215878493181824'/>
+      <Atom name='HC3' type='HC' charge='0.039215878493181824'/>
+      <Atom name='CA' type='C3' charge='-0.03216350018181818'/>
+      <Atom name='HA1' type='HC' charge='0.01692576606818182'/>
+      <Atom name='HA2' type='HC' charge='0.01692576606818182'/>
+      <Atom name='CB' type='C' charge='0.5960647590681818'/>
+      <Atom name='OB1' type='O' charge='-0.4184221146818182'/>
+      <Atom name='OB2' type='OH' charge='-0.4834050526568182'/>
+      <Atom name='HB2' type='HO' charge='0.30849414149318183'/>
+      <Bond atomName1='C' atomName2='HC1'/>
+      <Bond atomName1='C' atomName2='HC2'/>
+      <Bond atomName1='C' atomName2='HC3'/>
+      <Bond atomName1='C' atomName2='CA'/>
+      <Bond atomName1='CA' atomName2='HA1'/>
+      <Bond atomName1='CA' atomName2='HA2'/>
+      <Bond atomName1='CA' atomName2='CB'/>
+      <Bond atomName1='CB' atomName2='OB1'/>
+      <Bond atomName1='CB' atomName2='OB2'/>
+      <Bond atomName1='OB2' atomName2='HB2'/>
+    </Residue>
+    <Residue name='LAC'>
+      <Atom name='C' type='C3' charge='-0.25168127222980774'/>
+      <Atom name='HC1' type='HC' charge='0.060704472032692317'/>
+      <Atom name='HC2' type='HC' charge='0.060704472032692317'/>
+      <Atom name='HC3' type='HC' charge='0.060704472032692317'/>
+      <Atom name='CA' type='C3' charge='0.34337387937019226'/>
+      <Atom name='HA1' type='H1' charge='-0.002335714229807685'/>
+      <Atom name='OA' type='OS' charge='-0.4076357942298077'/>
+      <Atom name='CB' type='C' charge='0.6947771416576922'/>
+      <Atom name='OB' type='O' charge='-0.47804415030480774'/>
+      <Atom name='CG' type='C3' charge='-0.35915132924230775'/>
+      <Atom name='HG1' type='HC' charge='0.09286127437019231'/>
+      <Atom name='HG2' type='HC' charge='0.09286127437019231'/>
+      <Atom name='HG3' type='HC' charge='0.09286127437019231'/>
+      <Bond atomName1='C' atomName2='HC1'/>
+      <Bond atomName1='C' atomName2='HC2'/>
+      <Bond atomName1='C' atomName2='HC3'/>
+      <Bond atomName1='C' atomName2='CA'/>
+      <Bond atomName1='CA' atomName2='HA1'/>
+      <Bond atomName1='CA' atomName2='OA'/>
+      <Bond atomName1='OA' atomName2='CB'/>
+      <Bond atomName1='CB' atomName2='OB'/>
+      <Bond atomName1='CB' atomName2='CG'/>
+      <Bond atomName1='CG' atomName2='HG1'/>
+      <Bond atomName1='CG' atomName2='HG2'/>
+      <Bond atomName1='CG' atomName2='HG3'/>
+      <ExternalBond atomName='CA'/>
+    </Residue>
+    <Residue name='ACE'>
+      <Atom name='C' type='C3' charge='-0.2173987911'/>
+      <Atom name='HC1' type='HC' charge='0.0616042234625'/>
+      <Atom name='HC2' type='HC' charge='0.0616042234625'/>
+      <Atom name='CA' type='C3' charge='0.3356411285375'/>
+      <Atom name='HA1' type='H1' charge='0.007712779937500001'/>
+      <Atom name='OA' type='OS' charge='-0.4243840000375'/>
+      <Atom name='CB' type='C' charge='0.7145787568374999'/>
+      <Atom name='OB' type='O' charge='-0.4845015637375001'/>
+      <Atom name='CG' type='C3' charge='-0.3596004726375'/>
+      <Atom name='HG1' type='HC' charge='0.101581238425'/>
+      <Atom name='HG2' type='HC' charge='0.101581238425'/>
+      <Atom name='HG3' type='HC' charge='0.101581238425'/>
+      <ExternalBond atomName='C'/>
+      <Bond atomName1='C' atomName2='HC1'/>
+      <Bond atomName1='C' atomName2='HC2'/>
+      <Bond atomName1='C' atomName2='CA'/>
+      <Bond atomName1='CA' atomName2='HA1'/>
+      <Bond atomName1='CA' atomName2='OA'/>
+      <Bond atomName1='OA' atomName2='CB'/>
+      <Bond atomName1='CB' atomName2='OB'/>
+      <Bond atomName1='CB' atomName2='CG'/>
+      <Bond atomName1='CG' atomName2='HG1'/>
+      <Bond atomName1='CG' atomName2='HG2'/>
+      <Bond atomName1='CG' atomName2='HG3'/>
+      <ExternalBond atomName='CA'/>
+    </Residue>
+    <Residue name='RAC'>
+      <Atom name='C' type='C3' charge='-0.13351595337307692'/>
+      <Atom name='HC1' type='HC' charge='0.04798954897692307'/>
+      <Atom name='HC2' type='HC' charge='0.04798954897692307'/>
+      <Atom name='CA' type='C3' charge='0.2116769911769231'/>
+      <Atom name='HA1' type='H1' charge='0.020450780014423076'/>
+      <Atom name='HA2' type='H1' charge='0.020450780014423076'/>
+      <Atom name='OA' type='OS' charge='-0.4016533932230769'/>
+      <Atom name='CB' type='C' charge='0.710935823801923'/>
+      <Atom name='OB' type='O' charge='-0.47187143131057696'/>
+      <Atom name='CG' type='C3' charge='-0.3471523341355769'/>
+      <Atom name='HG1' type='HC' charge='0.09823321302692309'/>
+      <Atom name='HG2' type='HC' charge='0.09823321302692309'/>
+      <Atom name='HG3' type='HC' charge='0.09823321302692309'/>
+      <ExternalBond atomName='C'/>
+      <Bond atomName1='C' atomName2='HC1'/>
+      <Bond atomName1='C' atomName2='HC2'/>
+      <Bond atomName1='C' atomName2='CA'/>
+      <Bond atomName1='CA' atomName2='HA1'/>
+      <Bond atomName1='CA' atomName2='HA2'/>
+      <Bond atomName1='CA' atomName2='OA'/>
+      <Bond atomName1='OA' atomName2='CB'/>
+      <Bond atomName1='CB' atomName2='OB'/>
+      <Bond atomName1='CB' atomName2='CG'/>
+      <Bond atomName1='CG' atomName2='HG1'/>
+      <Bond atomName1='CG' atomName2='HG2'/>
+      <Bond atomName1='CG' atomName2='HG3'/>
+    </Residue>
+    <Residue name='AC1'>
+      <Atom name='C' type='C3' charge='-0.2351064249803571'/>
+      <Atom name='HC1' type='HC' charge='0.06171599969464285'/>
+      <Atom name='HC2' type='HC' charge='0.06171599969464285'/>
+      <Atom name='HC3' type='HC' charge='0.06171599969464285'/>
+      <Atom name='CA' type='C3' charge='0.31829159121964284'/>
+      <Atom name='HA1' type='H1' charge='-0.010990668755357143'/>
+      <Atom name='HA2' type='H1' charge='-0.010990668755357143'/>
+      <Atom name='OA' type='OS' charge='-0.40469981933035715'/>
+      <Atom name='CB' type='C' charge='0.7133948134446428'/>
+      <Atom name='OB' type='O' charge='-0.4891178535053571'/>
+      <Atom name='CG' type='C3' charge='-0.3528120204803571'/>
+      <Atom name='HG1' type='HC' charge='0.09562768401964286'/>
+      <Atom name='HG2' type='HC' charge='0.09562768401964286'/>
+      <Atom name='HG3' type='HC' charge='0.09562768401964286'/>
+      <Bond atomName1='C' atomName2='HC1'/>
+      <Bond atomName1='C' atomName2='HC2'/>
+      <Bond atomName1='C' atomName2='HC3'/>
+      <Bond atomName1='C' atomName2='CA'/>
+      <Bond atomName1='CA' atomName2='HA1'/>
+      <Bond atomName1='CA' atomName2='HA2'/>
+      <Bond atomName1='CA' atomName2='OA'/>
+      <Bond atomName1='OA' atomName2='CB'/>
+      <Bond atomName1='CB' atomName2='OB'/>
+      <Bond atomName1='CB' atomName2='CG'/>
+      <Bond atomName1='CG' atomName2='HG1'/>
+      <Bond atomName1='CG' atomName2='HG2'/>
+      <Bond atomName1='CG' atomName2='HG3'/>
+    </Residue>
+    <Residue name='LAL'>
+      <Atom name='C' type='C3' charge='-0.24068107087875001'/>
+      <Atom name='HC1' type='HC' charge='0.05242602406125'/>
+      <Atom name='HC2' type='HC' charge='0.05242602406125'/>
+      <Atom name='HC3' type='HC' charge='0.05242602406125'/>
+      <Atom name='CA' type='C3' charge='0.33300732548625'/>
+      <Atom name='HA1' type='H1' charge='-0.025886827593749998'/>
+      <Atom name='OA' type='OC' charge='-0.52738193445375'/>
+      <Atom name='HOA' type='HO' charge='0.30366443525625'/>
+      <Bond atomName1='C' atomName2='HC1'/>
+      <Bond atomName1='C' atomName2='HC2'/>
+      <Bond atomName1='C' atomName2='HC3'/>
+      <Bond atomName1='C' atomName2='CA'/>
+      <Bond atomName1='CA' atomName2='HA1'/>
+      <Bond atomName1='CA' atomName2='OA'/>
+      <Bond atomName1='OA' atomName2='HOA'/>
+      <ExternalBond atomName='CA'/>
+    </Residue>
+    <Residue name='ALC'>
+      <Atom name='C' type='C3' charge='-0.15797108828357143'/>
+      <Atom name='HC1' type='HC' charge='0.04201210415142858'/>
+      <Atom name='HC2' type='HC' charge='0.04201210415142858'/>
+      <Atom name='CA' type='C3' charge='0.30060137733642855'/>
+      <Atom name='HA1' type='H1' charge='-0.03127280187857143'/>
+      <Atom name='OA' type='OC' charge='-0.4961940979435714'/>
+      <Atom name='HOA' type='HO' charge='0.3008124024664286'/>
+      <ExternalBond atomName='C'/>
+      <Bond atomName1='C' atomName2='HC1'/>
+      <Bond atomName1='C' atomName2='HC2'/>
+      <Bond atomName1='C' atomName2='CA'/>
+      <Bond atomName1='CA' atomName2='HA1'/>
+      <Bond atomName1='CA' atomName2='OA'/>
+      <Bond atomName1='OA' atomName2='HOA'/>
+      <ExternalBond atomName='CA'/>
+    </Residue>
+    <Residue name='RAL'>
+      <Atom name='C' type='C3' charge='-0.09551624666250001'/>
+      <Atom name='HC1' type='HC' charge='0.0298456770225'/>
+      <Atom name='HC2' type='HC' charge='0.0298456770225'/>
+      <Atom name='CA' type='C3' charge='0.2949411872775'/>
+      <Atom name='HA1' type='H1' charge='-0.028614219427500004'/>
+      <Atom name='HA2' type='H1' charge='-0.028614219427500004'/>
+      <Atom name='OA' type='OC' charge='-0.5105279159775'/>
+      <Atom name='HOA' type='HO' charge='0.3086400601725'/>
+      <ExternalBond atomName='C'/>
+      <Bond atomName1='C' atomName2='HC1'/>
+      <Bond atomName1='C' atomName2='HC2'/>
+      <Bond atomName1='C' atomName2='CA'/>
+      <Bond atomName1='CA' atomName2='HA1'/>
+      <Bond atomName1='CA' atomName2='HA2'/>
+      <Bond atomName1='CA' atomName2='OA'/>
+      <Bond atomName1='OA' atomName2='HOA'/>
+    </Residue>
+    <Residue name='NA'>
+      <Atom name='NA' type='Na' charge='0.75'/>
+    </Residue>
+    <Residue name='CL'>
+      <Atom name='CL' type='Cl' charge='-0.75'/>
+    </Residue>
+      </Residues>
+</ForceField>

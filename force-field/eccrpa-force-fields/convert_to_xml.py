@@ -26,20 +26,20 @@ def header_to_xml():
 
 def atom_types() -> str:
     return """  <AtomTypes>
-    <Type element="C" name="c" class="c" mass="12.01"/>
-    <Type element="C" name="c3" class="c3" mass="12.01"/>
-    <Type element="H" name="h1" class="h1" mass="1.008"/>
-    <Type element="H" name="hc" class="hc" mass="1.008"/>
-    <Type element="H" name="ho" class="ho" mass="1.008"/>
-    <Type element="O" name="o" class="o" mass="16.00"/>
-    <Type element="O" name="oc" class="oc" mass="16.00"/>
-    <Type element="O" name="oh" class="oh" mass="16.00"/>
-    <Type element="O" name="os" class="os" mass="16.00"/>
-    <Type element="C" name="cx" class="cx" mass="12.01"/>
-    <Type element="O" name="ox" class="ox" mass="16.00"/>
-    <Type element="Cl" name="cl" class="cl" mass="35.45"/>
-    <Type element="Ca" name="c0" class="c0" mass="40.08"/>
-    <Type element="Na" name="na" class="na" mass="22.99"/>
+    <Type element="C" name="C" class="C" mass="12.01"/>
+    <Type element="C" name="C3" class="C3" mass="12.01"/>
+    <Type element="H" name="H1" class="H1" mass="1.008"/>
+    <Type element="H" name="HC" class="HC" mass="1.008"/>
+    <Type element="H" name="HO" class="HO" mass="1.008"/>
+    <Type element="O" name="O" class="O" mass="16.00"/>
+    <Type element="O" name="OC" class="OC" mass="16.00"/>
+    <Type element="O" name="OH" class="OH" mass="16.00"/>
+    <Type element="O" name="OS" class="OS" mass="16.00"/>
+    <Type element="C" name="CX" class="CX" mass="12.01"/>
+    <Type element="O" name="OX" class="OX" mass="16.00"/>
+    <Type element="Cl" name="Cl" class="Cl" mass="35.45"/>
+    <Type element="Ca" name="C0" class="C0" mass="40.08"/>
+    <Type element="Na" name="Na" class="Na" mass="22.99"/>
   </AtomTypes>
 """
 
@@ -170,14 +170,109 @@ def nonbonded_interactions(filename: str) -> str:
     return xml
 
 
+def residues(filename: str) -> str:
+    with open(filename, "r", encoding="utf-8") as f:
+        lines = f.readlines()
+
+    # remove all lines that start with a comment
+    lines = [line for line in lines if not line.strip().startswith(";")]
+
+    # split the lines into sections based on empty lines
+    sections = []
+    current_section = []
+    for line in lines:
+        if line.strip() == "":
+            sections.append(current_section)
+            current_section = []
+        else:
+            current_section.append(line)
+
+    # remove the empty sections
+    sections = [section for section in sections if len(section) > 0]
+
+    # convert each section to xml
+    xml = "  <Residues>\n"
+    for section in sections:
+        name = section[0].strip().split(" ")[1]
+        if name == "bondedtypes":
+            continue
+
+        xml += f"    <Residue name='{name}'>\n"
+
+        atoms = True
+        bonds = False
+        impropers = False
+        for line in section[1:]:
+            if line.strip() == "[ atoms ]":
+                atoms = True
+                bonds = False
+                impropers = False
+                continue
+            elif line.strip() == "[ bonds ]":
+                atoms = False
+                bonds = True
+                impropers = False
+                continue
+            elif line.strip() == "[ impropers ]":
+                atoms = False
+                bonds = False
+                impropers = True
+                continue
+
+            tokens = line.split()
+            if atoms:
+                xml += "      <Atom"
+                xml += f" name='{tokens[0]}'"
+                xml += f" type='{tokens[1]}'"
+                xml += f" charge='{float(tokens[2])}'"
+                xml += "/>\n"
+            if bonds:
+                # if first two tokens do not contain + or -, then it is a bond
+                if (
+                    "+" not in tokens[0]
+                    and "-" not in tokens[0]
+                    and "+" not in tokens[1]
+                    and "-" not in tokens[1]
+                ):
+                    xml += "      <Bond"
+                    xml += f" atomName1='{tokens[0]}'"
+                    xml += f" atomName2='{tokens[1]}'"
+                    xml += "/>\n"
+                # find the token that does not contain + or - and use that as the atom
+                else:
+                    internal_bond = (
+                        tokens[0]
+                        if "+" not in tokens[0] and "-" not in tokens[0]
+                        else tokens[1]
+                    )
+                    xml += "      <ExternalBond"
+                    xml += f" atomName='{internal_bond}'"
+                    xml += "/>\n"
+            if impropers:
+                print("impropers not implemented in residues")
+
+        xml += "    </Residue>\n"
+
+    # REVIEW: manually add the remaining residues
+    xml += """    <Residue name='NA'>
+      <Atom name='NA' type='Na' charge='0.75'/>
+    </Residue>
+    <Residue name='CL'>
+      <Atom name='CL' type='Cl' charge='-0.75'/>
+    </Residue>
+    """
+
+    xml += "  </Residues>\n"
+    return xml
+
+
 def main(directory_force_field: str):
     xml = "<ForceField>\n"
     xml += header_to_xml()
     xml += atom_types()
     xml += bonded_interactions(f"{directory_force_field}/ffbonded.itp")
     xml += nonbonded_interactions(f"{directory_force_field}/ffnonbonded.itp")
-    # TODO: add residue information
-    # TODO: add small molecule information
+    xml += residues(f"{directory_force_field}/residues.rtp")
     xml += "</ForceField>\n"
 
     # write xml to file
