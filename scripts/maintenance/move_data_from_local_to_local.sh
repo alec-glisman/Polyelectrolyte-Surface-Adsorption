@@ -26,7 +26,7 @@ if [[ ! $REPLY =~ ^[Yy]$ ]]; then
 else
     echo "INFO) Moving files"
     rsync --verbose --archive --progress --human-readable --relative --stats \
-    "${source_dir}/." "${dest_dir}/"
+        "${source_dir}/./" "${dest_dir}/"
 fi
 
 echo "INFO) Done"
