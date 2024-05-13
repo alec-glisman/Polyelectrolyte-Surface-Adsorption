@@ -171,7 +171,7 @@ ${group_bulk} & a CX*
 name $((idx_group + 1)) Crystal_Bulk_Carbonate_Carbon
 ${group_bulk} & a OX*
 name $((idx_group + 2)) Crystal_Bulk_Carbonate_Oxygen
-${group_bulk} & a O*
+${group_bulk} & ! a O* & ! a CX*
 name $((idx_group + 3)) Crystal_Bulk_Calcium
 ${group_top_surface} & ! a CA*
 name $((idx_group + 4)) Crystal_Top_Surface_Carbonate
@@ -179,7 +179,7 @@ ${group_top_surface} & a CX*
 name $((idx_group + 5)) Crystal_Top_Surface_Carbonate_Carbon
 ${group_top_surface} & a OX*
 name $((idx_group + 6)) Crystal_Top_Surface_Carbonate_Oxygen
-${group_top_surface} & a O*
+${group_top_surface} & ! a O* & ! a CX*
 name $((idx_group + 7)) Crystal_Top_Surface_Calcium
 ${group_bottom_surface} & ! a CA*
 name $((idx_group + 8)) Crystal_Bottom_Surface_Carbonate
@@ -187,7 +187,7 @@ ${group_bottom_surface} & a CX*
 name $((idx_group + 9)) Crystal_Bottom_Surface_Carbonate_Carbon
 ${group_bottom_surface} & a OX*
 name $((idx_group + 10)) Crystal_Bottom_Surface_Carbonate_Oxygen
-${group_bottom_surface} & a O*
+${group_bottom_surface} & ! a O* & ! a CX*
 name $((idx_group + 11)) Crystal_Bottom_Surface_Calcium
 
 q
@@ -252,7 +252,7 @@ ${group_bulk} & a CX*
 name $((idx_group + 1)) Crystal_Bulk_Carbonate_Carbon
 ${group_bulk} & a OX*
 name $((idx_group + 2)) Crystal_Bulk_Carbonate_Oxygen
-${group_bulk} & a O*
+${group_bulk} & ! a O* & ! a CX*
 name $((idx_group + 3)) Crystal_Bulk_Calcium
 ${group_top_surface} & ! a CA*
 name $((idx_group + 4)) Crystal_Top_Surface_Carbonate
@@ -260,7 +260,7 @@ ${group_top_surface} & a CX*
 name $((idx_group + 5)) Crystal_Top_Surface_Carbonate_Carbon
 ${group_top_surface} & a OX*
 name $((idx_group + 6)) Crystal_Top_Surface_Carbonate_Oxygen
-${group_top_surface} & a O*
+${group_top_surface} & ! a O* & ! a CX*
 name $((idx_group + 7)) Crystal_Top_Surface_Calcium
 
 q
